@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.holon-platform</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0.12-SNAPSHOT</version>
+	</parent>
+
+	<groupId>com.holon-platform.mongo</groupId>
+	<artifactId>holon-datastore-mongo-root</artifactId>
+	<version>5.2.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Holon MongoDB Datastore root pom</description>
+
+	<url>https://holon-platform.com</url>
+
+	<organization>
+		<name>The Holon Platform</name>
+		<url>https://holon-platform.com</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>Apache License Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Holon development team</name>
+			<email>dev@holon-platform.com</email>
+			<organization>The Holon Platform</organization>
+			<organizationUrl>https://holon-platform.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<url>https://github.com/holon-platform/holon-datastore-mongo/issues</url>
+		<system>GitHub Issues</system>
+	</issueManagement>
+
+	<scm>
+		<connection>scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</connection>
+		<url>https://github.com/holon-platform/holon-datastore-mongo</url>
+		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</developerConnection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- pre-releases package name -->
+		<bintray.package>holon-datastore-mongo</bintray.package>
+
+		<!-- Holon Core -->
+		<holon.core.version>5.2.0-SNAPSHOT</holon.core.version>
+
+		<!-- MongoDB Java driver (synchronous) -->
+		<mongo.driver.sync.version>3.7.0-rc0</mongo.driver.sync.version>
+
+		<!-- ByteBuddy -->
+		<bytebuddy.version>1.8.7</bytebuddy.version>
+
+	</properties>
+
+	<modules>
+		<module>datastore-sync</module>
+		<module>spring</module>
+		<module>spring-boot</module>
+		<module>starter</module>
+		<module>bom</module>
+		<module>documentation</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<!-- Aggregate javadocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>aggregate-javadocs</id>
+						<phase>package</phase>
+						<inherited>false</inherited>
+						<goals>
+							<goal>aggregate-jar</goal>
+						</goals>
+						<configuration>
+							<show>public</show>
+							<excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
+							<quiet>true</quiet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Assembly apidocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>apidocs-assembly</id>
+						<phase>package</phase>
+						<inherited>false</inherited>
+						<configuration>
+							<appendAssemblyId>true</appendAssemblyId>
+							<descriptorRefs>
+								<descriptorRef>apidocs</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

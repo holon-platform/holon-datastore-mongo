@@ -1,0 +1,20 @@
+= Holon Platform MongoDB Datastore Module - Reference manual
+:description: Holon platform MongoDB Datastore module reference documentation. \
+The Holon MongoDB Datastore is the MongoDB reference implementation of the Datastore API.
+:revnumber: {project-version}
+:apidir: ../api/holon-datastore-mongo
+:coreapidir: ../api/holon-core
+:linkattrs:
+:sectnums:
+:nofooter:
+:toc: left
+:toclevels: 3
+
+Copyright © 2016-2018
+
+_Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
+
+== Introduction
+
+
+

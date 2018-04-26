@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.holon-platform.mongo</groupId>
+		<artifactId>holon-datastore-mongo-root</artifactId>
+		<version>5.2.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>holon-datastore-mongo-bom</artifactId>
+	<packaging>pom</packaging>
+
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Holon Datastore MongoDB (Bill of Materials)</description>
+
+	<url>https://holon-platform.com</url>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Sync Datastore -->
+			<dependency>
+				<groupId>com.holon-platform.mongo</groupId>
+				<artifactId>holon-datastore-mongo</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<!-- Spring -->
+			<dependency>
+				<groupId>com.holon-platform.mongo</groupId>
+				<artifactId>holon-datastore-mongo-spring</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.holon-platform.mongo</groupId>
+				<artifactId>holon-datastore-mongo-spring-boot</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<!-- Spring boot starters -->
+			<dependency>
+				<groupId>com.holon-platform.mongo</groupId>
+				<artifactId>holon-starter-mongo-datastore</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+
+</project>

@@ -13,41 +13,41 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.sync;
+package com.holonplatform.datastore.mongo.async;
 
-import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodity;
-import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.DatastoreOperations;
-import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.operation.AsyncBulkDelete;
+import com.holonplatform.datastore.mongo.async.operation.AsyncBulkInsert;
+import com.holonplatform.datastore.mongo.async.operation.AsyncBulkUpdate;
+import com.holonplatform.datastore.mongo.async.operation.AsyncQuery;
+import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.MongoClient;
 
 /**
- * MongoDB {@link Datastore} implementation.
- *
- * @since 5.2.0
+ * TODO
  */
-public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDatabase>,
-		DatastoreCommodityRegistrar<SyncMongoDatastoreCommodityContext> {
+public interface AsyncMongoDatastore extends
+		DatastoreOperations<SingleResultCallback<OperationResult>, SingleResultCallback<PropertyBox>, AsyncBulkInsert, AsyncBulkUpdate, AsyncBulkDelete, AsyncQuery> {
 
 	/**
-	 * Get a builder to create a {@link MongoDatastore} instance.
+	 * Get a builder to create a {@link AsyncMongoDatastore} instance.
 	 * @return Datastore builder
 	 */
-	static Builder<MongoDatastore> builder() {
+	static Builder<AsyncMongoDatastore> builder() {
 		// return new DefaultJdbcDatastore.DefaultBuilder();
 		// TODO
 		return null;
 	}
 
 	/**
-	 * {@link MongoDatastore} builder.
-	 * @param <D> {@link MongoDatastore} type
+	 * {@link AsyncMongoDatastore} builder.
+	 * @param <D> {@link AsyncMongoDatastore} type
 	 */
-	public interface Builder<D extends MongoDatastore> extends DatastoreOperations.Builder<D, Builder<D>> {
+	public interface Builder<D extends AsyncMongoDatastore> extends DatastoreOperations.Builder<D, Builder<D>> {
 
 		/**
 		 * Set the {@link MongoClient} to use.
@@ -69,7 +69,8 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 		 * @param commodityFactory The factory to register (not null)
 		 * @return this
 		 */
-		<C extends DatastoreCommodity> Builder<D> withCommodity(SyncMongoDatastoreCommodityFactory<C> commodityFactory);
+		<C extends DatastoreCommodity> Builder<D> withCommodity(
+				AsyncMongoDatastoreCommodityFactory<C> commodityFactory);
 
 	}
 

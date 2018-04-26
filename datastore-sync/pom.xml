@@ -9,7 +9,7 @@
 		<version>5.2.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>holon-datastore-mongo</artifactId>
+	<artifactId>holon-datastore-mongo-sync</artifactId>
 	<packaging>jar</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -32,11 +32,11 @@
 
 	<dependencies>
 
-		<!-- Core -->
+		<!-- MongoDB Datastore core -->
 		<dependency>
-			<groupId>com.holon-platform.core</groupId>
-			<artifactId>holon-core</artifactId>
-			<version>${holon.core.version}</version>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-core</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- MongoDB synchronous Java driver -->

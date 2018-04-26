@@ -58,9 +58,15 @@
 	</build>
 
 	<dependencies>
+	
 		<dependency>
 			<groupId>com.holon-platform.mongo</groupId>
-			<artifactId>holon-datastore-mongo</artifactId>
+			<artifactId>holon-datastore-mongo-sync</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-async</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		

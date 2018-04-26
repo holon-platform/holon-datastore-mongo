@@ -9,18 +9,17 @@
 		<version>5.2.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>holon-datastore-mongo-spring</artifactId>
+	<artifactId>holon-datastore-mongo-core</artifactId>
 	<packaging>jar</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Holon MongoDB Datastore Spring integration</description>
+	<description>Holon MongoDB Datastore Core classes</description>
 
 	<url>https://holon-platform.com</url>
 
 	<dependencyManagement>
 		<dependencies>
-
-			<!-- Holon Spring platform -->
+			<!-- Holon platform BOM -->
 			<dependency>
 				<groupId>com.holon-platform.core</groupId>
 				<artifactId>holon-bom-platform</artifactId>
@@ -28,37 +27,23 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
 
-		<!-- Spring integration -->
+		<!-- Core -->
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
-			<artifactId>holon-spring</artifactId>
+			<artifactId>holon-core</artifactId>
 			<version>${holon.core.version}</version>
 		</dependency>
 
-		<!-- Sync Datastore -->
+		<!-- MongoDB core Java driver -->
 		<dependency>
-			<groupId>com.holon-platform.mongo</groupId>
-			<artifactId>holon-datastore-mongo-sync</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- Spring -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-
-		<!-- ByteBuddy -->
-		<dependency>
-			<groupId>net.bytebuddy</groupId>
-			<artifactId>byte-buddy</artifactId>
-			<version>${bytebuddy.version}</version>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-core</artifactId>
+			<version>${mongo.driver.sync.version}</version>
 		</dependency>
 
 		<!-- Test -->
@@ -70,16 +55,6 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -94,7 +69,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Automatic-Module-Name>com.holonplatform.datastore.mongo.spring</Automatic-Module-Name>
+							<Automatic-Module-Name>com.holonplatform.datastore.mongo.core</Automatic-Module-Name>
 						</manifestEntries>
 					</archive>
 				</configuration>

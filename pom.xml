@@ -63,6 +63,8 @@
 
 		<!-- MongoDB Java driver (synchronous) -->
 		<mongo.driver.sync.version>3.7.0-rc0</mongo.driver.sync.version>
+		<!-- MongoDB Java driver (asynchronous) -->
+		<mongo.driver.async.version>3.7.0-rc0</mongo.driver.async.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.8.7</bytebuddy.version>
@@ -70,7 +72,9 @@
 	</properties>
 
 	<modules>
+		<module>core</module>
 		<module>datastore-sync</module>
+		<module>datastore-async</module>
 		<module>spring</module>
 		<module>spring-boot</module>
 		<module>starter</module>

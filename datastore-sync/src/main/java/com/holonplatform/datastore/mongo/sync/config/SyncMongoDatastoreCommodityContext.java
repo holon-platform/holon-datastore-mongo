@@ -24,6 +24,7 @@ import com.mongodb.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public interface SyncMongoDatastoreCommodityContext extends MongoDatastoreCommodityContext<MongoDatabase> {
+public interface SyncMongoDatastoreCommodityContext
+		extends MongoDatastoreCommodityContext<MongoDatabase> {
 
 }

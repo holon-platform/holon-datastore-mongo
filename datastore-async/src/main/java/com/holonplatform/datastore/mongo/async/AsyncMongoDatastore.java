@@ -15,23 +15,21 @@
  */
 package com.holonplatform.datastore.mongo.async;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodity;
+import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.DatastoreOperations;
-import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.datastore.async.AsyncDatastore;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
-import com.holonplatform.datastore.mongo.async.operation.AsyncBulkDelete;
-import com.holonplatform.datastore.mongo.async.operation.AsyncBulkInsert;
-import com.holonplatform.datastore.mongo.async.operation.AsyncBulkUpdate;
-import com.holonplatform.datastore.mongo.async.operation.AsyncQuery;
-import com.mongodb.async.SingleResultCallback;
+import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.mongodb.async.client.MongoClient;
+import com.mongodb.async.client.MongoDatabase;
 
 /**
  * TODO
  */
-public interface AsyncMongoDatastore extends
-		DatastoreOperations<SingleResultCallback<OperationResult>, SingleResultCallback<PropertyBox>, AsyncBulkInsert, AsyncBulkUpdate, AsyncBulkDelete, AsyncQuery> {
+public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandler<MongoDatabase>,
+		DatastoreCommodityRegistrar<AsyncMongoDatastoreCommodityContext> {
 
 	/**
 	 * Get a builder to create a {@link AsyncMongoDatastore} instance.

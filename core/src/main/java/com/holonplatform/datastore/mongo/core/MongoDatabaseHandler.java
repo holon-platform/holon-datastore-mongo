@@ -30,14 +30,14 @@ public interface MongoDatabaseHandler<MongoDatabase> {
 	 * @param operation Operation to execute (not null)
 	 * @return Operation result
 	 */
-	<R> R withConnection(MongoDatabaseOperation<MongoDatabase, R> operation);
+	<R> R withDatabase(MongoDatabaseOperation<MongoDatabase, R> operation);
 
 	/**
 	 * Execute given {@link MongoDatabaseRunnable} operation using a managed MongoDatabase.
 	 * @param operation Operation to execute (not null)
 	 */
-	default void withConnection(MongoDatabaseRunnable<MongoDatabase> operation) {
-		withConnection(connection -> {
+	default void withDatabase(MongoDatabaseRunnable<MongoDatabase> operation) {
+		withDatabase(connection -> {
 			operation.execute(connection);
 			return null;
 		});

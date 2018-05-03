@@ -13,14 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.async.operation;
-
-import com.holonplatform.core.datastore.DatastoreCommodity;
-import com.holonplatform.core.query.QueryBuilder;
+package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 /**
- * TODO
+ * @author BODSI08
+ *
  */
-public interface AsyncQuery extends QueryBuilder<AsyncQuery>, AsyncQueryResults, DatastoreCommodity {
+public class MongoDelete {
 
 }

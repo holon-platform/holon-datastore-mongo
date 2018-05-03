@@ -13,18 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.async.operation;
-
-import com.holonplatform.core.datastore.Datastore.OperationResult;
-import com.holonplatform.core.datastore.DatastoreCommodity;
-import com.holonplatform.core.datastore.bulk.BulkInsertOperation;
-import com.holonplatform.core.datastore.operation.ExecutableOperation;
-import com.mongodb.async.SingleResultCallback;
+package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 /**
- * TODO
+ * @author BODSI08
+ *
  */
-public interface AsyncBulkInsert extends BulkInsertOperation<AsyncBulkInsert>,
-		ExecutableOperation<SingleResultCallback<OperationResult>>, DatastoreCommodity {
+public class MongoSave {
 
 }

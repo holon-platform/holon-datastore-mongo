@@ -13,19 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.async.operation;
-
-import java.util.stream.Stream;
-
-import com.holonplatform.core.query.QueryProjection;
-import com.mongodb.async.SingleResultCallback;
+package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 /**
- * TODO
+ * @author BODSI08
+ *
  */
-public interface AsyncQueryResults {
-	
-	// TODO
-	
-	<R> SingleResultCallback<Stream<R>> stream(QueryProjection<R> projection);
+public class MongoUpdate {
+
 }

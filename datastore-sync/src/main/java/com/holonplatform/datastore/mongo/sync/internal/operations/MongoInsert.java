@@ -15,10 +15,74 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.InsertOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
+import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.mongodb.client.MongoDatabase;
+
 /**
- * @author BODSI08
+ * MongoDB {@link InsertOperation}.
  *
+ * @since 5.2.0
  */
-public class MongoInsert {
+public class MongoInsert extends AbstractInsertOperation {
+
+	private static final long serialVersionUID = -6120583386835783717L;
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, InsertOperation>() {
+
+		@Override
+		public Class<? extends InsertOperation> getCommodityType() {
+			return InsertOperation.class;
+		}
+
+		@Override
+		public InsertOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new MongoInsert(context);
+		}
+	};
+
+	private final MongoOperationContext<MongoDatabase> operationContext;
+
+	public MongoInsert(MongoOperationContext<MongoDatabase> operationContext) {
+		super();
+		this.operationContext = operationContext;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
+	 */
+	@Override
+	public OperationResult execute() {
+
+		// validate
+		getConfiguration().validate();
+
+		// resolution context
+		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+		
+		// TODO ensure indexes
+
+		operationContext.withDatabase(database -> {
+			
+			// TODO
+			//database.withCodecRegistry(codecRegistry)
+
+			database.getCollection("todo");
+
+		});
+
+		return null;
+	}
 
 }

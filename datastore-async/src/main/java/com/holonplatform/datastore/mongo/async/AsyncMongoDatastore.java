@@ -17,11 +17,11 @@ package com.holonplatform.datastore.mongo.async;
 
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
-import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.core.datastore.async.AsyncDatastore;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
+import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -45,7 +45,7 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 	 * {@link AsyncMongoDatastore} builder.
 	 * @param <D> {@link AsyncMongoDatastore} type
 	 */
-	public interface Builder<D extends AsyncMongoDatastore> extends DatastoreOperations.Builder<D, Builder<D>> {
+	public interface Builder<D extends AsyncMongoDatastore> extends MongoDatastoreBuilder<D, Builder<D>> {
 
 		/**
 		 * Set the {@link MongoClient} to use.

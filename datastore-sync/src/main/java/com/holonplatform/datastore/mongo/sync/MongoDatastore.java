@@ -18,8 +18,8 @@ package com.holonplatform.datastore.mongo.sync;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
-import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
+import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
 import com.mongodb.client.MongoClient;
@@ -47,7 +47,7 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 	 * {@link MongoDatastore} builder.
 	 * @param <D> {@link MongoDatastore} type
 	 */
-	public interface Builder<D extends MongoDatastore> extends DatastoreOperations.Builder<D, Builder<D>> {
+	public interface Builder<D extends MongoDatastore> extends MongoDatastoreBuilder<D, Builder<D>> {
 
 		/**
 		 * Set the {@link MongoClient} to use.

@@ -26,6 +26,9 @@ import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.DocumentIdGenerator;
+import com.holonplatform.datastore.mongo.core.document.DocumentIdHandler;
+import com.holonplatform.datastore.mongo.core.document.DocumentIdPropertyResolver;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 
 /**
@@ -102,6 +105,33 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public MongoResolutionContext childContext() {
 		return new DefaultMongoResolutionContext(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDocumentIdHandler()
+	 */
+	@Override
+	public DocumentIdHandler getDocumentIdHandler() {
+		return getContext().getDocumentIdHandler();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDocumentIdGenerator()
+	 */
+	@Override
+	public DocumentIdGenerator getDocumentIdGenerator() {
+		return getContext().getDocumentIdGenerator();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDocumentIdPropertyResolver()
+	 */
+	@Override
+	public DocumentIdPropertyResolver getDocumentIdPropertyResolver() {
+		return getContext().getDocumentIdPropertyResolver();
 	}
 
 	/*

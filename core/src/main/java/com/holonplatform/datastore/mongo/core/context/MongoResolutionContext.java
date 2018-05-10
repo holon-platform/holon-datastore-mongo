@@ -22,6 +22,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
+import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResolutionContext;
 
 /**
@@ -79,7 +80,7 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 				.orElseThrow(() -> new InvalidExpressionException("Failed to resolve expression [" + expression + "]"));
 	}
 
-	// builders
+	// ------- Builders
 
 	/**
 	 * Create a new {@link MongoResolutionContext} as child of this context. This context will be setted as parent of
@@ -87,6 +88,23 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @return A new {@link MongoResolutionContext} with this context as parent
 	 */
 	MongoResolutionContext childContext();
+
+	/**
+	 * Create a {@link MongoDocumentContext} as child of this context.
+	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 * @return A new {@link MongoDocumentContext} instance
+	 */
+	default MongoDocumentContext documentContext(PropertySet<?> propertySet) {
+		return documentContext(propertySet, true);
+	}
+
+	/**
+	 * Create a {@link MongoDocumentContext} as child of this context.
+	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 * @param resolveDocumentId Whether to resolve the document id property
+	 * @return A new {@link MongoDocumentContext} instance
+	 */
+	MongoDocumentContext documentContext(PropertySet<?> propertySet, boolean resolveDocumentId);
 
 	/**
 	 * Create a new default {@link MongoResolutionContext}.
@@ -100,10 +118,10 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	/**
 	 * Checks if given {@link ResolutionContext} is a {@link MongoResolutionContext}.
 	 * @param context The context to check
-	 * @return if given context is a {@link MongoResolutionContext}, it is returned as a
-	 *         {@link SQLCompositionMongoResolutionContextContext} type. Otherwise, an empty Optional is returned.
+	 * @return if given context is a {@link MongoResolutionContext}, it is returned as a {@link MongoResolutionContext}
+	 *         type. Otherwise, an empty Optional is returned.
 	 */
-	static Optional<MongoResolutionContext> isSQLCompositionContext(ResolutionContext context) {
+	static Optional<MongoResolutionContext> isMongoResolutionContext(ResolutionContext context) {
 		if (context instanceof MongoResolutionContext) {
 			return Optional.of((MongoResolutionContext) context);
 		}

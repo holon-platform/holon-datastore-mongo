@@ -15,29 +15,28 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.document;
 
-import org.bson.types.ObjectId;
-
-import com.holonplatform.datastore.mongo.core.document.DocumentIdGenerator;
+import com.holonplatform.core.Path;
+import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
 
 /**
- * Default {@link DocumentIdGenerator} implementation.
+ * Default MongoDB Document {@link PathMatcher}.
  *
- * @since 5.2.0
  */
-public enum DefaultDocumentIdGenerator implements DocumentIdGenerator {
+public enum DocumentPathMatcher implements PathMatcher {
 
-	/**
-	 * Singleton instance
-	 */
 	INSTANCE;
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.document.DocumentIdGenerator#generate()
+	 * @see com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher#match(com.holonplatform.core.Path,
+	 * com.holonplatform.core.Path)
 	 */
 	@Override
-	public ObjectId generate() {
-		return new ObjectId();
+	public boolean match(Path<?> path, Path<?> otherPath) {
+		if (path != null && otherPath != null) {
+			return path.relativeName().equals(otherPath.relativeName());
+		}
+		return false;
 	}
 
 }

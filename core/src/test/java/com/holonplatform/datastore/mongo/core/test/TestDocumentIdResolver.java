@@ -31,24 +31,22 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.StringProperty;
-import com.holonplatform.datastore.mongo.core.document.DocumentIdHandler;
-import com.holonplatform.datastore.mongo.core.document.DocumentIdPropertyResolver;
+import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.exceptions.InvalidDocumentIdentifierException;
 
 public class TestDocumentIdResolver {
 
-	private static final DocumentIdHandler DOCUMENT_ID_HANDLER = DocumentIdHandler.getDefault();
+	private static final String _ID = "_id";
 
 	@Test
 	public void testIdentifierString() {
 
-		final StringProperty ID = StringProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
+		final StringProperty ID = StringProperty.create(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -58,14 +56,12 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testIdentifierBigInteger() {
 
-		final NumericProperty<BigInteger> ID = NumericProperty
-				.bigIntegerType(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
+		final NumericProperty<BigInteger> ID = NumericProperty.bigIntegerType(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -75,14 +71,12 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testIdentifierObjectId() {
 
-		final PathProperty<ObjectId> ID = PathProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME,
-				ObjectId.class);
+		final PathProperty<ObjectId> ID = PathProperty.create(_ID, ObjectId.class);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -92,13 +86,12 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testDefaultDocumentIdPathString() {
 
-		final StringProperty ID = StringProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
+		final StringProperty ID = StringProperty.create(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.of(ID, BOOL);
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -108,14 +101,12 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testDefaultDocumentIdPathBigInteger() {
 
-		final NumericProperty<BigInteger> ID = NumericProperty
-				.bigIntegerType(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
+		final NumericProperty<BigInteger> ID = NumericProperty.bigIntegerType(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.of(ID, BOOL);
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -125,14 +116,12 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testDefaultDocumentIdPathObjectId() {
 
-		final PathProperty<ObjectId> ID = PathProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME,
-				ObjectId.class);
+		final PathProperty<ObjectId> ID = PathProperty.create(_ID, ObjectId.class);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.of(ID, BOOL);
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -147,8 +136,7 @@ public class TestDocumentIdResolver {
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -158,14 +146,13 @@ public class TestDocumentIdResolver {
 	@Test
 	public void testIdentifierConversionType() {
 
-		final NumericProperty<Long> ID = NumericProperty.longType(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME)
-				.converter(String.class, v -> Long.valueOf(v), v -> String.valueOf(v));
+		final NumericProperty<Long> ID = NumericProperty.longType(_ID).converter(String.class, v -> Long.valueOf(v),
+				v -> String.valueOf(v));
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.of(ID, BOOL);
 
-		Optional<Property<?>> docId = DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET,
-				DOCUMENT_ID_HANDLER);
+		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 		assertTrue(docId.isPresent());
 		assertEquals(ID, docId.get());
@@ -175,25 +162,24 @@ public class TestDocumentIdResolver {
 	@Test(expected = InvalidDocumentIdentifierException.class)
 	public void testFailOnIdentifierType() {
 
-		final PathProperty<Date> ID = PathProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME, Date.class);
+		final PathProperty<Date> ID = PathProperty.create(_ID, Date.class);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET, DOCUMENT_ID_HANDLER);
+		DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 	}
 
 	@Test(expected = InvalidDocumentIdentifierException.class)
 	public void testFailOnMultipleIdentifier() {
 
-		final StringProperty ID1 = StringProperty.create(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
-		final NumericProperty<BigInteger> ID2 = NumericProperty
-				.bigIntegerType(DocumentIdPropertyResolver.DOCUMENT_ID_PATH_NAME);
+		final StringProperty ID1 = StringProperty.create(_ID);
+		final NumericProperty<BigInteger> ID2 = NumericProperty.bigIntegerType(_ID);
 
 		final PropertySet<?> SET = PropertySet.of(ID1, ID2);
 
-		DocumentIdPropertyResolver.getDefault().resolveDocumentIdProperty(SET, DOCUMENT_ID_HANDLER);
+		DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
 	}
 

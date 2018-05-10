@@ -13,31 +13,31 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.core.document;
+package com.holonplatform.datastore.mongo.core.expression;
 
-import org.bson.types.ObjectId;
-
-import com.holonplatform.datastore.mongo.core.internal.document.DefaultDocumentIdGenerator;
+import com.holonplatform.core.Expression;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultCollectionName;
 
 /**
- * Document id generator.
+ * Mongo collection name expression.
  *
  * @since 5.2.0
  */
-public interface DocumentIdGenerator {
+public interface CollectionName extends Expression {
 
 	/**
-	 * Generates an {@link ObjectId} for a MongoDB Document.
-	 * @return an {@link ObjectId} instance representing the document id
+	 * Get the database collection name.
+	 * @return The collection name
 	 */
-	ObjectId generate();
+	String getName();
 
 	/**
-	 * Get the default {@link DocumentIdGenerator}.
-	 * @return The default {@link DocumentIdGenerator}
+	 * Create a new {@link CollectionName} using given collection name.
+	 * @param name The collection name
+	 * @return A new {@link CollectionName} instance
 	 */
-	static DocumentIdGenerator getDefault() {
-		return DefaultDocumentIdGenerator.INSTANCE;
+	static CollectionName create(String name) {
+		return new DefaultCollectionName(name);
 	}
 
 }

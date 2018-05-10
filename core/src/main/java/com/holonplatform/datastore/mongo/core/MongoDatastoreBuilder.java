@@ -19,6 +19,7 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
 
 import com.holonplatform.core.datastore.DatastoreOperations;
+import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 
@@ -62,6 +63,13 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 	 * @return this
 	 */
 	B readPreference(ReadPreference readPreference);
+
+	/**
+	 * Set the default {@link ReadConcern} to declare the read operations isolation level.
+	 * @param readConcern Default {@link ReadConcern} to use (not null)
+	 * @return this
+	 */
+	B readConcern(ReadConcern readConcern);
 
 	/**
 	 * Set the default acknowledgment of write operations.

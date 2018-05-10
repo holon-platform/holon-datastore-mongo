@@ -19,7 +19,7 @@ import java.util.ServiceLoader;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.datastore.mongo.core.expression.MongoExpressionResolver;
+import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
  * MongoDB Datastore {@link ExpressionResolver} extension type to allow automatic registration using Java

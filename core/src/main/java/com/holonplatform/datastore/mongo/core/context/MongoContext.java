@@ -16,9 +16,7 @@
 package com.holonplatform.datastore.mongo.core.context;
 
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
-import com.holonplatform.datastore.mongo.core.document.DocumentIdGenerator;
-import com.holonplatform.datastore.mongo.core.document.DocumentIdHandler;
-import com.holonplatform.datastore.mongo.core.document.DocumentIdPropertyResolver;
+import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 
 /**
  * MongoDB Datastore base context.
@@ -28,22 +26,10 @@ import com.holonplatform.datastore.mongo.core.document.DocumentIdPropertyResolve
 public interface MongoContext extends ExpressionResolverProvider {
 
 	/**
-	 * Get the {@link DocumentIdHandler} of this context.
-	 * @return the {@link DocumentIdHandler}
+	 * Get the {@link DocumentIdResolver} of this context.
+	 * @return the {@link DocumentIdResolver}
 	 */
-	DocumentIdHandler getDocumentIdHandler();
-
-	/**
-	 * Get the {@link DocumentIdGenerator} of this context.
-	 * @return the {@link DocumentIdGenerator}
-	 */
-	DocumentIdGenerator getDocumentIdGenerator();
-
-	/**
-	 * Get the {@link DocumentIdPropertyResolver} of this context.
-	 * @return the {@link DocumentIdPropertyResolver}
-	 */
-	DocumentIdPropertyResolver getDocumentIdPropertyResolver();
+	DocumentIdResolver getDocumentIdResolver();
 
 	/**
 	 * Trace given JSON expression.

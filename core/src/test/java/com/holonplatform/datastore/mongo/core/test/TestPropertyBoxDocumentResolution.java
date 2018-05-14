@@ -83,9 +83,9 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.resolver.DocumentPropertyBoxResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.FieldNamePathResolver;
-import com.holonplatform.datastore.mongo.core.internal.resolver.FieldValueExpressionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.FieldValuePathResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.PathFieldNameResolver;
-import com.holonplatform.datastore.mongo.core.internal.resolver.PathValueExpressionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.PathValueFieldResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.PropertyBoxDocumentResolver;
 import com.holonplatform.datastore.mongo.core.test.context.MongoTestContext;
 import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
@@ -101,8 +101,8 @@ public class TestPropertyBoxDocumentResolution {
 		context = MongoResolutionContext.create(new MongoTestContext());
 		context.addExpressionResolver(PathFieldNameResolver.INSTANCE);
 		context.addExpressionResolver(FieldNamePathResolver.INSTANCE);
-		context.addExpressionResolver(FieldValueExpressionResolver.INSTANCE);
-		context.addExpressionResolver(PathValueExpressionResolver.INSTANCE);
+		context.addExpressionResolver(FieldValuePathResolver.INSTANCE);
+		context.addExpressionResolver(PathValueFieldResolver.INSTANCE);
 		context.addExpressionResolver(PropertyBoxDocumentResolver.INSTANCE);
 		context.addExpressionResolver(DocumentPropertyBoxResolver.INSTANCE);
 	}

@@ -39,7 +39,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum PathValueExpressionResolver implements MongoExpressionResolver<PathValue, FieldValue> {
+public enum PathValueFieldResolver implements MongoExpressionResolver<PathValue, FieldValue> {
 
 	INSTANCE;
 

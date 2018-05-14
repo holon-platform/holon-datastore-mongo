@@ -30,6 +30,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
@@ -132,6 +133,8 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 
 	/**
 	 * Checks if a {@link PropertySetSerializationNode} property is valid, i.e. it is a {@link Path} type property.
+	 * @param <T> Property type
+	 * @param <P> Path & Property type
 	 * @param node The node to check
 	 * @return If valid, returns the property as a {@link Path} and {@link Property} type, otherwise an empty Optional
 	 *         is returned
@@ -144,6 +147,8 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 
 	/**
 	 * Encode a PropertyBox property into a field name and value pair.
+	 * @param <T> Property type
+	 * @param <P> Path & Property type
 	 * @param context Resolution context
 	 * @param propertyBox PropertyBox value
 	 * @param property The property to encode
@@ -160,15 +165,20 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 		}
 		try {
 			// resolve field name
-			// TODO
-			String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class)
-					.getFieldName();
-
+			String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
 			// resolve field value
-			FieldValue fieldValue = context.resolveOrFail(PathValue.create(value, property),
-					FieldValue.class);
-
-			return Collections.singletonMap(fieldName, fieldValue.getValue());
+			final Object fieldValue;
+			if (PropertyBox.class.isAssignableFrom(property.getType())) {
+				// nested PropertyBox
+				final PropertyBox pb = (PropertyBox) value;
+				fieldValue = context
+						.documentContext(property.getConfiguration()
+								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false)
+						.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
+			} else {
+				fieldValue = context.resolveOrFail(PathValue.create(value, property), FieldValue.class).getValue();
+			}
+			return Collections.singletonMap(fieldName, fieldValue);
 		} catch (Exception e) {
 			throw new InvalidExpressionException(
 					"Failed to encode Property [" + property + "] using field name [" + name + "]", e);

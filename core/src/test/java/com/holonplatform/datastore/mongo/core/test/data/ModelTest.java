@@ -24,9 +24,11 @@ import java.util.Date;
 
 import org.bson.types.ObjectId;
 
+import com.holonplatform.core.Path;
 import com.holonplatform.core.property.BooleanProperty;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
+import com.holonplatform.core.property.PropertyBoxProperty;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.core.property.StringProperty;
@@ -90,5 +92,30 @@ public interface ModelTest {
 	public static final NumericProperty<BigInteger> ID5 = NumericProperty.bigIntegerType("code");
 
 	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR).identifier(ID5).build();
+
+	// nested
+
+	public static final StringProperty N1_V1 = StringProperty.create("n1.v1");
+	public static final StringProperty N1_V2 = StringProperty.create("n1.v2");
+	public static final BooleanProperty N1_V3 = BooleanProperty.create("v3").parent(Path.of("n1", Object.class));
+	public static final NumericProperty<Integer> N2_V1 = NumericProperty.integerType("n2.v1");
+	public static final StringProperty N2_V2 = StringProperty.create("n2.v2");
+	public static final StringProperty N3_V1 = StringProperty.create("n2.n3.v1");
+	public static final NumericProperty<Double> N3_V2 = NumericProperty.doubleType("n2.n3.v2");
+
+	public static final PropertySet<?> SET6 = PropertySet.of(ID, STR, ENM, N1_V1, N1_V2, N1_V3, N2_V1, N2_V2, N3_V1,
+			N3_V2);
+
+	public static final StringProperty NESTED_V1 = StringProperty.create("v1");
+	public static final StringProperty NESTED_V2 = StringProperty.create("v2");
+
+	public static final PropertySet<?> NESTED_SET = PropertySet.of(NESTED_V1, NESTED_V2);
+
+	public static final PropertyBoxProperty NESTED = PropertyBoxProperty.create("n1", NESTED_SET);
+
+	public static final PropertySet<?> SET7 = PropertySet.of(ID, STR, ENM, NESTED);
+	
+	public static final PropertySet<?> SET8 = PropertySet.of(ID, STR, ENM, NESTED, N2_V1, N2_V2, N3_V1,
+			N3_V2);
 
 }

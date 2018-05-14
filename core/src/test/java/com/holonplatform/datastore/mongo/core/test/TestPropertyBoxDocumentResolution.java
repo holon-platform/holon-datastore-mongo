@@ -37,12 +37,26 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V2;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N2_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N2_V2;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N3_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N3_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NBL;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_SET;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET3;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET5;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET6;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET7;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET8;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
@@ -53,6 +67,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -235,6 +250,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertEquals(TestValues.STR, pb.getValue(STR));
 	}
 
+	@Test
 	public void testObjectIdBigInteger() {
 
 		final ObjectId oid = new ObjectId();
@@ -263,6 +279,150 @@ public class TestPropertyBoxDocumentResolution {
 
 		assertEquals(biv, pb.getValue(ID5));
 		assertEquals(TestValues.STR, pb.getValue(STR));
+	}
+
+	@Test
+	public void testNestedPaths() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox pb = PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+				.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, false).set(N2_V1, 52).set(N2_V2, "n2v2")
+				.set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+
+		assertTrue(doc.containsKey("n1"));
+		assertTrue(doc.get("n1") instanceof Map);
+		assertEquals(3, doc.get("n1", Map.class).size());
+
+		assertTrue(doc.containsKey("n2"));
+		assertTrue(doc.get("n2") instanceof Map);
+		assertEquals(3, doc.get("n2", Map.class).size());
+
+		assertTrue(doc.get("n2", Map.class).containsKey("n3"));
+		assertTrue(doc.get("n2", Map.class).get("n3") instanceof Map);
+		assertEquals(2, ((Map<?, ?>) doc.get("n2", Map.class).get("n3")).size());
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET6).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals("testn", pb.getValue(STR));
+		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
+		assertEquals("n1v1", pb.getValue(N1_V1));
+		assertEquals("n1v2", pb.getValue(N1_V2));
+		assertEquals(Boolean.FALSE, pb.getValue(N1_V3));
+		assertEquals(Integer.valueOf(52), pb.getValue(N2_V1));
+		assertEquals("n2v2", pb.getValue(N2_V2));
+		assertEquals("n3v1", pb.getValue(N3_V1));
+		assertEquals(Double.valueOf(12.97d), pb.getValue(N3_V2));
+	}
+
+	@Test
+	public void testNestedPropertyBox() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "nestedv1").set(NESTED_V2, "nestedv2")
+				.build();
+
+		PropertyBox pb = PropertyBox.builder(SET7).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+				.set(NESTED, nested).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+
+		assertTrue(doc.containsKey("n1"));
+		assertTrue(doc.get("n1") instanceof Map);
+		assertEquals(2, doc.get("n1", Map.class).size());
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET7).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals("testn", pb.getValue(STR));
+		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
+
+		nested = pb.getValue(NESTED);
+		assertNotNull(nested);
+
+		assertEquals("nestedv1", nested.getValue(NESTED_V1));
+		assertEquals("nestedv2", nested.getValue(NESTED_V2));
+	}
+
+	@Test
+	public void testNestedMixed() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n1v1").set(NESTED_V2, "n1v2").build();
+
+		PropertyBox pb = PropertyBox.builder(SET8).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+				.set(NESTED, nested).set(N2_V1, 52).set(N2_V2, "n2v2").set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+
+		assertTrue(doc.containsKey("n1"));
+		assertTrue(doc.get("n1") instanceof Map);
+		assertEquals(2, doc.get("n1", Map.class).size());
+
+		assertTrue(doc.containsKey("n2"));
+		assertTrue(doc.get("n2") instanceof Map);
+		assertEquals(3, doc.get("n2", Map.class).size());
+
+		assertTrue(doc.get("n2", Map.class).containsKey("n3"));
+		assertTrue(doc.get("n2", Map.class).get("n3") instanceof Map);
+		assertEquals(2, ((Map<?, ?>) doc.get("n2", Map.class).get("n3")).size());
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET8).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals("testn", pb.getValue(STR));
+		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
+		assertEquals(Integer.valueOf(52), pb.getValue(N2_V1));
+		assertEquals("n2v2", pb.getValue(N2_V2));
+		assertEquals("n3v1", pb.getValue(N3_V1));
+		assertEquals(Double.valueOf(12.97d), pb.getValue(N3_V2));
+
+		nested = pb.getValue(NESTED);
+		assertNotNull(nested);
+
+		assertEquals("n1v1", nested.getValue(NESTED_V1));
+		assertEquals("n1v2", nested.getValue(NESTED_V2));
 	}
 
 	private static String checkJson(Document document) {

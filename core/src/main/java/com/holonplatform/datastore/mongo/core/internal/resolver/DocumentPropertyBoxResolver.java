@@ -83,6 +83,15 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 		return PropertyBoxValue.class;
 	}
 
+	/**
+	 * Decode a document into a {@link PropertyBox} value using given property set.
+	 * @param context Resolution context
+	 * @param parent Optional parent field name expression
+	 * @param document Document to decode
+	 * @param propertySet Property set to use
+	 * @return Decoded PropertyBox instance
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private static PropertyBox decodePropertyBox(final MongoResolutionContext context, final String parent,
 			Map<String, Object> document, PropertySet<?> propertySet) throws InvalidExpressionException {
 		// PropertyBox builder
@@ -98,6 +107,15 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 		return propertyBox;
 	}
 
+	/**
+	 * Decode given document into a {@link PropertyBox} using given adapter to match the document field names and
+	 * property paths.
+	 * @param context Resolution context
+	 * @param parent Optional parent field name expression
+	 * @param document Document to decode
+	 * @param adapter PropertyBox adapter 
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private static void decodeDocument(final MongoResolutionContext context, final String parent,
 			Map<String, Object> document, PathPropertyBoxAdapter adapter) throws InvalidExpressionException {
 		document.entrySet().stream().forEach(entry -> {
@@ -105,23 +123,34 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 		});
 	}
 
+	/**
+	 * Decode a document field.
+	 * @param context Resolution context
+	 * @param adapter PropertyBox adapter to use to set the decoded field value
+	 * @param parent Optional parent field name expression
+	 * @param name Field name
+	 * @param value Field value
+	 * @throws InvalidExpressionException If an error occurred
+	 */
+	@SuppressWarnings("unchecked")
 	private static void decodeDocumentField(MongoResolutionContext context, PathPropertyBoxAdapter adapter,
 			String parent, String name, Object value) throws InvalidExpressionException {
+		// full path
+		final String fieldName = composeFieldPath(parent, name);
+
 		if (value != null && Map.class.isAssignableFrom(value.getClass())) {
 			// nested value
 			Map<String, Object> nested = (Map<String, Object>) value;
-			// full path
-			final String path = composeFieldPath(parent, name);
 			// decode property using full path name
-			decodeDocument(context.childContext(), path, nested, adapter);
+			decodeDocument(context.childContext(), fieldName, nested, adapter);
 			// check PropertyBox type property into which to decode the nested map
-			final Path<?> nestedPath = Path.of(path, Object.class);
+			final Path<?> nestedPath = Path.of(fieldName, Object.class);
 			adapter.getProperty(nestedPath).filter(p -> PropertyBox.class.isAssignableFrom(p.getType()))
 					.ifPresent(p -> {
 						final PropertySet<?> propertySet = p.getConfiguration()
 								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE)
 								.orElseThrow(() -> new InvalidExpressionException(
-										"Failed to deserialize PropertyBox type path [" + path
+										"Failed to deserialize PropertyBox type path [" + fieldName
 												+ "]: missing PropertySet. Check property configuration attribute ["
 												+ PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE.getKey() + "]"));
 						PropertyBox pb = decodePropertyBox(context.childContext(), parent, nested, propertySet);
@@ -129,18 +158,22 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 					});
 		} else {
 			// resolve Path
-			final Path<?> path = context.resolveOrFail(FieldName.create(name), Path.class);
-
+			final Path<?> path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
+			// resolve value
 			adapter.getProperty(path).ifPresent(p -> {
-				// resolve value
-				Object resolvedValue = context
-						.resolveOrFail(FieldValue.create(value, p), PathValue.class).getValue();
+				Object resolvedValue = context.resolveOrFail(FieldValue.create(value, p), PathValue.class).getValue();
 				adapter.setValue((Path) path, resolvedValue);
 			});
 		}
 
 	}
 
+	/**
+	 * Compose a field path using an optional parent path.
+	 * @param parent Optional parent path
+	 * @param name Field name
+	 * @return Full path
+	 */
 	private static String composeFieldPath(String parent, String name) {
 		return (parent == null) ? name : parent + "." + name;
 	}

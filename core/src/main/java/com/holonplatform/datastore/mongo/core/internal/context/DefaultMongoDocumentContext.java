@@ -21,6 +21,7 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentPathMatcher;
@@ -34,6 +35,18 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 
 	private final PropertySet<?> propertySet;
 	private final boolean resolveDocumentId;
+
+	/**
+	 * Constructor.
+	 * @param context Mongo context (not null)
+	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 */
+	public DefaultMongoDocumentContext(MongoContext context, PropertySet<?> propertySet) {
+		super(context);
+		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
+		this.propertySet = propertySet;
+		this.resolveDocumentId = true;
+	}
 
 	/**
 	 * Constructor.

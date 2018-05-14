@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.core.test.data;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -45,7 +44,7 @@ public interface ModelTest {
 	public static final NumericProperty<Long> LNG = NumericProperty.longType("lng");
 	public static final NumericProperty<Double> DBL = NumericProperty.doubleType("dbl");
 	public static final NumericProperty<Float> FLT = NumericProperty.floatType("flt");
-	//public static final NumericProperty<BigInteger> BGI = NumericProperty.bigIntegerType("bgi");
+	// public static final NumericProperty<BigInteger> BGI = NumericProperty.bigIntegerType("bgi");
 	public static final NumericProperty<BigDecimal> BGD = NumericProperty.bigDecimalType("bgd");
 	public static final NumericProperty<Short> SHR = NumericProperty.shortType("shr");
 	public static final NumericProperty<Byte> BYT = NumericProperty.byteType("byt");
@@ -61,6 +60,8 @@ public interface ModelTest {
 	public static final PathProperty<String[]> A_STR = PathProperty.create("astr", String[].class);
 	public static final PathProperty<int[]> A_INT = PathProperty.create("aint", int[].class);
 	public static final PathProperty<EnumValue[]> A_ENM = PathProperty.create("aenm", EnumValue[].class);
+	public static final PathProperty<char[]> A_CHR = PathProperty.create("achr", char[].class);
+	public static final PathProperty<byte[]> A_BYT = PathProperty.create("abyt", byte[].class);
 
 	public final static PathProperty<Boolean> NBL = PathProperty.create("nbl", boolean.class)
 			.converter(PropertyValueConverter.numericBoolean(Integer.class));
@@ -68,7 +69,7 @@ public interface ModelTest {
 	public static final VirtualProperty<String> VRT = VirtualProperty.create(String.class,
 			pb -> "STR:" + pb.getValue(STR));
 
-	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR,
-			BYT, ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, NBL, VRT);
+	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR, BYT,
+			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, NBL, VRT);
 
 }

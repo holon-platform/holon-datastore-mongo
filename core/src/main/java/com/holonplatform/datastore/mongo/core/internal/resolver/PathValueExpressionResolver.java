@@ -67,10 +67,18 @@ public enum PathValueExpressionResolver implements MongoExpressionResolver<PathV
 				.orElse(context.getDefaultEnumCodecStrategy());
 
 		// check type conversion
-		Object encoded = exp.getProperty().filter(p -> isDocumentIdProperty(context, p))
-				.map(p -> (Object) context.getDocumentIdResolver().encode(value)).orElse(checkType(strategy, value));
+		try {
+			Object encoded = exp.getProperty().filter(p -> isDocumentIdProperty(context, p))
+					.map(p -> (Object) context.getDocumentIdResolver().encode(value))
+					.orElse(checkType(strategy, value));
 
-		return Optional.of(FieldValue.create(encoded, exp.getProperty().orElse(null)));
+			return Optional.of(FieldValue.create(encoded, exp.getProperty().orElse(null)));
+		} catch (InvalidExpressionException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new InvalidExpressionException("Failed to encode value [" + expression.getValue() + "]"
+					+ expression.getProperty().map(p -> " for Property [" + p + "]").orElse(""), e);
+		}
 	}
 
 	/**
@@ -136,15 +144,21 @@ public enum PathValueExpressionResolver implements MongoExpressionResolver<PathV
 	 * @param strategy Enum codec strategy to use
 	 * @param value The value to encode
 	 * @return The encoded enum value according to the specified strategy
+	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static Object encodeEnum(EnumCodecStrategy strategy, Enum<?> value) {
+	private static Object encodeEnum(EnumCodecStrategy strategy, Enum<?> value) throws InvalidExpressionException {
 		if (value != null) {
-			switch (strategy) {
-			case ORDINAL:
-				return Integer.valueOf(value.ordinal());
-			case NAME:
-			default:
-				return value.name();
+			try {
+				switch (strategy) {
+				case ORDINAL:
+					return Integer.valueOf(value.ordinal());
+				case NAME:
+				default:
+					return value.name();
+				}
+			} catch (Exception e) {
+				throw new InvalidExpressionException(
+						"Failed to encode value [" + value + "] using strategy [" + strategy + "]", e);
 			}
 		}
 		return null;

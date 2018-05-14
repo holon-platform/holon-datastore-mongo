@@ -100,7 +100,7 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 
 	private static void decodeDocument(final MongoResolutionContext context, final String parent,
 			Map<String, Object> document, PathPropertyBoxAdapter adapter) throws InvalidExpressionException {
-		document.entrySet().stream().parallel().forEach(entry -> {
+		document.entrySet().stream().forEach(entry -> {
 			decodeDocumentField(context, adapter, parent, entry.getKey(), entry.getValue());
 		});
 	}

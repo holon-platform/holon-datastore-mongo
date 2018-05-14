@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.test;
 
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_BYT;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_CHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_ENM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_STR;
@@ -36,8 +38,9 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Optional;
 
@@ -78,30 +81,34 @@ public class TestPropertyBoxDocumentResolution {
 
 		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
-				.set(BGD, TestValues.BGD)
-				.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT)
-				.set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM)
-				.set(A_STR, TestValues.A_STR)
-				.set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM)
-				.set(NBL, true).build();
+				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
+				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
+				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
+				.build();
 
-		long ms = System.currentTimeMillis();
-		
 		Optional<DocumentValue> value = ctx.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
-		
-		System.err.println("MS: " + (System.currentTimeMillis() - ms));
-		
 		assertTrue(value.isPresent());
-		
+
 		Document doc = value.get().getValue();
 		assertNotNull(doc);
-		
-		System.err.println(doc.toJson(JsonWriterSettings.builder().build(), new DocumentCodec(MongoClientSettings.getDefaultCodecRegistry())));
-		
+
+		assertNotNull(checkJson(doc));
+
 		assertEquals(oid, doc.get(ID.getName()));
 
+		Optional<PropertyBoxValue> pbValue = ctx.documentContext(SET1).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+	}
+
+	private static String checkJson(Document document) {
+		return document.toJson(JsonWriterSettings.builder().build(),
+				new DocumentCodec(MongoClientSettings.getDefaultCodecRegistry()));
 	}
 
 }

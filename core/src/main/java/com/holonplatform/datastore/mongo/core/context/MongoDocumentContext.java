@@ -21,6 +21,7 @@ import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoDocumentContext;
 
 /**
  * A {@link MongoResolutionContext} which is bound to a document resolution operation.
@@ -52,6 +53,11 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 */
 	Optional<Property<?>> getDocumentIdProperty();
 
+	/**
+	 * Checks if given property is the document id property.
+	 * @param property The property to check
+	 * @return <code>true</code> if the property acts as document id property
+	 */
 	default boolean isDocumentIdProperty(Property<?> property) {
 		return getDocumentIdProperty().filter(p -> p.equals(property)).isPresent();
 	}
@@ -71,6 +77,16 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 */
 	static Optional<MongoDocumentContext> isDocumentContext(ResolutionContext context) {
 		return Optional.ofNullable((context instanceof MongoDocumentContext) ? (MongoDocumentContext) context : null);
+	}
+
+	/**
+	 * Create a new {@link MongoDocumentContext}.
+	 * @param context Mongo context (not null)
+	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 * @return A new {@link MongoDocumentContext} instance
+	 */
+	static MongoDocumentContext create(MongoContext context, PropertySet<?> propertySet) {
+		return new DefaultMongoDocumentContext(context, propertySet);
 	}
 
 }

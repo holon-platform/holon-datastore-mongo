@@ -46,6 +46,8 @@ public final class TestValues {
 	public static final String[] A_STR = { "a", "b", "c" };
 	public static final int[] A_INT = { 1, 2, 3 };
 	public static final EnumValue[] A_ENM = { EnumValue.THIRD, EnumValue.SECOND };
+	public static final char[] A_CHR = { 'a', 'b', 'c' };
+	public static final byte[] A_BYT = { 1, 2, 3 };
 
 	static {
 		Calendar c = Calendar.getInstance();

@@ -52,6 +52,10 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 */
 	Optional<Property<?>> getDocumentIdProperty();
 
+	default boolean isDocumentIdProperty(Property<?> property) {
+		return getDocumentIdProperty().filter(p -> p.equals(property)).isPresent();
+	}
+
 	/**
 	 * Checks if given path matches the document id path, if available.
 	 * @param path The path to check

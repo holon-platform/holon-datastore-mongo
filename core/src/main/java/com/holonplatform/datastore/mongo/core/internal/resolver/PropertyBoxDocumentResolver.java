@@ -33,8 +33,9 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.FieldValueExpression;
-import com.holonplatform.datastore.mongo.core.expression.PathValueExpression;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.expression.PathValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.MongoPropertySetSerializationTreeResolver;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -94,14 +95,30 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 		return DocumentValue.class;
 	}
 
+	/**
+	 * Encode a set of {@link PropertySetSerializationNode} into a document.
+	 * @param context Resolution context
+	 * @param propertyBox The PropertyBox to encode
+	 * @param nodes The property set serialization nodes
+	 * @return The document field-value map
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private static Map<String, Object> encodePropertyBoxNodes(MongoResolutionContext context, PropertyBox propertyBox,
 			Iterable<PropertySetSerializationNode> nodes) throws InvalidExpressionException {
-		return StreamSupport.stream(nodes.spliterator(), true)
+		return StreamSupport.stream(nodes.spliterator(), false)
 				.map(node -> encodePropertyBoxNode(context, propertyBox, node)).map(Map::entrySet)
 				.flatMap(Collection::stream)
-				.collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (u, v) -> u));
 	}
 
+	/**
+	 * Encode a {@link PropertySetSerializationNode} into a document fragment.
+	 * @param context Resolution context
+	 * @param propertyBox The PropertyBox to encode
+	 * @param node The property set serialization node
+	 * @return The document fragment field-value map
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private static Map<String, Object> encodePropertyBoxNode(MongoResolutionContext context, PropertyBox propertyBox,
 			PropertySetSerializationNode node) throws InvalidExpressionException {
 		return isValidNodeProperty(node).map(p -> encodeProperty(context, propertyBox, p, node.getName()))
@@ -113,25 +130,45 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 				});
 	}
 
+	/**
+	 * Checks if a {@link PropertySetSerializationNode} property is valid, i.e. it is a {@link Path} type property.
+	 * @param node The node to check
+	 * @return If valid, returns the property as a {@link Path} and {@link Property} type, otherwise an empty Optional
+	 *         is returned
+	 */
 	@SuppressWarnings("unchecked")
 	private static <T, P extends Path<T> & Property<T>> Optional<P> isValidNodeProperty(
 			PropertySetSerializationNode node) {
 		return node.getProperty().filter(p -> Path.class.isAssignableFrom(p.getClass())).map(p -> (P) p);
 	}
 
+	/**
+	 * Encode a PropertyBox property into a field name and value pair.
+	 * @param context Resolution context
+	 * @param propertyBox PropertyBox value
+	 * @param property The property to encode
+	 * @param name The path name
+	 * @return Encoded field name and value
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(
 			MongoResolutionContext context, final PropertyBox propertyBox, P property, String name)
 			throws InvalidExpressionException {
+		final T value = propertyBox.getValue(property);
+		if (value == null) {
+			return Collections.emptyMap();
+		}
 		try {
-			// resolve
-			FieldValueExpression fieldValue = context.resolveOrFail(
-					PathValueExpression.create(property, propertyBox.getValue(property)), FieldValueExpression.class);
-			// check id
-			if (MongoDocumentContext.isDocumentContext(context).flatMap(ctx -> ctx.isDocumentIdPath(property))
-					.isPresent()) {
-				return Collections.singletonMap(fieldValue.getFieldName(), fieldValue.getValue());
-			}
-			return Collections.singletonMap(name, fieldValue.getValue());
+			// resolve field name
+			// TODO
+			String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class)
+					.getFieldName();
+
+			// resolve field value
+			FieldValue fieldValue = context.resolveOrFail(PathValue.create(value, property),
+					FieldValue.class);
+
+			return Collections.singletonMap(fieldName, fieldValue.getValue());
 		} catch (Exception e) {
 			throw new InvalidExpressionException(
 					"Failed to encode Property [" + property + "] using field name [" + name + "]", e);

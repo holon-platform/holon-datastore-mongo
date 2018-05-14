@@ -17,6 +17,7 @@ package com.holonplatform.datastore.mongo.core.context;
 
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 
 /**
  * MongoDB Datastore base context.
@@ -30,6 +31,12 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 * @return the {@link DocumentIdResolver}
 	 */
 	DocumentIdResolver getDocumentIdResolver();
+
+	/**
+	 * Get the default {@link EnumCodecStrategy}.
+	 * @return the default {@link EnumCodecStrategy}s
+	 */
+	EnumCodecStrategy getDefaultEnumCodecStrategy();
 
 	/**
 	 * Trace given JSON expression.

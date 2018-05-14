@@ -23,16 +23,16 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
-import com.holonplatform.datastore.mongo.core.expression.FieldNameExpression;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 
 /**
- * {@link FieldNameExpression} to {@link Path} default expression resolver.
+ * {@link FieldName} to {@link Path} default expression resolver.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum FieldNamePathResolver implements ExpressionResolver<FieldNameExpression, Path> {
+public enum FieldNamePathResolver implements ExpressionResolver<FieldName, Path> {
 
 	INSTANCE;
 
@@ -42,7 +42,7 @@ public enum FieldNamePathResolver implements ExpressionResolver<FieldNameExpress
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<Path> resolve(FieldNameExpression expression, ResolutionContext context)
+	public Optional<Path> resolve(FieldName expression, ResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -64,8 +64,8 @@ public enum FieldNamePathResolver implements ExpressionResolver<FieldNameExpress
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends FieldNameExpression> getExpressionType() {
-		return FieldNameExpression.class;
+	public Class<? extends FieldName> getExpressionType() {
+		return FieldName.class;
 	}
 
 	/*

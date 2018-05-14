@@ -15,36 +15,38 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.expression;
 
-import com.holonplatform.datastore.mongo.core.expression.FieldValueExpression;
+import java.util.Optional;
+
+import com.holonplatform.core.property.Property;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 
 /**
- * Default {@link FieldValueExpression} implementation.
+ * Default {@link FieldValue} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultFieldValueExpression implements FieldValueExpression {
+public class DefaultFieldValue implements FieldValue {
 
-	private final String fieldName;
 	private final Object value;
+	private final Property<?> property;
 
 	/**
-	 * Constructor
-	 * @param fieldName The field name
+	 * Constructor.
 	 * @param value The field value
 	 */
-	public DefaultFieldValueExpression(String fieldName, Object value) {
-		super();
-		this.fieldName = fieldName;
-		this.value = value;
+	public DefaultFieldValue(Object value) {
+		this(value, null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.FieldValueExpression#getFieldName()
+	/**
+	 * Constructor with property.
+	 * @param value The field value
+	 * @param property The property to which the field value is bound
 	 */
-	@Override
-	public String getFieldName() {
-		return fieldName;
+	public DefaultFieldValue(Object value, Property<?> property) {
+		super();
+		this.value = value;
+		this.property = property;
 	}
 
 	/*
@@ -58,13 +60,19 @@ public class DefaultFieldValueExpression implements FieldValueExpression {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.FieldValueExpression#getProperty()
+	 */
+	@Override
+	public Optional<Property<?>> getProperty() {
+		return Optional.ofNullable(property);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.internal.expression.DefaultFieldValue#validate()
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
-		if (getFieldName() == null) {
-			throw new InvalidExpressionException("Null field name");
-		}
 	}
 
 }

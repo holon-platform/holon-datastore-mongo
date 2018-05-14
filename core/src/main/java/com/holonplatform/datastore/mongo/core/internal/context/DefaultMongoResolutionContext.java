@@ -29,6 +29,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 
 /**
@@ -107,8 +108,11 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 		return new DefaultMongoResolutionContext(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#documentContext(com.holonplatform.core.property.PropertySet, boolean)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#documentContext(com.holonplatform.core.
+	 * property.PropertySet, boolean)
 	 */
 	@Override
 	public MongoDocumentContext documentContext(PropertySet<?> propertySet, boolean resolveDocumentId) {
@@ -122,6 +126,15 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public DocumentIdResolver getDocumentIdResolver() {
 		return getContext().getDocumentIdResolver();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultEnumCodecStrategy()
+	 */
+	@Override
+	public EnumCodecStrategy getDefaultEnumCodecStrategy() {
+		return getContext().getDefaultEnumCodecStrategy();
 	}
 
 	/*

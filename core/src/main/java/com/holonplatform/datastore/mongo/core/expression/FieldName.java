@@ -16,35 +16,28 @@
 package com.holonplatform.datastore.mongo.core.expression;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultFieldValueExpression;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultFieldName;
 
 /**
- * A MongoDB document field value mapped to an expression.
+ * Mongo document field name expression, with <em>dot notation</em> support.
  *
  * @since 5.2.0
  */
-public interface FieldValueExpression extends Expression {
+public interface FieldName extends Expression {
 
 	/**
-	 * Get the document field name.
-	 * @return the field name (not null)
+	 * Get the document field name. The <em>dot notation</em> convention can be used to declare a fields path.
+	 * @return The field name
 	 */
 	String getFieldName();
 
 	/**
-	 * Get the field value.
-	 * @return The field value (may be null)
+	 * Create a new {@link FieldName} using given field name.
+	 * @param fieldName The field name expression
+	 * @return A new {@link FieldName} instance
 	 */
-	Object getValue();
-
-	/**
-	 * Create a new {@link FieldValueExpression}.
-	 * @param fieldName The field name
-	 * @param value The field value
-	 * @return A new {@link FieldValueExpression} instance
-	 */
-	static FieldValueExpression create(String fieldName, Object value) {
-		return new DefaultFieldValueExpression(fieldName, value);
+	static FieldName create(String fieldName) {
+		return new DefaultFieldName(fieldName);
 	}
 
 }

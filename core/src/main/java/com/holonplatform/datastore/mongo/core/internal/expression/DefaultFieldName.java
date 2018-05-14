@@ -15,14 +15,14 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.expression;
 
-import com.holonplatform.datastore.mongo.core.expression.FieldNameExpression;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 
 /**
- * Default {@link FieldNameExpression} implementation.
+ * Default {@link FieldName} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultFieldNameExpression implements FieldNameExpression {
+public class DefaultFieldName implements FieldName {
 
 	private final String name;
 
@@ -30,7 +30,7 @@ public class DefaultFieldNameExpression implements FieldNameExpression {
 	 * Constructor.
 	 * @param name Field name
 	 */
-	public DefaultFieldNameExpression(String name) {
+	public DefaultFieldName(String name) {
 		super();
 		this.name = name;
 	}

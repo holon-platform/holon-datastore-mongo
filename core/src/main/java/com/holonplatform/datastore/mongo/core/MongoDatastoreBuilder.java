@@ -19,6 +19,7 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
 
 import com.holonplatform.core.datastore.DatastoreOperations;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
@@ -77,5 +78,12 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 	 * @return this
 	 */
 	B writeConcern(WriteConcern writeConcern);
+
+	/**
+	 * Set the default {@link EnumCodecStrategy} to use when encoding and decoding {@link Enum} type values.
+	 * @param defaultEnumCodecStrategy The default EnumCodecStrategy to set
+	 * @return this
+	 */
+	B defaultEnumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy);
 
 }

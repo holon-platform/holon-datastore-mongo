@@ -23,16 +23,16 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
-import com.holonplatform.datastore.mongo.core.expression.FieldNameExpression;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 
 /**
- * {@link Path} to {@link FieldNameExpression} default expression resolver.
+ * {@link Path} to {@link FieldName} default expression resolver.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum PathFieldNameResolver implements ExpressionResolver<Path, FieldNameExpression> {
+public enum PathFieldNameResolver implements ExpressionResolver<Path, FieldName> {
 
 	INSTANCE;
 
@@ -42,14 +42,14 @@ public enum PathFieldNameResolver implements ExpressionResolver<Path, FieldNameE
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<FieldNameExpression> resolve(Path expression, ResolutionContext context)
+	public Optional<FieldName> resolve(Path expression, ResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// check document id default path
-		return Optional.of(FieldNameExpression.create(MongoDocumentContext.isDocumentContext(context)
+		return Optional.of(FieldName.create(MongoDocumentContext.isDocumentContext(context)
 				.filter(ctx -> ctx.isDocumentIdPath(expression).isPresent())
 				.map(p -> MongoDocumentContext.ID_FIELD_NAME).orElse(expression.relativeName())));
 	}
@@ -68,8 +68,8 @@ public enum PathFieldNameResolver implements ExpressionResolver<Path, FieldNameE
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends FieldNameExpression> getResolvedType() {
-		return FieldNameExpression.class;
+	public Class<? extends FieldName> getResolvedType() {
+		return FieldName.class;
 	}
 
 }

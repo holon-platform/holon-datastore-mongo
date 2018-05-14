@@ -19,25 +19,27 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.Path;
-import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.holonplatform.core.internal.utils.ConversionUtils;
+import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
-import com.holonplatform.datastore.mongo.core.expression.FieldNameExpression;
-import com.holonplatform.datastore.mongo.core.expression.FieldValueExpression;
-import com.holonplatform.datastore.mongo.core.expression.PathValueExpression;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.expression.PathValue;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * Resolver to resolve a {@link PathValueExpression} into a {@link FieldValueExpression}.
+ * Resolver to resolve a {@link PathValue} into a {@link FieldValue}.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum FieldValueExpressionResolver implements MongoExpressionResolver<FieldValueExpression, PathValueExpression> {
+public enum FieldValueExpressionResolver implements MongoExpressionResolver<FieldValue, PathValue> {
 
 	INSTANCE;
 
@@ -48,29 +50,75 @@ public enum FieldValueExpressionResolver implements MongoExpressionResolver<Fiel
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<PathValueExpression> resolve(FieldValueExpression expression, MongoResolutionContext context)
+	public Optional<PathValue> resolve(FieldValue expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// resolve path
-		Path path = context.resolveOrFail(FieldNameExpression.create(expression.getFieldName()), Path.class);
+		// check property
+		return Optional.of(expression.getProperty()
+				.map(p -> PathValue.create(decode(context, p, expression.getValue()), (Property<Object>) p))
+				.orElse(PathValue.create(expression.getValue())));
+	}
 
-		// value
-		Object value = expression.getValue();
+	@SuppressWarnings("unchecked")
+	private static Object decode(MongoResolutionContext context, Property<?> property, Object value)
+			throws InvalidExpressionException {
 
-		// check document id value
-		if (value != null && ObjectId.class.isAssignableFrom(value.getClass())) {
-			Optional<Path<?>> idPath = MongoDocumentContext.isDocumentContext(context)
-					.flatMap(ctx -> ctx.isDocumentIdPath(path));
-			if (idPath.isPresent()) {
-				// decode from ObjectId
-				value = context.getDocumentIdResolver().decode((ObjectId) value, idPath.get().getType());
+		// expected type
+		Class<?> targetType = property.getConverter().map(c -> (Class) c.getModelType()).orElse(property.getType());
+
+		// check type
+		Object decoded = checkType(context, targetType, value);
+
+		// check converter
+		if (property.getConverter().isPresent()) {
+			if (decoded == null
+					|| TypeUtils.isAssignable(decoded.getClass(), property.getConverter().get().getModelType())) {
+				decoded = ((PropertyValueConverter) property.getConverter().get()).fromModel(decoded, property);
 			}
 		}
 
-		return Optional.of(PathValueExpression.create(path, value));
+		return decoded;
+	}
+
+	private static Object checkBsonType(Object value) throws InvalidExpressionException {
+		if (value != null) {
+			// binary
+			if (Binary.class.isAssignableFrom(value.getClass())) {
+				return ((Binary) value).getData();
+			}
+		}
+		return value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Object checkType(MongoResolutionContext context, Class<?> targetType, Object v)
+			throws InvalidExpressionException {
+
+		// check Bson types
+		final Object value = checkBsonType(v);
+
+		if (value != null) {
+
+			// check ObjectId type
+			if (ObjectId.class.isAssignableFrom(value.getClass()) && !ObjectId.class.isAssignableFrom(targetType)) {
+				return context.getDocumentIdResolver().decode((ObjectId) value, targetType);
+			}
+
+			// enum
+			if (TypeUtils.isEnum(targetType)) {
+				return ConversionUtils.convertEnumValue((Class<Enum>) targetType, value);
+			}
+
+			// number
+			if (TypeUtils.isNumber(targetType) && TypeUtils.isNumber(value.getClass())) {
+				return ConversionUtils.convertNumberToTargetClass((Number) value, (Class<Number>) targetType);
+			}
+
+		}
+		return value;
 	}
 
 	/*
@@ -78,8 +126,8 @@ public enum FieldValueExpressionResolver implements MongoExpressionResolver<Fiel
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends FieldValueExpression> getExpressionType() {
-		return FieldValueExpression.class;
+	public Class<? extends FieldValue> getExpressionType() {
+		return FieldValue.class;
 	}
 
 	/*
@@ -87,8 +135,8 @@ public enum FieldValueExpressionResolver implements MongoExpressionResolver<Fiel
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends PathValueExpression> getResolvedType() {
-		return PathValueExpression.class;
+	public Class<? extends PathValue> getResolvedType() {
+		return PathValue.class;
 	}
 
 }

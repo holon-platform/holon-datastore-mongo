@@ -15,10 +15,12 @@
  */
 package com.holonplatform.datastore.mongo.core.expression;
 
-import com.holonplatform.core.ConverterExpression;
-import com.holonplatform.core.Path;
+import java.util.Optional;
+
+import com.holonplatform.core.Expression;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultPathValueExpression;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultPathValue;
 
 /**
  * Expression which represents a {@link TypedExpression} value.
@@ -27,13 +29,7 @@ import com.holonplatform.datastore.mongo.core.internal.expression.DefaultPathVal
  *
  * @since 5.2.0
  */
-public interface PathValueExpression<T> extends ConverterExpression<T> {
-
-	/**
-	 * Get the path to which the value is bound.
-	 * @return The value path (not null)
-	 */
-	Path<T> getPath();
+public interface PathValue<T> extends Expression {
 
 	/**
 	 * Get the expression value.
@@ -42,14 +38,30 @@ public interface PathValueExpression<T> extends ConverterExpression<T> {
 	T getValue();
 
 	/**
-	 * Create a new {@link PathValueExpression}.
-	 * @param <T> Path type
-	 * @param path The path to which the value is bound
-	 * @param value The path value
-	 * @return A new {@link PathValueExpression} instance
+	 * Get the {@link Property} to which the value is bound, if any.
+	 * @return Optional property to which the value is bound
 	 */
-	static <T> PathValueExpression<T> create(Path<T> path, T value) {
-		return new DefaultPathValueExpression<>(path, value);
+	Optional<Property<T>> getProperty();
+	
+	/**
+	 * Create a new {@link PathValue}.
+	 * @param <T> Value type
+	 * @param value The path value
+	 * @return A new {@link PathValue} instance
+	 */
+	static <T> PathValue<T> create(T value) {
+		return new DefaultPathValue<>(value);
+	}
+
+	/**
+	 * Create a new {@link PathValue}.
+	 * @param <T> Value type
+	 * @param value The path value
+	 * @param property The property to which the value is bound
+	 * @return A new {@link PathValue} instance
+	 */
+	static <T> PathValue<T> create(T value, Property<T> property) {
+		return new DefaultPathValue<>(value, property);
 	}
 
 }

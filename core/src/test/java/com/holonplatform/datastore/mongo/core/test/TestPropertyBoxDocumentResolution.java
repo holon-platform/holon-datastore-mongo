@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -104,6 +105,29 @@ public class TestPropertyBoxDocumentResolution {
 
 		pb = pbValue.get().getValue();
 		assertNotNull(pb);
+		
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.BOOL, pb.getValue(BOOL));
+		assertEquals(TestValues.INT, pb.getValue(INT));
+		assertEquals(TestValues.LNG, pb.getValue(LNG));
+		assertEquals(TestValues.DBL, pb.getValue(DBL));
+		assertEquals(TestValues.FLT, pb.getValue(FLT));
+		assertEquals(TestValues.SHR, pb.getValue(SHR));
+		assertEquals(TestValues.BYT, pb.getValue(BYT));
+		assertEquals(TestValues.BGD, pb.getValue(BGD));
+		assertEquals(TestValues.ENM, pb.getValue(ENM));
+		assertEquals(TestValues.DAT, pb.getValue(DAT));
+		assertEquals(TestValues.TMS, pb.getValue(TMS));
+		assertEquals(TestValues.LDAT, pb.getValue(LDAT));
+		assertEquals(TestValues.LTMS, pb.getValue(LTMS));
+		assertEquals(TestValues.LTM, pb.getValue(LTM));
+		assertTrue(Arrays.equals(TestValues.A_STR, pb.getValue(A_STR)));
+		assertTrue(Arrays.equals(TestValues.A_INT, pb.getValue(A_INT)));
+		assertTrue(Arrays.equals(TestValues.A_ENM, pb.getValue(A_ENM)));
+		assertTrue(Arrays.equals(TestValues.A_CHR, pb.getValue(A_CHR)));
+		assertTrue(Arrays.equals(TestValues.A_BYT, pb.getValue(A_BYT)));
+		assertTrue(pb.getValue(NBL));
 	}
 
 	private static String checkJson(Document document) {

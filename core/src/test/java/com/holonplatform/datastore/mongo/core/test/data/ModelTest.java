@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.core.test.data;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +33,7 @@ import com.holonplatform.core.property.StringProperty;
 import com.holonplatform.core.property.TemporalProperty;
 import com.holonplatform.core.property.VirtualProperty;
 import com.holonplatform.core.temporal.TemporalType;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 
 public interface ModelTest {
 
@@ -71,5 +73,22 @@ public interface ModelTest {
 
 	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR, BYT,
 			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, NBL, VRT);
+
+	public static final PathProperty<EnumValue> ENM2 = PathProperty.create("enm2", EnumValue.class)
+			.configuration(EnumCodecStrategy.CONFIG_PROPERTY, EnumCodecStrategy.ORDINAL);
+
+	public static final PropertySet<?> SET2 = PropertySet.of(ID, ENM2);
+
+	public static final PathProperty<ObjectId> ID3 = PathProperty.create("code", ObjectId.class);
+
+	public static final PropertySet<?> SET3 = PropertySet.builderOf(ID3, STR).identifier(ID3).build();
+
+	public static final StringProperty ID4 = StringProperty.create("code");
+
+	public static final PropertySet<?> SET4 = PropertySet.builderOf(ID4, STR).identifier(ID4).build();
+
+	public static final NumericProperty<BigInteger> ID5 = NumericProperty.bigIntegerType("code");
+
+	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR).identifier(ID5).build();
 
 }

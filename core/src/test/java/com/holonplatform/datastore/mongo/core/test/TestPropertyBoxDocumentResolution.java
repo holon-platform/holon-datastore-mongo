@@ -26,8 +26,12 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BYT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.FLT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID4;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID5;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
@@ -35,13 +39,19 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET2;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET5;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.VRT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -49,6 +59,7 @@ import org.bson.Document;
 import org.bson.codecs.DocumentCodec;
 import org.bson.json.JsonWriterSettings;
 import org.bson.types.ObjectId;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
@@ -62,21 +73,27 @@ import com.holonplatform.datastore.mongo.core.internal.resolver.PathFieldNameRes
 import com.holonplatform.datastore.mongo.core.internal.resolver.PathValueExpressionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.PropertyBoxDocumentResolver;
 import com.holonplatform.datastore.mongo.core.test.context.MongoTestContext;
+import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
 import com.mongodb.MongoClientSettings;
 
 public class TestPropertyBoxDocumentResolution {
 
+	private static MongoResolutionContext context;
+
+	@BeforeClass
+	public static void init() {
+		context = MongoResolutionContext.create(new MongoTestContext());
+		context.addExpressionResolver(PathFieldNameResolver.INSTANCE);
+		context.addExpressionResolver(FieldNamePathResolver.INSTANCE);
+		context.addExpressionResolver(FieldValueExpressionResolver.INSTANCE);
+		context.addExpressionResolver(PathValueExpressionResolver.INSTANCE);
+		context.addExpressionResolver(PropertyBoxDocumentResolver.INSTANCE);
+		context.addExpressionResolver(DocumentPropertyBoxResolver.INSTANCE);
+	}
+
 	@Test
 	public void testPropertyBoxResolutionObjectId() {
-
-		final MongoResolutionContext ctx = MongoResolutionContext.create(new MongoTestContext());
-		ctx.addExpressionResolver(PathFieldNameResolver.INSTANCE);
-		ctx.addExpressionResolver(FieldNamePathResolver.INSTANCE);
-		ctx.addExpressionResolver(FieldValueExpressionResolver.INSTANCE);
-		ctx.addExpressionResolver(PathValueExpressionResolver.INSTANCE);
-		ctx.addExpressionResolver(PropertyBoxDocumentResolver.INSTANCE);
-		ctx.addExpressionResolver(DocumentPropertyBoxResolver.INSTANCE);
 
 		final ObjectId oid = new ObjectId();
 
@@ -88,7 +105,7 @@ public class TestPropertyBoxDocumentResolution {
 				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
 				.build();
 
-		Optional<DocumentValue> value = ctx.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
 
 		Document doc = value.get().getValue();
@@ -98,14 +115,14 @@ public class TestPropertyBoxDocumentResolution {
 
 		assertEquals(oid, doc.get(ID.getName()));
 
-		Optional<PropertyBoxValue> pbValue = ctx.documentContext(SET1).resolve(DocumentValue.create(doc),
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET1).resolve(DocumentValue.create(doc),
 				PropertyBoxValue.class);
 
 		assertTrue(pbValue.isPresent());
 
 		pb = pbValue.get().getValue();
 		assertNotNull(pb);
-		
+
 		assertEquals(oid, pb.getValue(ID));
 		assertEquals(TestValues.STR, pb.getValue(STR));
 		assertEquals(TestValues.BOOL, pb.getValue(BOOL));
@@ -128,6 +145,124 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(Arrays.equals(TestValues.A_CHR, pb.getValue(A_CHR)));
 		assertTrue(Arrays.equals(TestValues.A_BYT, pb.getValue(A_BYT)));
 		assertTrue(pb.getValue(NBL));
+		assertEquals("STR:" + TestValues.STR, pb.getValue(VRT));
+	}
+
+	@Test
+	public void testEnumCodec() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox pb = PropertyBox.builder(SET2).set(ID, oid).set(ENM2, EnumValue.THIRD).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+		assertTrue(doc.get(ENM2.getName()) instanceof Number);
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET2).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(EnumValue.THIRD, pb.getValue(ENM2));
+	}
+
+	@Test
+	public void testObjectIdName() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox pb = PropertyBox.builder(SET3).set(ID3, oid).set(STR, TestValues.STR).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+		assertTrue(doc.containsKey("_id"));
+		assertTrue(doc.get("_id") instanceof ObjectId);
+		assertEquals(oid, doc.getObjectId("_id"));
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET3).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID3));
+		assertEquals(TestValues.STR, pb.getValue(STR));
+	}
+
+	@Test
+	public void testObjectIdString() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox pb = PropertyBox.builder(SET4).set(ID4, oid.toHexString()).set(STR, TestValues.STR).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+		assertTrue(doc.containsKey("_id"));
+		assertTrue(doc.get("_id") instanceof ObjectId);
+		assertEquals(oid, doc.getObjectId("_id"));
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET4).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid.toHexString(), pb.getValue(ID4));
+		assertEquals(TestValues.STR, pb.getValue(STR));
+	}
+
+	public void testObjectIdBigInteger() {
+
+		final ObjectId oid = new ObjectId();
+		final BigInteger biv = context.getDocumentIdResolver().decode(oid, BigInteger.class);
+
+		PropertyBox pb = PropertyBox.builder(SET5).set(ID5, biv).set(STR, TestValues.STR).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+		assertTrue(doc.containsKey("_id"));
+		assertTrue(doc.get("_id") instanceof ObjectId);
+		assertEquals(oid, doc.getObjectId("_id"));
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET5).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(biv, pb.getValue(ID5));
+		assertEquals(TestValues.STR, pb.getValue(STR));
 	}
 
 	private static String checkJson(Document document) {

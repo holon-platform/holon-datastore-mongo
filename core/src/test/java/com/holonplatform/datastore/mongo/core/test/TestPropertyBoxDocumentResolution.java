@@ -23,6 +23,9 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BGD;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BOOL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BYT;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_ENM;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_LIST;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_SET;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
@@ -57,6 +60,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET5;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET8;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET9;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
@@ -67,8 +71,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.bson.Document;
 import org.bson.codecs.DocumentCodec;
@@ -423,6 +430,63 @@ public class TestPropertyBoxDocumentResolution {
 
 		assertEquals("n1v1", nested.getValue(NESTED_V1));
 		assertEquals("n1v2", nested.getValue(NESTED_V2));
+	}
+
+	@Test
+	public void testCollectionProperties() {
+
+		final ObjectId oid = new ObjectId();
+
+		final List<String> lvals = Arrays.asList("a", "b", "c");
+		final Set<Integer> svals = new HashSet<>(Arrays.asList(1, 2, 3));
+		final Set<EnumValue> evals = new HashSet<>(Arrays.asList(EnumValue.FIRST, EnumValue.SECOND));
+
+		PropertyBox pb = PropertyBox.builder(SET9).set(ID, oid).set(STR, "test").set(CP_LIST, lvals).set(CP_SET, svals)
+				.set(CP_ENM, evals).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+
+		assertTrue(doc.containsKey(CP_LIST.getName()));
+		assertTrue(doc.containsKey(CP_SET.getName()));
+		assertTrue(doc.containsKey(CP_ENM.getName()));
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET9).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals("test", pb.getValue(STR));
+
+		List<String> lvs = pb.getValue(CP_LIST);
+		assertNotNull(lvs);
+		assertEquals(3, lvs.size());
+		assertTrue(lvs.contains("a"));
+		assertTrue(lvs.contains("b"));
+		assertTrue(lvs.contains("c"));
+
+		Set<Integer> svs = pb.getValue(CP_SET);
+		assertNotNull(svs);
+		assertEquals(3, svs.size());
+		assertTrue(svs.contains(1));
+		assertTrue(svs.contains(2));
+		assertTrue(svs.contains(3));
+
+		Set<EnumValue> sevs = pb.getValue(CP_ENM);
+		assertNotNull(sevs);
+		assertEquals(2, sevs.size());
+		assertTrue(sevs.contains(EnumValue.FIRST));
+		assertTrue(sevs.contains(EnumValue.SECOND));
+
 	}
 
 	private static String checkJson(Document document) {

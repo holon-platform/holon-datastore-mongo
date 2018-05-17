@@ -26,11 +26,13 @@ import org.bson.types.ObjectId;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.property.BooleanProperty;
+import com.holonplatform.core.property.ListPathProperty;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBoxProperty;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
+import com.holonplatform.core.property.SetPathProperty;
 import com.holonplatform.core.property.StringProperty;
 import com.holonplatform.core.property.TemporalProperty;
 import com.holonplatform.core.property.VirtualProperty;
@@ -114,8 +116,15 @@ public interface ModelTest {
 	public static final PropertyBoxProperty NESTED = PropertyBoxProperty.create("n1", NESTED_SET);
 
 	public static final PropertySet<?> SET7 = PropertySet.of(ID, STR, ENM, NESTED);
-	
-	public static final PropertySet<?> SET8 = PropertySet.of(ID, STR, ENM, NESTED, N2_V1, N2_V2, N3_V1,
-			N3_V2);
+
+	public static final PropertySet<?> SET8 = PropertySet.of(ID, STR, ENM, NESTED, N2_V1, N2_V2, N3_V1, N3_V2);
+
+	// collections
+
+	public static final ListPathProperty<String> CP_LIST = ListPathProperty.create("cplist", String.class);
+	public static final SetPathProperty<Integer> CP_SET = SetPathProperty.create("cpset", Integer.class);
+	public static final SetPathProperty<EnumValue> CP_ENM = SetPathProperty.create("cpenm", EnumValue.class);
+
+	public static final PropertySet<?> SET9 = PropertySet.of(ID, STR, CP_LIST, CP_SET, CP_ENM);
 
 }

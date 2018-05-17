@@ -16,17 +16,23 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Priority;
 
 import org.bson.types.Binary;
+import org.bson.types.Code;
 import org.bson.types.ObjectId;
+import org.bson.types.Symbol;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.property.CollectionProperty;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -62,7 +68,7 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 		// check property
 		return Optional.of(expression.getProperty()
 				.map(p -> PathValue.create(decode(context, p, expression.getValue()), (Property<Object>) p))
-				.orElse(PathValue.create(checkBsonType(expression.getValue()))));
+				.orElse(PathValue.create(expression.getValue())));
 	}
 
 	/**
@@ -92,11 +98,8 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 			// expected type
 			Class<?> targetType = property.getConverter().map(c -> (Class) c.getModelType()).orElse(property.getType());
 
-			// check type
-			Object decoded = (isDocumentIdProperty(context, property)
-					&& ObjectId.class.isAssignableFrom(value.getClass()))
-							? context.getDocumentIdResolver().decode((ObjectId) value, targetType)
-							: checkType(targetType, value);
+			// check Bson types
+			Object decoded = checkBsonType(targetType, value);
 
 			// check converter
 			if (property.getConverter().isPresent()) {
@@ -104,6 +107,18 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 						|| TypeUtils.isAssignable(decoded.getClass(), property.getConverter().get().getModelType())) {
 					decoded = ((PropertyValueConverter) property.getConverter().get()).fromModel(decoded, property);
 				}
+			}
+
+			// check document id property value conversion
+			if (isDocumentIdProperty(context, property) && ObjectId.class.isAssignableFrom(value.getClass())) {
+				decoded = context.getDocumentIdResolver().decode((ObjectId) value, targetType);
+			}
+
+			// check type
+			if (CollectionProperty.class.isAssignableFrom(property.getClass())) {
+				decoded = checkCollectionType(targetType, ((CollectionProperty) property).getElementType(), decoded);
+			} else {
+				decoded = checkType(targetType, decoded);
 			}
 
 			return decoded;
@@ -120,11 +135,19 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 	 * @param value Value to check
 	 * @return Checked value
 	 */
-	private static Object checkBsonType(Object value) {
+	private static Object checkBsonType(Class<?> targetType, Object value) {
 		if (value != null) {
 			// binary
-			if (Binary.class.isAssignableFrom(value.getClass())) {
+			if (Binary.class.isAssignableFrom(value.getClass()) && !Binary.class.isAssignableFrom(targetType)) {
 				return ((Binary) value).getData();
+			}
+			// code
+			if (Code.class.isAssignableFrom(value.getClass()) && String.class.isAssignableFrom(targetType)) {
+				return ((Code) value).getCode();
+			}
+			// symbol
+			if (Symbol.class.isAssignableFrom(value.getClass()) && String.class.isAssignableFrom(targetType)) {
+				return ((Symbol) value).getSymbol();
 			}
 		}
 		return value;
@@ -141,7 +164,7 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 	private static Object checkType(Class<?> targetType, Object v) throws InvalidExpressionException {
 
 		// check Bson types
-		final Object value = checkBsonType(v);
+		final Object value = checkBsonType(targetType, v);
 
 		if (value != null) {
 
@@ -187,6 +210,48 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 
 		}
 		return value;
+	}
+
+	/**
+	 * Check collection types.
+	 * @param targetType Target collection type
+	 * @param targetElementType Target collection element type
+	 * @param value Value to decode
+	 * @return Decoded value
+	 * @throws InvalidExpressionException If an error occurred
+	 */
+	private static Object checkCollectionType(Class<?> targetType, Class<?> targetElementType, Object value)
+			throws InvalidExpressionException {
+		if (value != null) {
+			if (Collection.class.isAssignableFrom(targetType) && Collection.class.isAssignableFrom(value.getClass())) {
+				final Collection<?> collection = (Collection) value;
+				if (collection.isEmpty()) {
+					return checkType(targetType, value);
+				}
+
+				// check collection element type
+				Object fe = collection.iterator().next();
+				Class<?> valueElementType = (fe != null) ? fe.getClass() : null;
+				if (valueElementType != null && targetElementType != null
+						&& !TypeUtils.isAssignable(valueElementType, targetElementType)) {
+
+					Collection<Object> values = Set.class.isAssignableFrom(targetType)
+							? new HashSet<>(collection.size())
+							: new ArrayList<>(collection.size());
+					for (Object collectionValue : collection) {
+						values.add(checkType(targetElementType, collectionValue));
+					}
+					return values;
+
+				}
+
+				// check collection type
+				if (Set.class.isAssignableFrom(targetType) && !Set.class.isAssignableFrom(value.getClass())) {
+					return new HashSet<>(collection);
+				}
+			}
+		}
+		return checkType(targetType, value);
 	}
 
 	/**

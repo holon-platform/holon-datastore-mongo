@@ -16,8 +16,11 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Priority;
 
@@ -100,6 +103,20 @@ public enum PathValueFieldResolver implements MongoExpressionResolver<PathValue,
 	 */
 	private static Object checkType(EnumCodecStrategy strategy, Object value) {
 		if (value != null) {
+			// collections
+			if (Collection.class.isAssignableFrom(value.getClass())) {
+				final Collection collection = (Collection) value;
+				Collection<Object> values = Set.class.isAssignableFrom(value.getClass())
+						? new HashSet<>(collection.size())
+						: new ArrayList<>(collection.size());
+				for (Object collectionValue : collection) {
+					final Object encodedValue = checkType(strategy, collectionValue);
+					if (encodedValue != null) {
+						values.add(encodedValue);
+					}
+				}
+				return values;
+			}
 			// enums
 			if (value.getClass().isEnum()) {
 				return encodeEnum(strategy, (Enum<?>) value);

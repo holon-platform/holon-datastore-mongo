@@ -22,6 +22,7 @@ import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.sync.internal.DefaultMongoDatastore;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 
@@ -37,31 +38,29 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 	 * Get a builder to create a {@link MongoDatastore} instance.
 	 * @return Datastore builder
 	 */
-	static Builder<MongoDatastore> builder() {
-		// return new DefaultJdbcDatastore.DefaultBuilder();
-		// TODO
-		return null;
+	static Builder builder() {
+		return new DefaultMongoDatastore.DefaultBuilder();
 	}
 
 	/**
 	 * {@link MongoDatastore} builder.
 	 * @param <D> {@link MongoDatastore} type
 	 */
-	public interface Builder<D extends MongoDatastore> extends MongoDatastoreBuilder<D, Builder<D>> {
+	public interface Builder extends MongoDatastoreBuilder<MongoDatastore, Builder> {
 
 		/**
 		 * Set the {@link MongoClient} to use.
 		 * @param client MongoClient to set (not null)
 		 * @return this
 		 */
-		Builder<D> client(MongoClient client);
+		Builder client(MongoClient client);
 
 		/**
 		 * Set the database name to use.
 		 * @param database The database name to set (not null)
 		 * @return this
 		 */
-		Builder<D> database(String database);
+		Builder database(String database);
 
 		/**
 		 * Register a {@link SyncMongoDatastoreCommodityFactory}.
@@ -69,7 +68,7 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 		 * @param commodityFactory The factory to register (not null)
 		 * @return this
 		 */
-		<C extends DatastoreCommodity> Builder<D> withCommodity(SyncMongoDatastoreCommodityFactory<C> commodityFactory);
+		<C extends DatastoreCommodity> Builder withCommodity(SyncMongoDatastoreCommodityFactory<C> commodityFactory);
 
 	}
 

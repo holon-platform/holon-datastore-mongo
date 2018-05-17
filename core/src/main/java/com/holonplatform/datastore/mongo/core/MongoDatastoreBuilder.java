@@ -34,7 +34,7 @@ import com.mongodb.WriteConcern;
  */
 @SuppressWarnings("rawtypes")
 public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, B>>
-		extends DatastoreOperations.Builder<D, MongoDatastoreBuilder<D, B>> {
+		extends DatastoreOperations.Builder<D, B> {
 
 	/**
 	 * Add a {@link Codec} to be registered in the default Mongo Datastore codec registry.

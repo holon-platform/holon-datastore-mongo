@@ -15,11 +15,23 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
+import org.bson.codecs.Codec;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+
+import com.holonplatform.core.Expression;
+import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.core.datastore.DatastoreCommodity;
+import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractDatastore;
+import com.holonplatform.core.internal.utils.ClassUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreExpressionResolver;
@@ -94,6 +106,11 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 	 * Database name
 	 */
 	private String databaseName;
+
+	/**
+	 * Externally provided codecs
+	 */
+	private CodecRegistry additionalCodecRegistry;
 
 	/**
 	 * Whether the datastore was initialized
@@ -212,6 +229,22 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 		return databaseName;
 	}
 
+	/**
+	 * Get the externally provided codec registry, if available.
+	 * @return Optional externally provided codec registry
+	 */
+	protected Optional<CodecRegistry> getAdditionalCodecRegistry() {
+		return Optional.ofNullable(additionalCodecRegistry);
+	}
+
+	/**
+	 * Set the additional codec registry.
+	 * @param additionalCodecRegistry the additional CodecRegistry to set
+	 */
+	protected void setAdditionalCodecRegistry(CodecRegistry additionalCodecRegistry) {
+		this.additionalCodecRegistry = additionalCodecRegistry;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync()
@@ -321,6 +354,17 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 		}
 	}
 
+	/**
+	 * Configure the {@link MongoDatabase}, registering the additional codecs if configured.
+	 * @param database The database to configure
+	 * @return The configured database
+	 */
+	protected MongoDatabase checkAdditionalCodecs(MongoDatabase database) {
+		return getAdditionalCodecRegistry()
+				.map(r -> database.withCodecRegistry(CodecRegistries.fromRegistries(database.getCodecRegistry(), r)))
+				.orElse(database);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see
@@ -331,8 +375,8 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 	public <R> R withDatabase(MongoDatabaseOperation<MongoDatabase, R> operation) {
 		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
 
-		// get the database
-		final MongoDatabase database = checkClient().getDatabase(checkDatabaseName());
+		// get and configure the database
+		final MongoDatabase database = checkAdditionalCodecs(checkClient().getDatabase(checkDatabaseName()));
 
 		try {
 			return operation.execute(database);
@@ -341,6 +385,186 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 		} catch (Exception e) {
 			throw new DataAccessException("Failed to execute operation", e);
 		}
+	}
+
+	// ------- Builder
+
+	public static class DefaultBuilder implements MongoDatastore.Builder {
+
+		private final DefaultMongoDatastore datastore = new DefaultMongoDatastore(false);
+
+		private final List<Codec<?>> codecs = new LinkedList<>();
+		private final List<CodecProvider> codecProviders = new LinkedList<>();
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#withCodec(org.bson.codecs.Codec)
+		 */
+		@Override
+		public MongoDatastore.Builder withCodec(Codec<?> codec) {
+			ObjectUtils.argumentNotNull(codec, "Codec must be not null");
+			codecs.add(codec);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#withCodecProvider(org.bson.codecs.configuration.
+		 * CodecProvider)
+		 */
+		@Override
+		public MongoDatastore.Builder withCodecProvider(CodecProvider codecProvider) {
+			ObjectUtils.argumentNotNull(codecProvider, "CodecProvider must be not null");
+			codecProviders.add(codecProvider);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#readPreference(com.mongodb.ReadPreference)
+		 */
+		@Override
+		public MongoDatastore.Builder readPreference(ReadPreference readPreference) {
+			datastore.setDefaultReadPreference(readPreference);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#readConcern(com.mongodb.ReadConcern)
+		 */
+		@Override
+		public MongoDatastore.Builder readConcern(ReadConcern readConcern) {
+			datastore.setDefaultReadConcern(readConcern);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#writeConcern(com.mongodb.WriteConcern)
+		 */
+		@Override
+		public MongoDatastore.Builder writeConcern(WriteConcern writeConcern) {
+			datastore.setDefaultWriteConcern(writeConcern);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#enumCodecStrategy(com.holonplatform.datastore.
+		 * mongo.core.document.EnumCodecStrategy)
+		 */
+		@Override
+		public MongoDatastore.Builder enumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy) {
+			datastore.setEnumCodecStrategy(defaultEnumCodecStrategy);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#dataContextId(java.lang.String)
+		 */
+		@Override
+		public MongoDatastore.Builder dataContextId(String dataContextId) {
+			datastore.setDataContextId(dataContextId);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#traceEnabled(boolean)
+		 */
+		@Override
+		public MongoDatastore.Builder traceEnabled(boolean trace) {
+			datastore.setTraceEnabled(trace);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.core.datastore.DatastoreOperations.Builder#configuration(com.holonplatform.core.datastore.
+		 * DatastoreConfigProperties)
+		 */
+		@Override
+		public MongoDatastore.Builder configuration(DatastoreConfigProperties configuration) {
+			ObjectUtils.argumentNotNull(configuration, "Datastore configuration must be not null");
+			datastore.setTraceEnabled(configuration.isTrace());
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverBuilder#withExpressionResolver(com.holonplatform.
+		 * core.ExpressionResolver)
+		 */
+		@Override
+		public <E extends Expression, R extends Expression> MongoDatastore.Builder withExpressionResolver(
+				ExpressionResolver<E, R> expressionResolver) {
+			datastore.addExpressionResolver(expressionResolver);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.sync.MongoDatastore.Builder#client(com.mongodb.client.MongoClient)
+		 */
+		@Override
+		public MongoDatastore.Builder client(MongoClient client) {
+			ObjectUtils.argumentNotNull(client, "MongoClient must be not null");
+			datastore.setClient(client);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.sync.MongoDatastore.Builder#database(java.lang.String)
+		 */
+		@Override
+		public MongoDatastore.Builder database(String database) {
+			ObjectUtils.argumentNotNull(database, "Database name must be not null");
+			datastore.setDatabaseName(database);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.sync.MongoDatastore.Builder#withCommodity(com.holonplatform.datastore.mongo
+		 * .sync.config.SyncMongoDatastoreCommodityFactory)
+		 */
+		@Override
+		public <C extends DatastoreCommodity> MongoDatastore.Builder withCommodity(
+				SyncMongoDatastoreCommodityFactory<C> commodityFactory) {
+			datastore.registerCommodity(commodityFactory);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#build()
+		 */
+		@Override
+		public MongoDatastore build() {
+			// codecs
+			List<CodecRegistry> registries = new LinkedList<>();
+			if (!codecs.isEmpty()) {
+				registries.add(CodecRegistries.fromCodecs(codecs));
+			}
+			if (!codecProviders.isEmpty()) {
+				registries.add(CodecRegistries.fromProviders(codecProviders));
+			}
+			if (!registries.isEmpty()) {
+				datastore.setAdditionalCodecRegistry(CodecRegistries.fromRegistries(registries));
+			}
+			// init
+			datastore.initialize(ClassUtils.getDefaultClassLoader());
+			return datastore;
+		}
+
 	}
 
 }

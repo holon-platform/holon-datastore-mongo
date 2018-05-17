@@ -20,32 +20,34 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * Default {@link CollectionName} expression resolver to resolve a {@link DataTarget} expresion to a collection
- * name.
+ * Default {@link CollectionName} expression resolver to resolve a {@link DataTarget} expresion to a collection name.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum DataTargetCollectionNameResolver implements ExpressionResolver<DataTarget, CollectionName> {
+public enum DataTargetCollectionNameResolver implements MongoExpressionResolver<DataTarget, CollectionName> {
 
 	INSTANCE;
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.Expression.ExpressionResolverFunction#resolve(com.holonplatform.core.Expression,
-	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
+	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
+	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<CollectionName> resolve(DataTarget expression, ResolutionContext context)
+	public Optional<CollectionName> resolve(DataTarget expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
+
 		// validate
 		expression.validate();
+
 		// use the path name as collection name
 		return Optional.of(CollectionName.create(expression.getName()));
 	}

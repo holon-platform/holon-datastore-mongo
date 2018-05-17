@@ -81,9 +81,9 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 
 	/**
 	 * Set the default {@link EnumCodecStrategy} to use when encoding and decoding {@link Enum} type values.
-	 * @param defaultEnumCodecStrategy The default EnumCodecStrategy to set
+	 * @param enumCodecStrategy The default EnumCodecStrategy to set
 	 * @return this
 	 */
-	B defaultEnumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy);
+	B enumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy);
 
 }

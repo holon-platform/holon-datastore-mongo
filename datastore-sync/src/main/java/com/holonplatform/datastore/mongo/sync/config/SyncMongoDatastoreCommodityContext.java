@@ -17,6 +17,7 @@ package com.holonplatform.datastore.mongo.sync.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityContext;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -24,7 +25,12 @@ import com.mongodb.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public interface SyncMongoDatastoreCommodityContext
-		extends MongoDatastoreCommodityContext<MongoDatabase> {
+public interface SyncMongoDatastoreCommodityContext extends MongoDatastoreCommodityContext<MongoDatabase> {
+
+	/**
+	 * Get the MongoDB client.
+	 * @return the MongoDB client
+	 */
+	MongoClient getClient();
 
 }

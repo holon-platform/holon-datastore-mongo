@@ -142,8 +142,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
 	 */
 	@Override
-	public void trace(String json) {
-		getContext().trace(json);
+	public void trace(String title, String json) {
+		getContext().trace(title, json);
 	}
 
 	// Expression resolvers

@@ -15,10 +15,55 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.SaveOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractSaveOperation;
+import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.mongodb.client.MongoDatabase;
+
 /**
- * @author BODSI08
+ * MongoDB {@link SaveOperation}.
  *
+ * @since 5.2.0
  */
-public class MongoSave {
+public class MongoSave extends AbstractSaveOperation {
+
+	private static final long serialVersionUID = -7779005644734871789L;
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, SaveOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, SaveOperation>() {
+
+		@Override
+		public Class<? extends SaveOperation> getCommodityType() {
+			return SaveOperation.class;
+		}
+
+		@Override
+		public SaveOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new MongoSave(context);
+		}
+	};
+
+	private final MongoOperationContext<MongoDatabase> operationContext;
+
+	public MongoSave(MongoOperationContext<MongoDatabase> operationContext) {
+		super();
+		this.operationContext = operationContext;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
+	 */
+	@Override
+	public OperationResult execute() {
+		// TODO
+		return null;
+	}
 
 }

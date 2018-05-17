@@ -62,8 +62,8 @@ public class MongoTestContext implements MongoContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
 	 */
 	@Override
-	public void trace(String json) {
-		LOGGER.info(json);
+	public void trace(String title, String json) {
+		LOGGER.info(title + ": " + json);
 	}
 
 }

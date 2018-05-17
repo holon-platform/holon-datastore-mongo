@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Axioma srl.
+ * Copyright 2016-2018 Axioma srl.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,53 +15,57 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
+import java.util.stream.Stream;
+
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.DeleteOperation;
-import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.QueryAdapterQuery;
+import com.holonplatform.core.internal.query.QueryDefinition;
+import com.holonplatform.core.query.Query;
+import com.holonplatform.core.query.QueryAdapter;
+import com.holonplatform.core.query.QueryConfiguration;
+import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.mongodb.client.MongoDatabase;
 
 /**
- * MongoDB {@link DeleteOperation}.
+ * MongoDB {@link QueryAdapter}.
  *
  * @since 5.2.0
  */
-public class MongoDelete extends AbstractDeleteOperation {
-
-	private static final long serialVersionUID = 7267920035347307152L;
+public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Query> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Query>() {
 
 		@Override
-		public Class<? extends DeleteOperation> getCommodityType() {
-			return DeleteOperation.class;
+		public Class<? extends Query> getCommodityType() {
+			return Query.class;
 		}
 
 		@Override
-		public DeleteOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public Query createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new MongoDelete(context);
+			return new QueryAdapterQuery<>(new MongoQuery(context), QueryDefinition.create());
 		}
 	};
 
 	private final MongoOperationContext<MongoDatabase> operationContext;
 
-	public MongoDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoQuery(MongoOperationContext<MongoDatabase> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
+	 * @see com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query.QueryOperation)
 	 */
 	@Override
-	public OperationResult execute() {
+	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
 		// TODO
 		return null;
 	}

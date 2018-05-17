@@ -15,15 +15,27 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.RefreshOperation;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperation;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
+import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 /**
  * MongoDB {@link RefreshOperation}.
@@ -67,19 +79,47 @@ public class MongoRefresh extends AbstractRefreshOperation {
 		// validate
 		getConfiguration().validate();
 
-		// resolution context
-		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
-		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
-		
-		PropertyBox value = getConfiguration().getValue();
-		
-		operationContext.withDatabase(database -> {
-			
-			database.getCollection("todo");
-			
-		});
+		// value to refresh
+		final PropertyBox value = getConfiguration().getValue();
 
-		return null;
+		// resolution context
+		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+
+		// check document id property
+		final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(() -> new DataAccessException(
+				"Cannot perform a REFRESH operation: missing document id property" + " for value [" + value + "]"));
+
+		final ObjectId id = context.getDocumentIdResolver().encode(value.getValue(idProperty));
+		if (id == null) {
+			throw new DataAccessException(
+					"Cannot perform a REFRESH operation: missing document id value for property [" + idProperty + "]");
+		}
+
+		// resolve collection
+		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+				.getName();
+
+		return operationContext.withDatabase(database -> {
+
+			// get and configure collection
+			final MongoCollection<Document> collection = MongoOperationConfigurator
+					.configureRead(database.getCollection(collectionName), operationContext, getConfiguration());
+
+			// get document by id
+			Document document = collection.find(Filters.eq(MongoDocumentContext.ID_FIELD_NAME, id)).first();
+
+			if (document == null) {
+				throw new DataAccessException("No document found with id [" + id + "]");
+			}
+
+			// trace
+			operationContext.trace("Refreshed document",
+					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
+
+			// decode the document
+			return context.resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class).getValue();
+
+		});
 	}
 
 }

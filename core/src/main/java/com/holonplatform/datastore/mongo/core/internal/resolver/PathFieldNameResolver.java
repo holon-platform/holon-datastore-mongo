@@ -20,10 +20,11 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
+import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
  * {@link Path} to {@link FieldName} default expression resolver.
@@ -32,17 +33,17 @@ import com.holonplatform.datastore.mongo.core.expression.FieldName;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum PathFieldNameResolver implements ExpressionResolver<Path, FieldName> {
+public enum PathFieldNameResolver implements MongoExpressionResolver<Path, FieldName> {
 
 	INSTANCE;
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.Expression.ExpressionResolverFunction#resolve(com.holonplatform.core.Expression,
-	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
+	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
+	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<FieldName> resolve(Path expression, ResolutionContext context)
+	public Optional<FieldName> resolve(Path expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate

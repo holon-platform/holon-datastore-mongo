@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Axioma srl.
+ * Copyright 2016-2018 Axioma srl.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,42 +18,51 @@ package com.holonplatform.datastore.mongo.sync.internal.operations;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.DeleteOperation;
-import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
+import com.holonplatform.core.datastore.bulk.BulkInsert;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsertOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.mongodb.client.MongoDatabase;
 
 /**
- * MongoDB {@link DeleteOperation}.
- *
+ * Mongo {@link BulkInsert} implementation.
+ * 
  * @since 5.2.0
  */
-public class MongoDelete extends AbstractDeleteOperation {
+public class MongoBulkInsert extends AbstractBulkInsertOperation<BulkInsert> implements BulkInsert {
 
-	private static final long serialVersionUID = 7267920035347307152L;
+	private static final long serialVersionUID = -7090144911918354693L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, BulkInsert> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, BulkInsert>() {
 
 		@Override
-		public Class<? extends DeleteOperation> getCommodityType() {
-			return DeleteOperation.class;
+		public Class<? extends BulkInsert> getCommodityType() {
+			return BulkInsert.class;
 		}
 
 		@Override
-		public DeleteOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public BulkInsert createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new MongoDelete(context);
+			return new MongoBulkInsert(context);
 		}
 	};
 
 	private final MongoOperationContext<MongoDatabase> operationContext;
 
-	public MongoDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoBulkInsert(MongoOperationContext<MongoDatabase> operationContext) {
 		super();
 		this.operationContext = operationContext;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.internal.datastore.operation.AbstractDatastoreOperation#getActualOperation()
+	 */
+	@Override
+	protected BulkInsert getActualOperation() {
+		return this;
 	}
 
 	/*
@@ -62,7 +71,7 @@ public class MongoDelete extends AbstractDeleteOperation {
 	 */
 	@Override
 	public OperationResult execute() {
-		// TODO
+		// TODO 
 		return null;
 	}
 

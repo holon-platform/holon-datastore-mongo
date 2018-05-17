@@ -21,6 +21,7 @@ import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.internal.resolver.DefaultMongoExpressionResolvers;
 
 /**
  * An {@link ExpressionResolver} to be used with a {@link MongoResolutionContext} resolution context.
@@ -57,5 +58,14 @@ public interface MongoExpressionResolver<E extends Expression, R extends Express
 	 * @throws InvalidExpressionException If an expression resolution error occurred
 	 */
 	Optional<R> resolve(E expression, MongoResolutionContext context) throws InvalidExpressionException;
+
+	/**
+	 * Get the default {@link MongoExpressionResolver}s.
+	 * @return the default expression resolvers
+	 */
+	@SuppressWarnings("rawtypes")
+	static Iterable<MongoExpressionResolver> getDefaultResolvers() {
+		return DefaultMongoExpressionResolvers.getExpressionresolvers();
+	}
 
 }

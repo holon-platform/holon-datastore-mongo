@@ -44,8 +44,9 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
 	 * using the <code>DEBUG</code> level.
 	 * </p>
+	 * @param title Optional title
 	 * @param json JSON to trace
 	 */
-	void trace(String json);
+	void trace(String title, String json);
 
 }

@@ -84,6 +84,6 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 	 * @param enumCodecStrategy The default EnumCodecStrategy to set
 	 * @return this
 	 */
-	B enumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy);
+	B enumCodecStrategy(EnumCodecStrategy enumCodecStrategy);
 
 }

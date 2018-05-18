@@ -112,7 +112,7 @@ public class MongoInsert extends AbstractInsertOperation {
 			// check inserted keys
 			if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
 				// get document id value
-				final ObjectId oid = document.get(MongoDocumentContext.ID_FIELD_NAME, ObjectId.class);
+				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
 				if (oid != null) {
 					context.getDocumentIdPath().ifPresent(idp -> {
 						builder.withInsertedKey(idp, context.getDocumentIdResolver().decode(oid, idp.getType()));

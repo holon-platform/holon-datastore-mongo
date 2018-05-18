@@ -57,7 +57,7 @@ public abstract class AbstractMongoDBTest {
 		_mongodExe.stop();
 	}
 
-	protected MongoClient getMongo() {
+	protected static MongoClient getMongo() {
 		return _mongo;
 	}
 

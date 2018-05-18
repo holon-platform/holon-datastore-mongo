@@ -35,7 +35,7 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 	 * Get a builder to create a {@link AsyncMongoDatastore} instance.
 	 * @return Datastore builder
 	 */
-	static Builder<AsyncMongoDatastore> builder() {
+	static Builder builder() {
 		// return new DefaultJdbcDatastore.DefaultBuilder();
 		// TODO
 		return null;
@@ -43,31 +43,30 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 
 	/**
 	 * {@link AsyncMongoDatastore} builder.
-	 * @param <D> {@link AsyncMongoDatastore} type
 	 */
-	public interface Builder<D extends AsyncMongoDatastore> extends MongoDatastoreBuilder<D, Builder<D>> {
+	public interface Builder extends MongoDatastoreBuilder<AsyncMongoDatastore, Builder> {
 
 		/**
 		 * Set the {@link MongoClient} to use.
 		 * @param client MongoClient to set (not null)
 		 * @return this
 		 */
-		Builder<D> client(MongoClient client);
+		Builder client(MongoClient client);
 
 		/**
 		 * Set the database name to use.
 		 * @param database The database name to set (not null)
 		 * @return this
 		 */
-		Builder<D> database(String database);
+		Builder database(String database);
 
 		/**
-		 * Register a {@link SyncMongoDatastoreCommodityFactory}.
+		 * Register a {@link AsyncMongoDatastoreCommodityFactory}.
 		 * @param <C> Commodity type
 		 * @param commodityFactory The factory to register (not null)
 		 * @return this
 		 */
-		<C extends DatastoreCommodity> Builder<D> withCommodity(
+		<C extends DatastoreCommodity> Builder withCommodity(
 				AsyncMongoDatastoreCommodityFactory<C> commodityFactory);
 
 	}

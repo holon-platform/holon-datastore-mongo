@@ -44,7 +44,6 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 
 	/**
 	 * {@link MongoDatastore} builder.
-	 * @param <D> {@link MongoDatastore} type
 	 */
 	public interface Builder extends MongoDatastoreBuilder<MongoDatastore, Builder> {
 

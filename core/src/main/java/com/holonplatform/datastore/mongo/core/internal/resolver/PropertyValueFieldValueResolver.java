@@ -28,22 +28,26 @@ import javax.annotation.Priority;
 import org.bson.types.Binary;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.CalendarUtils;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.temporal.TemporalType;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.LiteralValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * Resolver to resolve a {@link LiteralValue} into a {@link FieldValue}.
+ * Resolver to resolve a {@link Value} into a {@link FieldValue}.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum LiteralValueFieldResolver implements MongoExpressionResolver<LiteralValue, FieldValue> {
+public enum PropertyValueFieldValueResolver implements MongoExpressionResolver<Value, FieldValue> {
 
 	INSTANCE;
 
@@ -52,18 +56,56 @@ public enum LiteralValueFieldResolver implements MongoExpressionResolver<Literal
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<FieldValue> resolve(LiteralValue expression, MongoResolutionContext context)
+	public Optional<FieldValue> resolve(Value expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		final LiteralValue<?> value = expression;
+		final Value<Object> exp = expression;
 
-		return Optional.of(
-				FieldValue.create(checkType(value.getEnumCodecStrategy().orElse(context.getDefaultEnumCodecStrategy()),
-						value.getTemporalType().orElse(null), value.getValue())));
+		// check converter
+		final Object value = exp.getExpression().flatMap(e -> e.isConverterExpression())
+				.map(ce -> ce.getModelValue(exp.getValue())).orElse(exp.getValue());
+
+		// Enum codec strategy
+		final EnumCodecStrategy strategy = exp.getEnumCodecStrategy().orElse(context.getDefaultEnumCodecStrategy());
+
+		// Temporal type
+		TemporalType temporalType = exp.getExpression().flatMap(e -> e.getTemporalType()).orElse(null);
+
+		// check type conversion
+		try {
+			Object encoded = exp.getExpression().filter(p -> isDocumentIdProperty(context, p))
+					.map(p -> (Object) context.getDocumentIdResolver().encode(value))
+					.orElse(checkType(strategy, temporalType, value));
+
+			return Optional.of(FieldValue.create(encoded, exp.getExpression().orElse(null), strategy));
+		} catch (InvalidExpressionException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new InvalidExpressionException("Failed to encode value [" + expression.getValue() + "]", e);
+		}
+	}
+
+	/**
+	 * Check if given expression acts as document id property or path.
+	 * @param context Resolution context
+	 * @param expression The expression to check
+	 * @return <code>true</code> if given property acts as document id property, <code>false</code> otherwise
+	 */
+	private static boolean isDocumentIdProperty(MongoResolutionContext context, TypedExpression<?> expression) {
+		if (Property.class.isAssignableFrom(expression.getClass())) {
+			return MongoDocumentContext.isDocumentContext(context)
+					.map(ctx -> ctx.isDocumentIdProperty((Property) expression)).orElse(false);
+		}
+		if (Path.class.isAssignableFrom(expression.getClass())) {
+			return MongoDocumentContext.isDocumentContext(context)
+					.map(ctx -> ctx.isDocumentIdPath((Path) expression).isPresent()).orElse(false);
+		}
+		return false;
 	}
 
 	/*
@@ -71,8 +113,8 @@ public enum LiteralValueFieldResolver implements MongoExpressionResolver<Literal
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends LiteralValue> getExpressionType() {
-		return LiteralValue.class;
+	public Class<? extends Value> getExpressionType() {
+		return Value.class;
 	}
 
 	/*

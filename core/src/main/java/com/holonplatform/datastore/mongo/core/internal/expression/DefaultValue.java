@@ -17,38 +17,28 @@ package com.holonplatform.datastore.mongo.core.internal.expression;
 
 import java.util.Optional;
 
-import com.holonplatform.core.property.Property;
-import com.holonplatform.datastore.mongo.core.expression.PathValue;
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 
 /**
- * Default {@link PathValue} implementation.
+ * Default {@link Value} implementation.
  *
- * @param <T> Path type
+ * @param <T> Value type
  *
  * @since 5.2.0
  */
-public class DefaultPathValue<T> implements PathValue<T> {
+public class DefaultValue<T> implements Value<T> {
 
 	private final T value;
-	private final Property<T> property;
+	private final TypedExpression<T> expression;
+	private final EnumCodecStrategy enumCodecStrategy;
 
-	/**
-	 * Constructor.
-	 * @param value The value
-	 */
-	public DefaultPathValue(T value) {
-		this(value, null);
-	}
-
-	/**
-	 * Constructor.
-	 * @param value The value
-	 * @param property The property to which the value is bound
-	 */
-	public DefaultPathValue(T value, Property<T> property) {
+	public DefaultValue(T value, TypedExpression<T> expression, EnumCodecStrategy enumCodecStrategy) {
 		super();
 		this.value = value;
-		this.property = property;
+		this.expression = expression;
+		this.enumCodecStrategy = enumCodecStrategy;
 	}
 
 	/*
@@ -62,11 +52,20 @@ public class DefaultPathValue<T> implements PathValue<T> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.PathValueExpression#getProperty()
+	 * @see com.holonplatform.datastore.mongo.core.expression.PropertyValue#getEnumCodecStrategy()
 	 */
 	@Override
-	public Optional<Property<T>> getProperty() {
-		return Optional.ofNullable(property);
+	public Optional<EnumCodecStrategy> getEnumCodecStrategy() {
+		return Optional.ofNullable(enumCodecStrategy);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.PropertyValue#getExpression()
+	 */
+	@Override
+	public Optional<TypedExpression<T>> getExpression() {
+		return Optional.ofNullable(expression);
 	}
 
 	/*

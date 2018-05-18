@@ -18,9 +18,15 @@ package com.holonplatform.datastore.mongo.core.internal.document.converter;
 import org.bson.Document;
 
 import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 
 /**
  * {@link TypedExpression} document converter.
@@ -69,9 +75,27 @@ public class TypedExpressionDocumentConverter<T> implements DocumentConverter<T>
 	 * com.holonplatform.datastore.mongo.core.document.DocumentConverter#convert(com.holonplatform.datastore.mongo.core.
 	 * context.MongoResolutionContext, org.bson.Document)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public T convert(MongoResolutionContext context, Document document) {
-		// TODO Auto-generated method stub
+		if (document != null) {
+			EnumCodecStrategy strategy = (Property.class.isAssignableFrom(expression.getClass()))
+					? ((Property<?>) expression).getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY)
+							.orElse(null)
+					: null;
+
+			final Object fieldValue = document.get(selection);
+
+			Object value = context.resolveOrFail(FieldValue.create(fieldValue, expression, strategy), Value.class)
+					.getValue();
+
+			if (value != null && !TypeUtils.isAssignable(value.getClass(), getConversionType())) {
+				throw new DataAccessException("Failed to convert document value [" + fieldValue + "] to required type ["
+						+ getConversionType() + "]: value type [" + value.getClass().getName() + "] is not compatible");
+			}
+
+			return (T) value;
+		}
 		return null;
 	}
 

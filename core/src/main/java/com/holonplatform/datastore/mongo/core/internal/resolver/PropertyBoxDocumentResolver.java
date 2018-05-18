@@ -33,11 +33,12 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.PathValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.internal.document.MongoPropertySetSerializationTreeResolver;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 import com.holonplatform.json.model.PropertySetSerializationNode;
@@ -176,7 +177,14 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false)
 						.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
 			} else {
-				fieldValue = context.resolveOrFail(PathValue.create(value, property), FieldValue.class).getValue();
+				fieldValue = context
+						.resolveOrFail(
+								Value
+										.create(value, property,
+												property.getConfiguration()
+														.getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
+								FieldValue.class)
+						.getValue();
 			}
 			return Collections.singletonMap(fieldName, fieldValue);
 		} catch (Exception e) {

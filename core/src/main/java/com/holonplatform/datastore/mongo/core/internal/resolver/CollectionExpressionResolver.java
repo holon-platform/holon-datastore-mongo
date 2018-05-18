@@ -20,20 +20,20 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.CollectionExpression;
+import com.holonplatform.core.query.CollectionConstantExpression;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.LiteralValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * {@link CollectionExpression} resolver.
+ * {@link CollectionConstantExpression} resolver.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum CollectionExpressionResolver implements MongoExpressionResolver<CollectionExpression, FieldValue> {
+public enum CollectionExpressionResolver implements MongoExpressionResolver<CollectionConstantExpression, FieldValue> {
 
 	/**
 	 * Singleton instance.
@@ -45,19 +45,16 @@ public enum CollectionExpressionResolver implements MongoExpressionResolver<Coll
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<FieldValue> resolve(CollectionExpression expression, MongoResolutionContext context)
+	public Optional<FieldValue> resolve(CollectionConstantExpression expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		final CollectionExpression<?> ce = expression;
-
 		// resolve
-		return context.resolve(
-				LiteralValue.create(ce.getModelValue(), ce.getModelType(), ce.getTemporalType().orElse(null)),
-				FieldValue.class);
+		return context.resolve(Value.create(expression.getValue(), expression), FieldValue.class);
 	}
 
 	/*
@@ -65,8 +62,8 @@ public enum CollectionExpressionResolver implements MongoExpressionResolver<Coll
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends CollectionExpression> getExpressionType() {
-		return CollectionExpression.class;
+	public Class<? extends CollectionConstantExpression> getExpressionType() {
+		return CollectionConstantExpression.class;
 	}
 
 	/*

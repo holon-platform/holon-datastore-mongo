@@ -23,7 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.LiteralValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -45,6 +45,7 @@ public enum ConstantExpressionResolver implements MongoExpressionResolver<Consta
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Optional<FieldValue> resolve(ConstantExpression expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
@@ -52,12 +53,8 @@ public enum ConstantExpressionResolver implements MongoExpressionResolver<Consta
 		// validate
 		expression.validate();
 
-		final ConstantExpression<?> ce = expression;
-
 		// resolve
-		return context.resolve(
-				LiteralValue.create(ce.getModelValue(), ce.getModelType(), ce.getTemporalType().orElse(null)),
-				FieldValue.class);
+		return context.resolve(Value.create(expression.getValue(), expression), FieldValue.class);
 	}
 
 	/*

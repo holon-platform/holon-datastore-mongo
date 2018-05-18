@@ -17,7 +17,8 @@ package com.holonplatform.datastore.mongo.core.internal.expression;
 
 import java.util.Optional;
 
-import com.holonplatform.core.property.Property;
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 
 /**
@@ -28,25 +29,14 @@ import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 public class DefaultFieldValue implements FieldValue {
 
 	private final Object value;
-	private final Property<?> property;
+	private final TypedExpression<?> expression;
+	private final EnumCodecStrategy enumCodecStrategy;
 
-	/**
-	 * Constructor.
-	 * @param value The field value
-	 */
-	public DefaultFieldValue(Object value) {
-		this(value, null);
-	}
-
-	/**
-	 * Constructor with property.
-	 * @param value The field value
-	 * @param property The property to which the field value is bound
-	 */
-	public DefaultFieldValue(Object value, Property<?> property) {
+	public DefaultFieldValue(Object value, TypedExpression<?> expression, EnumCodecStrategy enumCodecStrategy) {
 		super();
 		this.value = value;
-		this.property = property;
+		this.expression = expression;
+		this.enumCodecStrategy = enumCodecStrategy;
 	}
 
 	/*
@@ -60,11 +50,20 @@ public class DefaultFieldValue implements FieldValue {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.FieldValueExpression#getProperty()
+	 * @see com.holonplatform.datastore.mongo.core.expression.FieldValue#getEnumCodecStrategy()
 	 */
 	@Override
-	public Optional<Property<?>> getProperty() {
-		return Optional.ofNullable(property);
+	public Optional<EnumCodecStrategy> getEnumCodecStrategy() {
+		return Optional.ofNullable(enumCodecStrategy);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.FieldValue#getExpression()
+	 */
+	@Override
+	public Optional<TypedExpression<?>> getExpression() {
+		return Optional.ofNullable(expression);
 	}
 
 	/*

@@ -18,7 +18,8 @@ package com.holonplatform.datastore.mongo.core.expression;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.core.property.Property;
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.internal.expression.DefaultFieldValue;
 
 /**
@@ -35,10 +36,16 @@ public interface FieldValue extends Expression {
 	Object getValue();
 
 	/**
-	 * Get the {@link Property} to which the field value is bound, if any.
-	 * @return Optional property to which the field value is bound
+	 * Get the {@link EnumCodecStrategy} to use to encode/decode {@link Enum} type values.
+	 * @return The enum codec strategy, if specified
 	 */
-	Optional<Property<?>> getProperty();
+	Optional<EnumCodecStrategy> getEnumCodecStrategy();
+
+	/**
+	 * Get the {@link TypedExpression} to which the field value is bound, if any.
+	 * @return Optional expression to which the field value is bound
+	 */
+	Optional<TypedExpression<?>> getExpression();
 
 	/**
 	 * Create a new {@link FieldValue}.
@@ -46,17 +53,38 @@ public interface FieldValue extends Expression {
 	 * @return A new {@link FieldValue} instance
 	 */
 	static FieldValue create(Object value) {
-		return new DefaultFieldValue(value);
+		return new DefaultFieldValue(value, null, null);
 	}
 
 	/**
 	 * Create a new {@link FieldValue}.
 	 * @param value The field value
-	 * @param property The property to which the value is bound
+	 * @param expression The expression to which the value is bound
 	 * @return A new {@link FieldValue} instance
 	 */
-	static FieldValue create(Object value, Property<?> property) {
-		return new DefaultFieldValue(value, property);
+	static FieldValue create(Object value, TypedExpression<?> expression) {
+		return new DefaultFieldValue(value, expression, null);
+	}
+
+	/**
+	 * Create a new {@link FieldValue}.
+	 * @param value The field value
+	 * @param enumCodecStrategy The {@link EnumCodecStrategy} to use
+	 * @return A new {@link FieldValue} instance
+	 */
+	static FieldValue create(Object value, EnumCodecStrategy enumCodecStrategy) {
+		return new DefaultFieldValue(value, null, enumCodecStrategy);
+	}
+
+	/**
+	 * Create a new {@link FieldValue}.
+	 * @param value The field value
+	 * @param expression The expression to which the value is bound
+	 * @param enumCodecStrategy The {@link EnumCodecStrategy} to use
+	 * @return A new {@link FieldValue} instance
+	 */
+	static FieldValue create(Object value, TypedExpression<?> expression, EnumCodecStrategy enumCodecStrategy) {
+		return new DefaultFieldValue(value, expression, enumCodecStrategy);
 	}
 
 }

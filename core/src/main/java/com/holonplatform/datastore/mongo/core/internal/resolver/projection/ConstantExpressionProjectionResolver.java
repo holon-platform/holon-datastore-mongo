@@ -25,7 +25,6 @@ import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.LiteralValue;
 import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
@@ -78,13 +77,10 @@ public enum ConstantExpressionProjectionResolver
 		final ConstantExpression<?> ce = expression;
 
 		// literal value
-		return context
-				.resolve(LiteralValue.create(ce.getModelValue(), ce.getModelType(), ce.getTemporalType().orElse(null)),
-						FieldValue.class)
-				.map(fv -> fv.getValue()).map(value -> {
-					return MongoProjection.builder(value.getClass())
-							.converter(DocumentConverter.create((Class) value.getClass(), (c, d) -> value)).build();
-				});
+		return context.resolve(ce, FieldValue.class).map(fv -> fv.getValue()).map(value -> {
+			return MongoProjection.builder(value.getClass())
+					.converter(DocumentConverter.create((Class) value.getClass(), (c, d) -> value)).build();
+		});
 	}
 
 }

@@ -29,7 +29,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.PathValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 
 /**
  * Bean {@link DocumentConverter}.
@@ -72,7 +72,8 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 	 */
 	@Override
 	public T convert(MongoResolutionContext context, Document document) {
-		return decodeDocument(context.documentContext(beanPropertySet), null, document, beanPropertySet);
+		return (document == null) ? null
+				: decodeDocument(context.documentContext(beanPropertySet), null, document, beanPropertySet);
 	}
 
 	private static <T> T decodeDocument(final MongoDocumentContext context, final String parent,
@@ -114,7 +115,7 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 			final Path path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
 			// resolve value
 			beanPropertySet.getProperty(path.relativeName()).ifPresent(p -> {
-				Object resolvedValue = context.resolveOrFail(FieldValue.create(value, p), PathValue.class).getValue();
+				Object resolvedValue = context.resolveOrFail(FieldValue.create(value, p), Value.class).getValue();
 				beanPropertySet.write(path, resolvedValue, instance);
 			});
 		}

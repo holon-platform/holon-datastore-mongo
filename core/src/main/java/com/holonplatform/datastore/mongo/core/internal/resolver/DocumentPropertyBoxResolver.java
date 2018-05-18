@@ -27,11 +27,12 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.PathValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentPathMatcher;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
@@ -113,7 +114,7 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @param context Resolution context
 	 * @param parent Optional parent field name expression
 	 * @param document Document to decode
-	 * @param adapter PropertyBox adapter 
+	 * @param adapter PropertyBox adapter
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	private static void decodeDocument(final MongoResolutionContext context, final String parent,
@@ -161,7 +162,10 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 			final Path<?> path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
 			// resolve value
 			adapter.getProperty(path).ifPresent(p -> {
-				Object resolvedValue = context.resolveOrFail(FieldValue.create(value, p), PathValue.class).getValue();
+				Object resolvedValue = context.resolveOrFail(
+						FieldValue.create(value, p,
+								p.getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
+						Value.class).getValue();
 				adapter.setValue((Path) path, resolvedValue);
 			});
 		}

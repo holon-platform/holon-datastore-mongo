@@ -30,25 +30,23 @@ import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.ExpressionValueConverter;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.property.CollectionProperty;
-import com.holonplatform.core.property.Property;
-import com.holonplatform.core.property.PropertyValueConverter;
-import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.PathValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * Resolver to resolve a {@link PathValue} into a {@link FieldValue}.
+ * Resolver to resolve a {@link Value} into a {@link FieldValue}.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue, PathValue> {
+public enum FieldValuePropertyValueResolver implements MongoExpressionResolver<FieldValue, Value> {
 
 	INSTANCE;
 
@@ -59,74 +57,64 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<PathValue> resolve(FieldValue expression, MongoResolutionContext context)
+	public Optional<Value> resolve(FieldValue expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// check property
-		return Optional.of(expression.getProperty()
-				.map(p -> PathValue.create(decode(context, p, expression.getValue()), (Property<Object>) p))
-				.orElse(PathValue.create(expression.getValue())));
-	}
-
-	/**
-	 * Check if given property acts as document id property.
-	 * @param context Resolution context
-	 * @param property The property to check
-	 * @return <code>true</code> if given property acts as document id property, <code>false</code> otherwise
-	 */
-	private static boolean isDocumentIdProperty(MongoResolutionContext context, Property<?> property) {
-		return MongoDocumentContext.isDocumentContext(context).map(ctx -> ctx.isDocumentIdProperty(property))
-				.orElse(false);
+		return Optional.of(expression.getExpression()
+				.map(expr -> Value.create(decode(context, expr, expression.getValue()), (TypedExpression) expr,
+						expression.getEnumCodecStrategy().orElse(null)))
+				.orElse(Value.create(expression.getValue())));
 	}
 
 	/**
 	 * Decode the value bound to the specified property.
 	 * @param context Resolution context
-	 * @param property Property
+	 * @param expression Field value expression
 	 * @param value Value
 	 * @return Decoded value
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	@SuppressWarnings("unchecked")
-	private static Object decode(MongoResolutionContext context, Property<?> property, Object value)
+	private static Object decode(MongoResolutionContext context, TypedExpression<?> expression, Object value)
 			throws InvalidExpressionException {
 
 		try {
 			// expected type
-			Class<?> targetType = property.getConverter().map(c -> (Class) c.getModelType()).orElse(property.getType());
+			Class<?> targetType = expression.isConverterExpression().map(c -> (Class) c.getModelType())
+					.orElse(expression.getType());
 
 			// check Bson types
 			Object decoded = checkBsonType(targetType, value);
 
 			// check converter
-			if (property.getConverter().isPresent()) {
-				if (decoded == null
-						|| TypeUtils.isAssignable(decoded.getClass(), property.getConverter().get().getModelType())) {
-					decoded = ((PropertyValueConverter) property.getConverter().get()).fromModel(decoded, property);
+			if (expression.isConverterExpression().flatMap(c -> c.getExpressionValueConverter()).isPresent()) {
+				final ExpressionValueConverter converter = expression.isConverterExpression()
+						.flatMap(c -> c.getExpressionValueConverter()).get();
+				if (decoded == null || TypeUtils.isAssignable(decoded.getClass(), converter.getModelType())) {
+					decoded = converter.fromModel(decoded);
 				}
 			}
 
 			// check document id property value conversion
-			if (isDocumentIdProperty(context, property) && ObjectId.class.isAssignableFrom(value.getClass())) {
+			if (ObjectId.class.isAssignableFrom(value.getClass()) && !ObjectId.class.isAssignableFrom(targetType)) {
 				decoded = context.getDocumentIdResolver().decode((ObjectId) value, targetType);
 			}
 
-			// check type
-			if (CollectionProperty.class.isAssignableFrom(property.getClass())) {
-				decoded = checkCollectionType(targetType, ((CollectionProperty) property).getElementType(), decoded);
-			} else {
-				decoded = checkType(targetType, decoded);
-			}
+			final Object v = decoded;
 
-			return decoded;
+			// check type
+			return expression.isCollectionExpression().map(c -> checkCollectionType(targetType, c.getElementType(), v))
+					.orElse(checkType(targetType, v));
+
 		} catch (InvalidExpressionException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new InvalidExpressionException(
-					"Failed to decode value [" + value + "] for Property [" + property + "]", e);
+					"Failed to decode value [" + value + "] for Property [" + expression + "]", e);
 		}
 	}
 
@@ -359,8 +347,8 @@ public enum FieldValuePathResolver implements MongoExpressionResolver<FieldValue
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends PathValue> getResolvedType() {
-		return PathValue.class;
+	public Class<? extends Value> getResolvedType() {
+		return Value.class;
 	}
 
 }

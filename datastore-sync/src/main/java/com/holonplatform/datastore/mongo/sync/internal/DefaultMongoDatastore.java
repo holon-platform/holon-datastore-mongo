@@ -387,6 +387,15 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "[Sync] MongoDatastore [database name=" + databaseName + ", data context id=" + getDataContextId() + "]";
+	}
+
 	// ------- Builder
 
 	public static class DefaultBuilder implements MongoDatastore.Builder {

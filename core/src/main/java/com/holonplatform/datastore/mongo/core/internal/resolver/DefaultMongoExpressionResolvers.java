@@ -34,10 +34,16 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(DataTargetCollectionNameResolver.INSTANCE);
 		expressionResolvers.add(FieldNamePathResolver.INSTANCE);
 		expressionResolvers.add(PathFieldNameResolver.INSTANCE);
+		expressionResolvers.add(LiteralValueFieldResolver.INSTANCE);
+		expressionResolvers.add(NullExpressionResolver.INSTANCE);
+		expressionResolvers.add(CollectionExpressionResolver.INSTANCE);
+		expressionResolvers.add(ConstantExpressionResolver.INSTANCE);
 		expressionResolvers.add(FieldValuePathResolver.INSTANCE);
 		expressionResolvers.add(PathValueFieldResolver.INSTANCE);
 		expressionResolvers.add(DocumentPropertyBoxResolver.INSTANCE);
 		expressionResolvers.add(PropertyBoxDocumentResolver.INSTANCE);
+		expressionResolvers.add(VisitableQueryFilterResolver.INSTANCE);
+		expressionResolvers.add(VisitableQuerySortResolver.INSTANCE);
 	}
 
 	/**

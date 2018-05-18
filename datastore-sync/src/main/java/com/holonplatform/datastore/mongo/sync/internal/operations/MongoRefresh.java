@@ -106,7 +106,7 @@ public class MongoRefresh extends AbstractRefreshOperation {
 					.configureRead(database.getCollection(collectionName), operationContext, getConfiguration());
 
 			// get document by id
-			Document document = collection.find(Filters.eq(MongoDocumentContext.ID_FIELD_NAME, id)).first();
+			Document document = collection.find(Filters.eq(id)).first();
 
 			if (document == null) {
 				throw new DataAccessException("No document found with id [" + id + "]");

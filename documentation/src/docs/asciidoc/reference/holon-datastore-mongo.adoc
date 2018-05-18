@@ -16,5 +16,8 @@ _Copies of this document may be made for your own use and for distribution to ot
 
 == Introduction
 
+== TODO
 
+- Query always set as "snapshot"?
+- Describe NullFilter and NotNullFilter behaviours
 

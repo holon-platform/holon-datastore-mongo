@@ -18,6 +18,12 @@ package com.holonplatform.datastore.mongo.core.internal.resolver;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.BeanProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.ConstantExpressionProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.CountAllProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.PropertySetProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.QueryProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.TypedExpressionProjectionResolver;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -42,8 +48,18 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(PathValueFieldResolver.INSTANCE);
 		expressionResolvers.add(DocumentPropertyBoxResolver.INSTANCE);
 		expressionResolvers.add(PropertyBoxDocumentResolver.INSTANCE);
+		expressionResolvers.add(QueryFilterResolver.INSTANCE);
+		expressionResolvers.add(QuerySortResolver.INSTANCE);
 		expressionResolvers.add(VisitableQueryFilterResolver.INSTANCE);
 		expressionResolvers.add(VisitableQuerySortResolver.INSTANCE);
+		expressionResolvers.add(QueryProjectionResolver.INSTANCE);
+		expressionResolvers.add(ConstantExpressionProjectionResolver.INSTANCE);
+		expressionResolvers.add(TypedExpressionProjectionResolver.INSTANCE);
+		expressionResolvers.add(CountAllProjectionResolver.INSTANCE);
+		expressionResolvers.add(PropertySetProjectionResolver.INSTANCE);
+		expressionResolvers.add(BeanProjectionResolver.INSTANCE);
+		expressionResolvers.add(QueryConfigurationResolver.INSTANCE);
+		expressionResolvers.add(QueryOperationResolver.INSTANCE);
 	}
 
 	/**

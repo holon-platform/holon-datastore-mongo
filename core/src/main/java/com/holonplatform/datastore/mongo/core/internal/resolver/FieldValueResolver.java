@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
@@ -61,6 +62,8 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Value> {
 
 	INSTANCE;
+
+	private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
 	/*
 	 * (non-Javadoc)
@@ -215,13 +218,13 @@ public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Va
 			// date and times
 			if (Date.class.isAssignableFrom(value.getClass())) {
 				if (LocalDate.class.isAssignableFrom(targetType)) {
-					return ConversionUtils.toLocalDate((Date) value);
+					return ConversionUtils.toLocalDate((Date) value, UTC);
 				}
 				if (LocalDateTime.class.isAssignableFrom(targetType)) {
-					return ConversionUtils.toLocalDateTime((Date) value);
+					return ConversionUtils.toLocalDateTime((Date) value, UTC);
 				}
 				if (LocalTime.class.isAssignableFrom(targetType)) {
-					return ConversionUtils.toLocalTime((Date) value);
+					return ConversionUtils.toLocalTime((Date) value, UTC);
 				}
 			}
 
@@ -245,12 +248,12 @@ public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Va
 
 			if (LocalDate.class.isAssignableFrom(value.getClass())) {
 				if (java.util.Date.class.isAssignableFrom(targetType)) {
-					return ConversionUtils.fromLocalDate((LocalDate) value);
+					return ConversionUtils.fromLocalDate((LocalDate) value, UTC);
 				}
 			}
 			if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
 				if (java.util.Date.class.isAssignableFrom(targetType)) {
-					return ConversionUtils.fromLocalDateTime(((LocalDateTime) value));
+					return ConversionUtils.fromLocalDateTime(((LocalDateTime) value), UTC);
 				}
 				if (LocalDate.class.isAssignableFrom(targetType)) {
 					return ((LocalDateTime) value).toLocalDate();

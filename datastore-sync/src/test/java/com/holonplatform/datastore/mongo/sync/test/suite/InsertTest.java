@@ -38,8 +38,12 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.VRT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -53,9 +57,9 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 	@Test
 	public void testInsert() {
-		
+
 		final ObjectId oid = new ObjectId();
-		
+
 		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
@@ -63,18 +67,48 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
 				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
 				.build();
-		
+
 		OperationResult result = getDatastore().insert(TARGET, value);
 		
+		assertEquals(1, result.getAffectedCount());
+
 		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 		assertEquals(1, result.getAffectedCount());
-		
+
 		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
 		assertEquals(1, count);
-		
+
 		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1).orElse(null);
 		assertNotNull(value);
-		
+
+		assertEquals(oid, value.getValue(ID));
+		assertEquals(TestValues.STR, value.getValue(STR));
+		assertEquals(TestValues.BOOL, value.getValue(BOOL));
+		assertEquals(TestValues.INT, value.getValue(INT));
+		assertEquals(TestValues.LNG, value.getValue(LNG));
+		assertEquals(TestValues.DBL, value.getValue(DBL));
+		assertEquals(TestValues.FLT, value.getValue(FLT));
+		assertEquals(TestValues.SHR, value.getValue(SHR));
+		assertEquals(TestValues.BYT, value.getValue(BYT));
+		assertEquals(TestValues.BGD, value.getValue(BGD));
+		assertEquals(TestValues.ENM, value.getValue(ENM));
+		assertEquals(TestValues.DAT, value.getValue(DAT));
+		assertEquals(TestValues.TMS, value.getValue(TMS));
+		assertEquals(TestValues.LDAT, value.getValue(LDAT));
+		assertEquals(TestValues.LTMS, value.getValue(LTMS));
+		assertEquals(TestValues.LTM, value.getValue(LTM));
+		assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
+		assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
+		assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
+		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
+		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
+		assertTrue(value.getValue(NBL));
+		assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+
+		getDatastore().delete(TARGET, value);
+		count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
+		assertEquals(0, count);
+
 	}
-	
+
 }

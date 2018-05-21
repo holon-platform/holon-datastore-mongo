@@ -111,13 +111,21 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		});
 	}
 
+	/**
+	 * Perform a <em>count</em> operation on given collection using given {@link BsonQueryDefinition}.
+	 * @param <R> Operation result type
+	 * @param operationContext Operation context
+	 * @param collection The collection to use
+	 * @param definition Query definition
+	 * @return The operation result
+	 */
 	@SuppressWarnings("unchecked")
 	private static <R> Stream<R> count(MongoOperationContext<MongoDatabase> operationContext,
 			MongoCollection<Document> collection, BsonQueryDefinition definition) {
 
 		// trace
 		operationContext.trace("COUNT query",
-				"{Filter: " + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
+				"Filter: \n" + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
 
 		// count
 		Long count = definition.getFilter().map(f -> collection.count(f)).orElse(collection.count());
@@ -125,6 +133,16 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		return Stream.of((R) count);
 	}
 
+	/**
+	 * Perform a <em>find</em> operation on given collection using given {@link BsonQuery}.
+	 * @param <R> Operation result type
+	 * @param operationContext Operation context
+	 * @param context Resolution context
+	 * @param collection The collection to use
+	 * @param resultType Expected query result type
+	 * @param query Query definition
+	 * @return The operation result
+	 */
 	private static <R> Stream<R> find(MongoOperationContext<MongoDatabase> operationContext,
 			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
 			BsonQuery query) {
@@ -186,20 +204,57 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// projection
 		query.getProjection().ifPresent(p -> fi.projection(p));
-		
+
 		// trace
-		// TODO
+		operationContext.trace("FIND query", () -> traceQuery(query));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
 				.map(document -> documentConverter.convert(context, document));
 	}
 
+	/**
+	 * Perform a <em>aggregate</em> operation on given collection using given {@link BsonQuery}.
+	 * @param <R> Operation result type
+	 * @param operationContext Operation context
+	 * @param context Resolution context
+	 * @param collection The collection to use
+	 * @param resultType Expected query result type
+	 * @param query Query definition
+	 * @return The operation result
+	 */
 	private static <R> Stream<R> aggregate(MongoOperationContext<MongoDatabase> operationContext,
 			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
 			BsonQuery query) {
 		// TODO
 		return null;
+	}
+
+	/**
+	 * Build the trace information for given query.
+	 * @param query Query to trace
+	 * @return Query trace information
+	 */
+	private static String traceQuery(BsonQuery query) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("Collection name: ");
+		sb.append(query.getDefinition().getCollectionName());
+
+		query.getDefinition().getFilter().ifPresent(f -> {
+			sb.append("\nFilter: \n");
+			sb.append(DocumentSerializer.getDefault().toJson(f));
+		});
+		query.getDefinition().getSort().ifPresent(s -> {
+			sb.append("\nSort: \n");
+			sb.append(DocumentSerializer.getDefault().toJson(s));
+		});
+		query.getProjection().ifPresent(p -> {
+			sb.append("\nProjection: \n");
+			sb.append(DocumentSerializer.getDefault().toJson(p));
+		});
+
+		return sb.toString();
 	}
 
 }

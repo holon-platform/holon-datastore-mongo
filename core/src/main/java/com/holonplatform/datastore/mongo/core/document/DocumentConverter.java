@@ -67,16 +67,6 @@ public interface DocumentConverter<R> {
 	/**
 	 * Create a new {@link DocumentConverter} to convert documents into {@link PropertyBox} instances using given
 	 * property set.
-	 * @param propertySet The property set to use (not null)
-	 * @return A new {@link PropertyBox} type {@link DocumentConverter}
-	 */
-	static DocumentConverter<PropertyBox> propertyBox(PropertySet<?> propertySet) {
-		return new PropertyBoxDocumentConverter(propertySet);
-	}
-
-	/**
-	 * Create a new {@link DocumentConverter} to convert documents into {@link PropertyBox} instances using given
-	 * property set.
 	 * @param <P> Property type
 	 * @param properties The property set to use (not null)
 	 * @return A new {@link PropertyBox} type {@link DocumentConverter}

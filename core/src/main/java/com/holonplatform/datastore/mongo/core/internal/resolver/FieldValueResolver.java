@@ -15,17 +15,29 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Array;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
 
 import org.bson.types.Binary;
 import org.bson.types.Code;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 
@@ -46,7 +58,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum FieldValuePropertyValueResolver implements MongoExpressionResolver<FieldValue, Value> {
+public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Value> {
 
 	INSTANCE;
 
@@ -64,9 +76,9 @@ public enum FieldValuePropertyValueResolver implements MongoExpressionResolver<F
 		expression.validate();
 
 		// check property
-		return Optional.of(expression.getExpression()
-				.map(expr -> Value.create(decode(context, expr, expression.getValue()), (TypedExpression) expr,
-						expression.getEnumCodecStrategy().orElse(null)))
+		return Optional.of(expression
+				.getExpression().map(expr -> Value.create(decode(context, expr, expression.getValue()),
+						(TypedExpression<Object>) expr, expression.getEnumCodecStrategy().orElse(null)))
 				.orElse(Value.create(expression.getValue())));
 	}
 
@@ -137,6 +149,10 @@ public enum FieldValuePropertyValueResolver implements MongoExpressionResolver<F
 			if (Symbol.class.isAssignableFrom(value.getClass()) && String.class.isAssignableFrom(targetType)) {
 				return ((Symbol) value).getSymbol();
 			}
+			// decimal
+			if (Decimal128.class.isAssignableFrom(value.getClass())) {
+				return ((Decimal128) value).bigDecimalValue();
+			}
 		}
 		return value;
 	}
@@ -194,6 +210,75 @@ public enum FieldValuePropertyValueResolver implements MongoExpressionResolver<F
 			// char[]
 			if (char[].class == targetType && TypeUtils.isString(value.getClass())) {
 				return ((String) value).toCharArray();
+			}
+
+			// date and times
+			if (Date.class.isAssignableFrom(value.getClass())) {
+				if (LocalDate.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.toLocalDate((Date) value);
+				}
+				if (LocalDateTime.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.toLocalDateTime((Date) value);
+				}
+				if (LocalTime.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.toLocalTime((Date) value);
+				}
+			}
+
+			if (Calendar.class.isAssignableFrom(value.getClass())) {
+				if (LocalDateTime.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.toLocalDateTime((Calendar) value);
+				}
+				if (LocalDate.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.toLocalDate((Calendar) value);
+				}
+				if (LocalTime.class.isAssignableFrom(targetType)) {
+					final Calendar calendar = (Calendar) value;
+					return LocalTime.of(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
+							calendar.get(Calendar.SECOND),
+							(int) TimeUnit.MILLISECONDS.toNanos(calendar.get(Calendar.MILLISECOND)));
+				}
+				if (java.util.Date.class.isAssignableFrom(targetType)) {
+					return ((Calendar) value).getTime();
+				}
+			}
+
+			if (LocalDate.class.isAssignableFrom(value.getClass())) {
+				if (java.util.Date.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.fromLocalDate((LocalDate) value);
+				}
+			}
+			if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
+				if (java.util.Date.class.isAssignableFrom(targetType)) {
+					return ConversionUtils.fromLocalDateTime(((LocalDateTime) value));
+				}
+				if (LocalDate.class.isAssignableFrom(targetType)) {
+					return ((LocalDateTime) value).toLocalDate();
+				}
+				if (LocalTime.class.isAssignableFrom(targetType)) {
+					return ((LocalDateTime) value).toLocalTime();
+				}
+			}
+			if (OffsetDateTime.class.isAssignableFrom(value.getClass())) {
+				if (LocalDateTime.class.isAssignableFrom(targetType)) {
+					return ((OffsetDateTime) value).toLocalDateTime();
+				}
+				if (LocalDate.class.isAssignableFrom(targetType)) {
+					return ((OffsetDateTime) value).toLocalDate();
+				}
+				if (LocalTime.class.isAssignableFrom(targetType)) {
+					return ((OffsetDateTime) value).toLocalTime();
+				}
+			}
+
+			// String to Reader
+			if (TypeUtils.isString(value.getClass()) && Reader.class.isAssignableFrom(targetType)) {
+				return new StringReader((String) value);
+			}
+
+			// Byte[] to InputStream
+			if (value instanceof byte[] && InputStream.class.isAssignableFrom(targetType)) {
+				return new ByteArrayInputStream((byte[]) value);
 			}
 
 		}

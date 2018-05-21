@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.test.context;
 
+import java.util.function.Supplier;
+
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolverRegistry;
 import com.holonplatform.core.internal.DefaultExpressionResolverRegistry;
@@ -62,8 +64,8 @@ public class MongoTestContext implements MongoContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
 	 */
 	@Override
-	public void trace(String title, String json) {
-		LOGGER.info(title + ": " + json);
+	public void trace(String title, Supplier<String> json) {
+		LOGGER.info(title + ": " + json.get());
 	}
 
 }

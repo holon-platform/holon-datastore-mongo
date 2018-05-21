@@ -43,8 +43,8 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(NullExpressionResolver.INSTANCE);
 		expressionResolvers.add(CollectionExpressionResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionResolver.INSTANCE);
-		expressionResolvers.add(FieldValuePropertyValueResolver.INSTANCE);
-		expressionResolvers.add(PropertyValueFieldValueResolver.INSTANCE);
+		expressionResolvers.add(FieldValueResolver.INSTANCE);
+		expressionResolvers.add(ValueResolver.INSTANCE);
 		expressionResolvers.add(DocumentPropertyBoxResolver.INSTANCE);
 		expressionResolvers.add(PropertyBoxDocumentResolver.INSTANCE);
 		expressionResolvers.add(QueryFilterResolver.INSTANCE);

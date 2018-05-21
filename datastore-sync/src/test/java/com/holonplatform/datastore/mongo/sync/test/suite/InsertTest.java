@@ -39,6 +39,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -67,6 +68,12 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		
 		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 		assertEquals(1, result.getAffectedCount());
+		
+		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
+		assertEquals(1, count);
+		
+		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1).orElse(null);
+		assertNotNull(value);
 		
 	}
 	

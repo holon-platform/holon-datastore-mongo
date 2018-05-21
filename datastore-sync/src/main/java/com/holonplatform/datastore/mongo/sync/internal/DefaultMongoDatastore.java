@@ -18,6 +18,7 @@ package com.holonplatform.datastore.mongo.sync.internal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
@@ -346,11 +347,11 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
 	 */
 	@Override
-	public void trace(final String title, final String json) {
+	public void trace(final String title, final Supplier<String> json) {
 		if (isTraceEnabled()) {
-			LOGGER.info("(TRACE) " + ((title != null) ? title : "JSON") + ": \n" + json);
+			LOGGER.info("(TRACE) " + ((title != null) ? title : "JSON") + ": \n" + json.get());
 		} else {
-			LOGGER.debug(() -> ((title != null) ? title : "JSON") + ": \n" + json);
+			LOGGER.debug(() -> ((title != null) ? title : "JSON") + ": \n" + json.get());
 		}
 	}
 

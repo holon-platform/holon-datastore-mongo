@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.context;
 
+import java.util.function.Supplier;
+
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
@@ -47,6 +49,19 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 * @param title Optional title
 	 * @param json JSON to trace
 	 */
-	void trace(String title, String json);
+	void trace(String title, Supplier<String> json);
+
+	/**
+	 * Trace given JSON expression.
+	 * <p>
+	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
+	 * using the <code>DEBUG</code> level.
+	 * </p>
+	 * @param title Optional title
+	 * @param json JSON to trace
+	 */
+	default void trace(String title, String json) {
+		trace(title, () -> json);
+	}
 
 }

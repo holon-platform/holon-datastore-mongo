@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.core.internal.context;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
@@ -142,7 +143,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
 	 */
 	@Override
-	public void trace(String title, String json) {
+	public void trace(String title, Supplier<String> json) {
 		getContext().trace(title, json);
 	}
 

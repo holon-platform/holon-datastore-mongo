@@ -16,11 +16,13 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryConfiguration;
+import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
@@ -60,15 +62,59 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 		expression.getFilter().ifPresent(f -> {
 			builder.filter(context.resolveOrFail(f, BsonExpression.class).getValue());
 		});
+
 		// sort
 		expression.getSort().ifPresent(s -> {
 			builder.sort(context.resolveOrFail(s, BsonExpression.class).getValue());
 		});
 
+		// limit and offset
+		expression.getLimit().ifPresent(l -> builder.limit(l));
+		expression.getOffset().ifPresent(o -> builder.offset(o));
+
 		// TODO aggregation
 
 		// parameters
-		// TODO
+		expression.getParameter(ReadOperationConfiguration.QUERY_TIMEOUT).ifPresent(p -> {
+			builder.timeout(p,
+					expression.getParameter(ReadOperationConfiguration.QUERY_TIMEOUT_UNIT, TimeUnit.MILLISECONDS));
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_CURSOR_TYPE).ifPresent(p -> {
+			builder.cursorType(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_BATCH_SIZE).ifPresent(p -> {
+			builder.batchSize(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_COLLATION).ifPresent(p -> {
+			builder.collation(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_COMMENT).ifPresent(p -> {
+			builder.comment(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_HINT).ifPresent(p -> {
+			builder.hint(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_MAX).ifPresent(p -> {
+			builder.max(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_MIN).ifPresent(p -> {
+			builder.min(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_MAX_SCAN).ifPresent(p -> {
+			builder.maxScan(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_PARTIAL).ifPresent(p -> {
+			builder.partial(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_RETURN_KEY).ifPresent(p -> {
+			builder.returnKey(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_SHOW_RECORD_ID).ifPresent(p -> {
+			builder.showRecordId(p);
+		});
+		expression.getParameter(ReadOperationConfiguration.QUERY_SNAPSHOT).ifPresent(p -> {
+			builder.snapshot(p);
+		});
 
 		// resolved
 		return Optional.of(builder.build());

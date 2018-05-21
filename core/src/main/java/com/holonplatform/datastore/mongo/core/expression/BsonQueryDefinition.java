@@ -136,7 +136,7 @@ public interface BsonQueryDefinition extends Expression {
 	boolean isReturnKey();
 
 	/**
-	 * Whether to add a <code> $recordId</code> field to the returned documents.
+	 * Whether to add a <code>$recordId</code> field to the returned documents.
 	 * @return <code>true</code> to add a <code> $recordId</code> field to the returned documents
 	 */
 	boolean isShowRecordId();

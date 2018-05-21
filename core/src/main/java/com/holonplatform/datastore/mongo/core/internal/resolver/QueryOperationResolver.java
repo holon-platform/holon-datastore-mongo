@@ -22,20 +22,20 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
-import com.holonplatform.datastore.mongo.core.expression.MongoQuery;
-import com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 import com.mongodb.client.model.Projections;
 
 /**
- * {@link QueryOperation} to {@link MongoQuery} resolver.
+ * {@link QueryOperation} to {@link BsonQuery} resolver.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QueryOperationResolver implements MongoExpressionResolver<QueryOperation, MongoQuery> {
+public enum QueryOperationResolver implements MongoExpressionResolver<QueryOperation, BsonQuery> {
 
 	INSTANCE;
 
@@ -45,21 +45,21 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<MongoQuery> resolve(QueryOperation expression, MongoResolutionContext context)
+	public Optional<BsonQuery> resolve(QueryOperation expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// resolve query configuration
-		final MongoQueryDefinition definition = context.resolveOrFail(expression.getConfiguration(),
-				MongoQueryDefinition.class);
+		final BsonQueryDefinition definition = context.resolveOrFail(expression.getConfiguration(),
+				BsonQueryDefinition.class);
 
 		// resolve projection
-		final MongoProjection<?> projection = context.resolveOrFail(expression.getProjection(), MongoProjection.class);
+		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
 
 		// build query
-		final MongoQuery.Builder builder = MongoQuery.builder(definition);
+		final BsonQuery.Builder builder = BsonQuery.builder(definition);
 
 		projection.getOperationType().ifPresent(ot -> builder.operationType(ot));
 
@@ -86,8 +86,8 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoQuery> getResolvedType() {
-		return MongoQuery.class;
+	public Class<? extends BsonQuery> getResolvedType() {
+		return BsonQuery.class;
 	}
 
 }

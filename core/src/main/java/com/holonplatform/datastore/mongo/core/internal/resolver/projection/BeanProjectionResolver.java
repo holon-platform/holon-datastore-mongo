@@ -28,7 +28,7 @@ import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -38,7 +38,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjection, MongoProjection> {
+public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjection, BsonProjection> {
 
 	/**
 	 * Singleton instance
@@ -59,8 +59,8 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoProjection> getResolvedType() {
-		return MongoProjection.class;
+	public Class<? extends BsonProjection> getResolvedType() {
+		return BsonProjection.class;
 	}
 
 	/*
@@ -70,7 +70,7 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<MongoProjection> resolve(BeanProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(BeanProjection expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -82,7 +82,7 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 		final BeanPropertySet<?> bps = BeanIntrospector.get().getPropertySet(beanProjection.getBeanClass());
 
 		// projection
-		final MongoProjection.Builder builder = MongoProjection.builder(beanProjection.getBeanClass());
+		final BsonProjection.Builder builder = BsonProjection.builder(beanProjection.getBeanClass());
 
 		// projection fields
 		beanProjection.getSelection().ifPresent(s -> {

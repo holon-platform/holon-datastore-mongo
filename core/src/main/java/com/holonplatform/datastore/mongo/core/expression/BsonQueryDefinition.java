@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.bson.conversions.Bson;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultMongoQueryDefinition;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonQueryDefinition;
 import com.mongodb.CursorType;
 import com.mongodb.client.model.Collation;
 
@@ -30,7 +30,13 @@ import com.mongodb.client.model.Collation;
  *
  * @since 5.2.0
  */
-public interface MongoQueryDefinition extends Expression {
+public interface BsonQueryDefinition extends Expression {
+
+	/**
+	 * Get the collection name to query.
+	 * @return Query collection name
+	 */
+	String getCollectionName();
 
 	/**
 	 * Get the query filters.
@@ -146,17 +152,24 @@ public interface MongoQueryDefinition extends Expression {
 	boolean isSnapshot();
 
 	/**
-	 * Get a {@link MongoQueryDefinition} builder.
-	 * @return A new {@link MongoQueryDefinition} builder
+	 * Get a {@link BsonQueryDefinition} builder.
+	 * @return A new {@link BsonQueryDefinition} builder
 	 */
 	static Builder builder() {
-		return new DefaultMongoQueryDefinition.DefaultBuilder();
+		return new DefaultBsonQueryDefinition.DefaultBuilder();
 	}
 
 	/**
 	 * Builder
 	 */
 	public interface Builder {
+
+		/**
+		 * Set the query collection name.
+		 * @param collectionName The collection name
+		 * @return this
+		 */
+		Builder collectionName(String collectionName);
 
 		/**
 		 * Set the query filter.
@@ -288,7 +301,7 @@ public interface MongoQueryDefinition extends Expression {
 		 * Build the query definition.
 		 * @return the query definition instance
 		 */
-		MongoQueryDefinition build();
+		BsonQueryDefinition build();
 
 	}
 

@@ -22,7 +22,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -32,7 +32,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProjection, MongoProjection> {
+public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProjection, BsonProjection> {
 
 	/**
 	 * Singleton instance.
@@ -53,8 +53,8 @@ public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProj
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoProjection> getResolvedType() {
-		return MongoProjection.class;
+	public Class<? extends BsonProjection> getResolvedType() {
+		return BsonProjection.class;
 	}
 
 	/*
@@ -63,7 +63,7 @@ public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProj
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<MongoProjection> resolve(QueryProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(QueryProjection expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -72,7 +72,7 @@ public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProj
 		// intermediate resolution
 		return context.resolve(expression, QueryProjection.class).flatMap(resolved -> {
 			// resolve as SQLProjection
-			return context.resolve(resolved, MongoProjection.class);
+			return context.resolve(resolved, BsonProjection.class);
 		});
 	}
 

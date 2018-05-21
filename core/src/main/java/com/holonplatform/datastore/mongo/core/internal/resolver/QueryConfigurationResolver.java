@@ -23,16 +23,17 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * {@link QueryConfiguration} to {@link MongoQueryDefinition} resolver.
+ * {@link QueryConfiguration} to {@link BsonQueryDefinition} resolver.
  *
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryConfiguration, MongoQueryDefinition> {
+public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryConfiguration, BsonQueryDefinition> {
 
 	INSTANCE;
 
@@ -42,13 +43,18 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<MongoQueryDefinition> resolve(QueryConfiguration expression, MongoResolutionContext context)
+	public Optional<BsonQueryDefinition> resolve(QueryConfiguration expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		final MongoQueryDefinition.Builder builder = MongoQueryDefinition.builder();
+		final BsonQueryDefinition.Builder builder = BsonQueryDefinition.builder();
+
+		// target
+		expression.getTarget().ifPresent(t -> {
+			builder.collectionName(context.resolveOrFail(t, CollectionName.class).getName());
+		});
 
 		// filter
 		expression.getFilter().ifPresent(f -> {
@@ -83,8 +89,8 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoQueryDefinition> getResolvedType() {
-		return MongoQueryDefinition.class;
+	public Class<? extends BsonQueryDefinition> getResolvedType() {
+		return BsonQueryDefinition.class;
 	}
 
 }

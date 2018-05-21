@@ -21,17 +21,17 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
-import com.holonplatform.datastore.mongo.core.expression.MongoQuery;
-import com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 
 /**
- * Default {@link MongoQuery} implementation.
+ * Default {@link BsonQuery} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultMongoQuery implements MongoQuery {
+public class DefaultBsonQuery implements BsonQuery {
 
-	private final MongoQueryDefinition definition;
+	private final BsonQueryDefinition definition;
 
 	private QueryOperationType operationType;
 
@@ -39,7 +39,7 @@ public class DefaultMongoQuery implements MongoQuery {
 
 	private DocumentConverter<?> converter;
 
-	public DefaultMongoQuery(MongoQueryDefinition definition) {
+	public DefaultBsonQuery(BsonQueryDefinition definition) {
 		super();
 		this.definition = definition;
 	}
@@ -49,7 +49,7 @@ public class DefaultMongoQuery implements MongoQuery {
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery#getDefinition()
 	 */
 	@Override
-	public MongoQueryDefinition getDefinition() {
+	public BsonQueryDefinition getDefinition() {
 		return definition;
 	}
 
@@ -117,11 +117,11 @@ public class DefaultMongoQuery implements MongoQuery {
 
 	public static class DefaultBuilder implements Builder {
 
-		private final DefaultMongoQuery instance;
+		private final DefaultBsonQuery instance;
 
-		public DefaultBuilder(MongoQueryDefinition definition) {
+		public DefaultBuilder(BsonQueryDefinition definition) {
 			super();
-			this.instance = new DefaultMongoQuery(definition);
+			this.instance = new DefaultBsonQuery(definition);
 		}
 
 		/*
@@ -163,7 +163,7 @@ public class DefaultMongoQuery implements MongoQuery {
 		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery.Builder#build()
 		 */
 		@Override
-		public MongoQuery build() {
+		public BsonQuery build() {
 			return instance;
 		}
 

@@ -21,7 +21,7 @@ import java.util.Optional;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultMongoProjection;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonProjection;
 
 /**
  * Mongo query projection expression.
@@ -30,7 +30,7 @@ import com.holonplatform.datastore.mongo.core.internal.expression.DefaultMongoPr
  *
  * @since 5.2.0
  */
-public interface MongoProjection<R> extends TypedExpression<R> {
+public interface BsonProjection<R> extends TypedExpression<R> {
 
 	/**
 	 * Get the {@link QueryOperationType}.
@@ -51,13 +51,13 @@ public interface MongoProjection<R> extends TypedExpression<R> {
 	Optional<DocumentConverter<R>> getConverter();
 
 	/**
-	 * Get a new {@link MongoProjection} builder.
+	 * Get a new {@link BsonProjection} builder.
 	 * @param <R> Projection result type
 	 * @param projectionType Projection result type
-	 * @return A new {@link MongoProjection} builder
+	 * @return A new {@link BsonProjection} builder
 	 */
 	static <R> Builder<R> builder(Class<R> projectionType) {
-		return new DefaultMongoProjection.DefaultBuilder<>(projectionType);
+		return new DefaultBsonProjection.DefaultBuilder<>(projectionType);
 	}
 
 	/**
@@ -89,10 +89,10 @@ public interface MongoProjection<R> extends TypedExpression<R> {
 		Builder<R> converter(DocumentConverter<R> converter);
 
 		/**
-		 * Build the {@link MongoProjection}.
-		 * @return A new {@link MongoProjection}
+		 * Build the {@link BsonProjection}.
+		 * @return A new {@link BsonProjection}
 		 */
-		MongoProjection<R> build();
+		BsonProjection<R> build();
 
 	}
 }

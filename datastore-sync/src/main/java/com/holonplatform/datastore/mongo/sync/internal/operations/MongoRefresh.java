@@ -102,8 +102,8 @@ public class MongoRefresh extends AbstractRefreshOperation {
 		return operationContext.withDatabase(database -> {
 
 			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureRead(database.getCollection(collectionName), operationContext, getConfiguration());
+			final MongoCollection<Document> collection = MongoOperationConfigurator.configureRead(
+					database.getCollection(collectionName), operationContext, getConfiguration().getParameters());
 
 			// get document by id
 			Document document = collection.find(Filters.eq(id)).first();

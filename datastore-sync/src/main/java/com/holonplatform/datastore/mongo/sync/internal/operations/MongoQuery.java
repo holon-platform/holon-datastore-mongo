@@ -16,18 +16,30 @@
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.bson.Document;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
+import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
+import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -65,7 +77,127 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @see com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query.QueryOperation)
 	 */
 	@Override
-	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
+	public <R> Stream<R> stream(final QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
+
+		// validate
+		queryOperation.validate();
+
+		// resolution context
+		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+
+		// resolve query
+		final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
+
+		// collection name
+		final String collectionName = query.getDefinition().getCollectionName();
+
+		return operationContext.withDatabase(database -> {
+
+			// get and configure collection
+			final MongoCollection<Document> collection = MongoOperationConfigurator.configureRead(
+					database.getCollection(collectionName), operationContext, queryOperation.getConfiguration());
+
+			// query operation type
+			switch (query.getOperationType()) {
+			case AGGREGATE:
+				return aggregate(operationContext, context, collection, queryOperation.getProjection().getType(),
+						query);
+			case COUNT:
+				return count(operationContext, collection, query.getDefinition());
+			case FIND:
+			default:
+				return find(operationContext, context, collection, queryOperation.getProjection().getType(), query);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <R> Stream<R> count(MongoOperationContext<MongoDatabase> operationContext,
+			MongoCollection<Document> collection, BsonQueryDefinition definition) {
+
+		// trace
+		operationContext.trace("COUNT query",
+				"{Filter: " + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
+
+		// count
+		Long count = definition.getFilter().map(f -> collection.count(f)).orElse(collection.count());
+
+		return Stream.of((R) count);
+	}
+
+	private static <R> Stream<R> find(MongoOperationContext<MongoDatabase> operationContext,
+			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
+			BsonQuery query) {
+
+		// check converter
+		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
+		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+					+ "] is not compatible with the query projection type [" + resultType + "]");
+		}
+
+		@SuppressWarnings("unchecked")
+		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
+
+		final FindIterable<Document> fi = collection.find();
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+		// filter
+		definition.getFilter().ifPresent(f -> fi.filter(f));
+		// sort
+		definition.getSort().ifPresent(s -> fi.sort(s));
+		// limit-offset
+		definition.getLimit().ifPresent(l -> fi.limit(l));
+		definition.getOffset().ifPresent(o -> fi.skip(o));
+		// timeout
+		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
+		// cursor
+		definition.getCursorType().ifPresent(c -> fi.cursorType(c));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> fi.collation(c));
+		// comment
+		definition.getComment().ifPresent(c -> fi.comment(c));
+		// hint
+		definition.getHint().ifPresent(h -> fi.hint(h));
+		// max-min
+		definition.getMax().ifPresent(m -> fi.max(m));
+		definition.getMin().ifPresent(m -> fi.min(m));
+		// max scan
+		definition.getMaxScan().ifPresent(m -> fi.maxScan(m));
+		// partial
+		if (definition.isPartial()) {
+			fi.partial(true);
+		}
+		// return key
+		if (definition.isReturnKey()) {
+			fi.returnKey(true);
+		}
+		// record id
+		if (definition.isShowRecordId()) {
+			fi.showRecordId(true);
+		}
+		// snapshot
+		if (definition.isSnapshot()) {
+			fi.snapshot(true);
+		}
+
+		// projection
+		query.getProjection().ifPresent(p -> fi.projection(p));
+		
+		// trace
+		// TODO
+
+		// stream with converter mapper
+		return StreamSupport.stream(fi.spliterator(), false)
+				.map(document -> documentConverter.convert(context, document));
+	}
+
+	private static <R> Stream<R> aggregate(MongoOperationContext<MongoDatabase> operationContext,
+			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
+			BsonQuery query) {
 		// TODO
 		return null;
 	}

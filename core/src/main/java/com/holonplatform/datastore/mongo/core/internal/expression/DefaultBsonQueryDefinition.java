@@ -20,17 +20,18 @@ import java.util.concurrent.TimeUnit;
 
 import org.bson.conversions.Bson;
 
-import com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.mongodb.CursorType;
 import com.mongodb.client.model.Collation;
 
 /**
- * Default {@link MongoQueryDefinition} implementation.
+ * Default {@link BsonQueryDefinition} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultMongoQueryDefinition implements MongoQueryDefinition {
+public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 
+	private String collectionName;
 	private Bson filter;
 	private Bson sort;
 	private Integer limit;
@@ -49,6 +50,19 @@ public class DefaultMongoQueryDefinition implements MongoQueryDefinition {
 	private boolean returnKey = false;
 	private boolean showRecordId = false;
 	private boolean snapshot = false;
+
+	public DefaultBsonQueryDefinition() {
+		super();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition#getCollectionName()
+	 */
+	@Override
+	public String getCollectionName() {
+		return collectionName;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -203,13 +217,15 @@ public class DefaultMongoQueryDefinition implements MongoQueryDefinition {
 		return showRecordId;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition#isSnapshot()
-	 */
 	@Override
 	public boolean isSnapshot() {
 		return snapshot;
+	}
+
+	// ------- setters
+
+	public void setCollectionName(String collectionName) {
+		this.collectionName = collectionName;
 	}
 
 	public void setFilter(Bson filter) {
@@ -290,11 +306,25 @@ public class DefaultMongoQueryDefinition implements MongoQueryDefinition {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
+		if (getCollectionName() == null) {
+			throw new InvalidExpressionException("Null query collection name");
+		}
 	}
 
 	public static class DefaultBuilder implements Builder {
 
-		private final DefaultMongoQueryDefinition instance = new DefaultMongoQueryDefinition();
+		private final DefaultBsonQueryDefinition instance = new DefaultBsonQueryDefinition();
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition.Builder#collectionName(java.lang.
+		 * String)
+		 */
+		@Override
+		public Builder collectionName(String collectionName) {
+			instance.setCollectionName(collectionName);
+			return this;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -484,7 +514,7 @@ public class DefaultMongoQueryDefinition implements MongoQueryDefinition {
 		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition.Builder#build()
 		 */
 		@Override
-		public MongoQueryDefinition build() {
+		public BsonQueryDefinition build() {
 			return instance;
 		}
 

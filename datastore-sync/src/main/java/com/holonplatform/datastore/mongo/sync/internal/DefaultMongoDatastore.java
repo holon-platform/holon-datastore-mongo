@@ -348,9 +348,9 @@ public class DefaultMongoDatastore extends AbstractDatastore<SyncMongoDatastoreC
 	@Override
 	public void trace(final String title, final String json) {
 		if (isTraceEnabled()) {
-			LOGGER.info("(TRACE) " + ((title != null) ? title : "JSON") + ": [" + json + "]");
+			LOGGER.info("(TRACE) " + ((title != null) ? title : "JSON") + ": \n" + json);
 		} else {
-			LOGGER.debug(() -> ((title != null) ? title : "JSON") + ": [" + json + "]");
+			LOGGER.debug(() -> ((title != null) ? title : "JSON") + ": \n" + json);
 		}
 	}
 

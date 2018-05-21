@@ -22,20 +22,20 @@ import org.bson.conversions.Bson;
 import com.holonplatform.core.Expression;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultMongoQuery;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonQuery;
 
 /**
  * MongoDB query expression.
  *
  * @since 5.2.0
  */
-public interface MongoQuery extends Expression {
+public interface BsonQuery extends Expression {
 
 	/**
 	 * Get the query definition.
 	 * @return The query definition
 	 */
-	MongoQueryDefinition getDefinition();
+	BsonQueryDefinition getDefinition();
 
 	/**
 	 * Get the {@link QueryOperationType}.
@@ -56,16 +56,16 @@ public interface MongoQuery extends Expression {
 	Optional<DocumentConverter<?>> getConverter();
 
 	/**
-	 * Get a new {@link MongoQuery} builder.
+	 * Get a new {@link BsonQuery} builder.
 	 * @param definition Query definition
-	 * @return A new {@link MongoQuery} builder
+	 * @return A new {@link BsonQuery} builder
 	 */
-	static Builder builder(MongoQueryDefinition definition) {
-		return new DefaultMongoQuery.DefaultBuilder(definition);
+	static Builder builder(BsonQueryDefinition definition) {
+		return new DefaultBsonQuery.DefaultBuilder(definition);
 	}
 
 	/**
-	 * {@link MongoQuery} builder.
+	 * {@link BsonQuery} builder.
 	 */
 	public interface Builder {
 
@@ -91,10 +91,10 @@ public interface MongoQuery extends Expression {
 		Builder converter(DocumentConverter<?> converter);
 
 		/**
-		 * Build the {@link MongoQuery} instance.
-		 * @return The {@link MongoQuery} instance
+		 * Build the {@link BsonQuery} instance.
+		 * @return The {@link BsonQuery} instance
 		 */
-		MongoQuery build();
+		BsonQuery build();
 
 	}
 

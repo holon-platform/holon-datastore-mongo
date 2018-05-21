@@ -27,7 +27,7 @@ import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -37,7 +37,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum PropertySetProjectionResolver implements MongoExpressionResolver<PropertySetProjection, MongoProjection> {
+public enum PropertySetProjectionResolver implements MongoExpressionResolver<PropertySetProjection, BsonProjection> {
 
 	/**
 	 * Singleton instance
@@ -58,8 +58,8 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoProjection> getResolvedType() {
-		return MongoProjection.class;
+	public Class<? extends BsonProjection> getResolvedType() {
+		return BsonProjection.class;
 	}
 
 	/*
@@ -69,13 +69,13 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<MongoProjection> resolve(PropertySetProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(PropertySetProjection expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		final MongoProjection.Builder builder = MongoProjection.builder(PropertyBox.class);
+		final BsonProjection.Builder builder = BsonProjection.builder(PropertyBox.class);
 
 		// projection fields
 		PathPropertySetAdapter adapter = PathPropertySetAdapter.create(expression.getPropertySet());

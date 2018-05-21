@@ -23,7 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.CountAllProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -33,7 +33,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum CountAllProjectionResolver implements MongoExpressionResolver<CountAllProjection, MongoProjection> {
+public enum CountAllProjectionResolver implements MongoExpressionResolver<CountAllProjection, BsonProjection> {
 
 	/**
 	 * Singleton instance
@@ -54,8 +54,8 @@ public enum CountAllProjectionResolver implements MongoExpressionResolver<CountA
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoProjection> getResolvedType() {
-		return MongoProjection.class;
+	public Class<? extends BsonProjection> getResolvedType() {
+		return BsonProjection.class;
 	}
 
 	/*
@@ -64,13 +64,13 @@ public enum CountAllProjectionResolver implements MongoExpressionResolver<CountA
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<MongoProjection> resolve(CountAllProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(CountAllProjection expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		return Optional.of(MongoProjection.builder(Long.class).operationType(QueryOperationType.COUNT).build());
+		return Optional.of(BsonProjection.builder(Long.class).operationType(QueryOperationType.COUNT).build());
 	}
 
 }

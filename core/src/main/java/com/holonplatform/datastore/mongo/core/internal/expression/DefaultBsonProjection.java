@@ -21,16 +21,16 @@ import java.util.Optional;
 
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 
 /**
- * Default {@link MongoProjection} implementation.
+ * Default {@link BsonProjection} implementation.
  *
  * @param <R> Projection result type
  *
  * @since 5.2.0
  */
-public class DefaultMongoProjection<R> implements MongoProjection<R> {
+public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	private final Class<R> projectionType;
 
@@ -38,7 +38,7 @@ public class DefaultMongoProjection<R> implements MongoProjection<R> {
 	private List<String> fields;
 	private DocumentConverter<R> converter;
 
-	public DefaultMongoProjection(Class<R> projectionType) {
+	public DefaultBsonProjection(Class<R> projectionType) {
 		super();
 		this.projectionType = projectionType;
 	}
@@ -116,11 +116,11 @@ public class DefaultMongoProjection<R> implements MongoProjection<R> {
 
 	public static class DefaultBuilder<T> implements Builder<T> {
 
-		private final DefaultMongoProjection<T> instance;
+		private final DefaultBsonProjection<T> instance;
 
 		public DefaultBuilder(Class<T> projectionType) {
 			super();
-			this.instance = new DefaultMongoProjection<>(projectionType);
+			this.instance = new DefaultBsonProjection<>(projectionType);
 		}
 
 		/*
@@ -161,7 +161,7 @@ public class DefaultMongoProjection<R> implements MongoProjection<R> {
 		 * @see com.holonplatform.datastore.mongo.core.expression.MongoProjection.Builder#build()
 		 */
 		@Override
-		public MongoProjection<T> build() {
+		public BsonProjection<T> build() {
 			return instance;
 		}
 

@@ -25,7 +25,7 @@ import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.expression.MongoProjection;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -36,7 +36,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 1000)
 public enum ConstantExpressionProjectionResolver
-		implements MongoExpressionResolver<ConstantExpressionProjection, MongoProjection> {
+		implements MongoExpressionResolver<ConstantExpressionProjection, BsonProjection> {
 
 	/**
 	 * Singleton instance
@@ -57,8 +57,8 @@ public enum ConstantExpressionProjectionResolver
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends MongoProjection> getResolvedType() {
-		return MongoProjection.class;
+	public Class<? extends BsonProjection> getResolvedType() {
+		return BsonProjection.class;
 	}
 
 	/*
@@ -68,7 +68,7 @@ public enum ConstantExpressionProjectionResolver
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<MongoProjection> resolve(ConstantExpressionProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(ConstantExpressionProjection expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -78,7 +78,7 @@ public enum ConstantExpressionProjectionResolver
 
 		// literal value
 		return context.resolve(ce, FieldValue.class).map(fv -> fv.getValue()).map(value -> {
-			return MongoProjection.builder(value.getClass())
+			return BsonProjection.builder(value.getClass())
 					.converter(DocumentConverter.create((Class) value.getClass(), (c, d) -> value)).build();
 		});
 	}

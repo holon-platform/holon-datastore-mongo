@@ -17,6 +17,7 @@ package com.holonplatform.datastore.mongo.sync.internal;
 
 import java.util.Optional;
 
+import com.holonplatform.core.ParameterSet;
 import com.holonplatform.core.datastore.operation.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.WriteConcernOption;
@@ -64,14 +65,18 @@ public final class MongoOperationConfigurator {
 	 * @param <T> Collection type
 	 * @param collection Mongo collection
 	 * @param context Operation context
-	 * @param operation Operation configuration
+	 * @param operationParameters Operation configuration parameters
 	 * @return The configured collection
 	 */
 	public static <T> MongoCollection<T> configureRead(MongoCollection<T> collection, MongoOperationContext<?> context,
-			DatastoreOperationConfiguration operation) {
+			ParameterSet operationParameters) {
+
+		if (operationParameters == null) {
+			return collection;
+		}
 
 		// check read concern
-		Optional<ReadConcern> rc = operation.getParameters().getParameter(ReadOperationConfiguration.READ_CONCERN);
+		Optional<ReadConcern> rc = operationParameters.getParameter(ReadOperationConfiguration.READ_CONCERN);
 		if (!rc.isPresent()) {
 			// use default if available
 			rc = context.getDefaultReadConcern();
@@ -80,8 +85,7 @@ public final class MongoOperationConfigurator {
 		MongoCollection<T> c = rc.map(rdc -> collection.withReadConcern(rdc)).orElse(collection);
 
 		// check read preference
-		Optional<ReadPreference> rp = operation.getParameters()
-				.getParameter(ReadOperationConfiguration.READ_PREFERENCE);
+		Optional<ReadPreference> rp = operationParameters.getParameter(ReadOperationConfiguration.READ_PREFERENCE);
 		if (!rp.isPresent()) {
 			// use default if available
 			rp = context.getDefaultReadPreference();

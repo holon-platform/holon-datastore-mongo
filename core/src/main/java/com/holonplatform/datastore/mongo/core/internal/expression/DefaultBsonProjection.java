@@ -15,10 +15,14 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.expression;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
@@ -35,8 +39,9 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	private final Class<R> projectionType;
 
 	private QueryOperationType operationType;
-	private List<String> fields;
 	private DocumentConverter<R> converter;
+
+	private final Map<String, TypedExpression<?>> fields = new LinkedHashMap<>();
 
 	public DefaultBsonProjection(Class<R> projectionType) {
 		super();
@@ -58,7 +63,17 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	 */
 	@Override
 	public List<String> getFields() {
-		return (fields != null) ? Collections.unmodifiableList(fields) : Collections.emptyList();
+		return new ArrayList<>(fields.keySet());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#getFieldExpession(java.lang.String)
+	 */
+	@Override
+	public Optional<TypedExpression<?>> getFieldExpression(String fieldName) {
+		ObjectUtils.argumentNotNull(fieldName, "Field name must be not null");
+		return Optional.ofNullable(fields.get(fieldName));
 	}
 
 	/*
@@ -88,11 +103,13 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	}
 
 	/**
-	 * Set the projection field names.
-	 * @param fields the fields to set
+	 * Add a projection field name.
+	 * @param fieldName Field name (not null)
+	 * @param expression Optional field expression
 	 */
-	public void setFields(List<String> fields) {
-		this.fields = fields;
+	public void addField(String fieldName, TypedExpression<?> expression) {
+		ObjectUtils.argumentNotNull(fieldName, "Field name must be not null");
+		this.fields.put(fieldName, expression);
 	}
 
 	/**
@@ -137,11 +154,22 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.mongo.core.expression.MongoProjection.Builder#fields(java.util.List)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#field(java.lang.String)
 		 */
 		@Override
-		public Builder<T> fields(List<String> fields) {
-			instance.setFields(fields);
+		public Builder<T> field(String fieldName) {
+			return fieldExpression(fieldName, null);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#fieldExpression(java.lang.String,
+		 * com.holonplatform.core.TypedExpression)
+		 */
+		@Override
+		public Builder<T> fieldExpression(String fieldName, TypedExpression<?> expression) {
+			instance.addField(fieldName, expression);
 			return this;
 		}
 

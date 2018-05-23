@@ -45,6 +45,13 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	List<String> getFields();
 
 	/**
+	 * Get the {@link TypedExpression} to which a projection field name is bound, if available.
+	 * @param fieldName Field name (not null)
+	 * @return The {@link TypedExpression} to which a projection field name is bound, if available
+	 */
+	Optional<TypedExpression<?>> getFieldExpression(String fieldName);
+
+	/**
 	 * Get the projection {@link DocumentConverter}.
 	 * @return Oprional document converter
 	 */
@@ -75,11 +82,19 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 		Builder<R> operationType(QueryOperationType operationType);
 
 		/**
-		 * Set the projection fields names.
-		 * @param fields Projection fields
+		 * Add a projection field name.
+		 * @param fieldName Projection field name to add (not null)
 		 * @return this
 		 */
-		Builder<R> fields(List<String> fields);
+		Builder<R> field(String fieldName);
+
+		/**
+		 * Add a projection field name and the bound field expression.
+		 * @param fieldName Projection field name to add (not null)
+		 * @param expression Field expression
+		 * @return this
+		 */
+		Builder<R> fieldExpression(String fieldName, TypedExpression<?> expression);
 
 		/**
 		 * Set the document results converter.

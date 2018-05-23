@@ -15,20 +15,19 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver.projection;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.Path;
 import com.holonplatform.core.beans.BeanIntrospector;
 import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -85,9 +84,10 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 		final BsonProjection.Builder builder = BsonProjection.builder(beanProjection.getBeanClass());
 
 		// projection fields
-		beanProjection.getSelection().ifPresent(s -> {
-			builder.fields(Arrays.asList(s).stream().map(path -> context.resolveOrFail(path, FieldName.class))
-					.map(fn -> fn.getFieldName()).collect(Collectors.toList()));
+		beanProjection.getSelection().ifPresent(selection -> {
+			for (Path path : selection) {
+				builder.fieldExpression(context.resolveOrFail(path, FieldName.class).getFieldName(), path);
+			}
 		});
 
 		// converter

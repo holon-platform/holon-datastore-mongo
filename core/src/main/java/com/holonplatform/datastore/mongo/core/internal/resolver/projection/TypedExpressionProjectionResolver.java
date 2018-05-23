@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver.projection;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import javax.annotation.Priority;
@@ -24,8 +23,8 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -75,7 +74,7 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 
 		return context.resolve(expression, FieldName.class)
 				.map(fn -> BsonProjection.builder(((TypedExpression<?>) expression).getType())
-						.fields(Collections.singletonList(fn.getFieldName()))
+						.fieldExpression(fn.getFieldName(), expression)
 						.converter(DocumentConverter.expression(expression, fn.getFieldName())).build());
 	}
 

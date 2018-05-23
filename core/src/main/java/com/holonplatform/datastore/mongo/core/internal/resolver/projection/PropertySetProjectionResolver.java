@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver.projection;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
@@ -26,8 +25,8 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -79,8 +78,8 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 
 		// projection fields
 		PathPropertySetAdapter adapter = PathPropertySetAdapter.create(expression.getPropertySet());
-		builder.fields(adapter.paths().map(path -> context.resolveOrFail(path, FieldName.class))
-				.map(fn -> fn.getFieldName()).collect(Collectors.toList()));
+		adapter.propertyPaths().forEach(p -> builder
+				.fieldExpression(context.resolveOrFail(p.getPath(), FieldName.class).getFieldName(), p.getProperty()));
 
 		// converter
 		builder.converter(DocumentConverter.propertyBox(expression.getPropertySet()));

@@ -67,6 +67,11 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 			builder.projection(Projections.include(projection.getFields()));
 		}
 
+		// check distinct
+		if (expression.getConfiguration().isDistinct() && projection.getFields().size() == 1) {
+			builder.distinct(projection.getFields().get(0));
+		}
+
 		projection.getConverter().ifPresent(c -> builder.converter(c));
 
 		return Optional.of(builder.build());

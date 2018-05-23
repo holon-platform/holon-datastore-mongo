@@ -22,6 +22,6 @@ package com.holonplatform.datastore.mongo.core.document;
  */
 public enum QueryOperationType {
 
-	FIND, COUNT, AGGREGATE;
+	FIND, DISTINCT, COUNT, AGGREGATE;
 
 }

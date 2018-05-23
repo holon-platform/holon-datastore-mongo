@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -38,6 +39,7 @@ import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -104,6 +106,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 						query);
 			case COUNT:
 				return count(operationContext, collection, query.getDefinition());
+			case DISTINCT:
+				return distinct(operationContext, context, collection, queryOperation.getProjection().getType(), query);
 			case FIND:
 			default:
 				return find(operationContext, context, collection, queryOperation.getProjection().getType(), query);
@@ -210,6 +214,49 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
+				.map(document -> documentConverter.convert(context, document));
+	}
+
+	private static <R> Stream<R> distinct(MongoOperationContext<MongoDatabase> operationContext,
+			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
+			BsonQuery query) {
+
+		// check distinct field name
+		if (!query.getDistinctFieldName().isPresent()) {
+			return find(operationContext, context, collection, resultType, query);
+		}
+
+		final String fieldName = query.getDistinctFieldName().get();
+
+		// check converter
+		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
+		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+					+ "] is not compatible with the query projection type [" + resultType + "]");
+		}
+
+		@SuppressWarnings("unchecked")
+		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
+
+		final DistinctIterable<Object> fi = collection.distinct(fieldName, Object.class);
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+		// filter
+		definition.getFilter().ifPresent(f -> fi.filter(f));
+		// timeout
+		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> fi.collation(c));
+
+		// trace
+		operationContext.trace("DISTINCT query", () -> traceQuery(query));
+
+		// stream with converter mapper
+		return StreamSupport.stream(fi.spliterator(), false)
+				.map(value -> new Document(Collections.singletonMap(fieldName, value)))
 				.map(document -> documentConverter.convert(context, document));
 	}
 

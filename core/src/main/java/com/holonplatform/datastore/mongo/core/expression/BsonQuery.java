@@ -50,6 +50,12 @@ public interface BsonQuery extends Expression {
 	Optional<Bson> getProjection();
 
 	/**
+	 * If the query is a <em>distinct</em> field value query, get the field name.
+	 * @return Distinct field name, or empty if not a distinct field value query
+	 */
+	Optional<String> getDistinctFieldName();
+
+	/**
 	 * Get the {@link DocumentConverter} to use to convert the query results.
 	 * @return Optional document results converter
 	 */
@@ -82,6 +88,13 @@ public interface BsonQuery extends Expression {
 		 * @return this
 		 */
 		Builder projection(Bson projection);
+
+		/**
+		 * Mark the query as a <em>distinct</em> field value query.
+		 * @param fieldName Distinct field name (not null)
+		 * @return this
+		 */
+		Builder distinct(String fieldName);
 
 		/**
 		 * Set the query results converter.

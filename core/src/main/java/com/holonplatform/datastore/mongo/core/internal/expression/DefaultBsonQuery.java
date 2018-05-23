@@ -37,6 +37,8 @@ public class DefaultBsonQuery implements BsonQuery {
 
 	private Bson projection;
 
+	private String distinctFieldName;
+
 	private DocumentConverter<?> converter;
 
 	public DefaultBsonQuery(BsonQueryDefinition definition) {
@@ -73,6 +75,15 @@ public class DefaultBsonQuery implements BsonQuery {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonQuery#getDistinctFieldName()
+	 */
+	@Override
+	public Optional<String> getDistinctFieldName() {
+		return Optional.ofNullable(distinctFieldName);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery#getConverter()
 	 */
 	@Override
@@ -86,6 +97,16 @@ public class DefaultBsonQuery implements BsonQuery {
 	 */
 	public void setProjection(Bson projection) {
 		this.projection = projection;
+	}
+
+	/**
+	 * Set the query as distinct.
+	 * @param fieldName Field name
+	 * @param distinctFieldExpression the distinct field expression to set
+	 */
+	public void setDistinct(String fieldName) {
+		this.operationType = QueryOperationType.DISTINCT;
+		this.distinctFieldName = fieldName;
 	}
 
 	/**
@@ -155,6 +176,16 @@ public class DefaultBsonQuery implements BsonQuery {
 		@Override
 		public Builder projection(Bson projection) {
 			instance.setProjection(projection);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonQuery.Builder#distinct(java.lang.String)
+		 */
+		@Override
+		public Builder distinct(String fieldName) {
+			instance.setDistinct(fieldName);
 			return this;
 		}
 

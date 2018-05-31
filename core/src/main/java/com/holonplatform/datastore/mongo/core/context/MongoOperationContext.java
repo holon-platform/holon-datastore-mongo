@@ -15,13 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.context;
 
-import java.util.Optional;
-
 import com.holonplatform.core.datastore.DatastoreCommodityHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
-import com.mongodb.ReadConcern;
-import com.mongodb.ReadPreference;
-import com.mongodb.WriteConcern;
 
 /**
  * MongoDB Datastore operations execution context.
@@ -38,23 +33,5 @@ public interface MongoOperationContext<MongoDatabase>
 	 * @return <code>true</code> if in asynchronous mode, <code>false</code> if in synchronous mode
 	 */
 	boolean isAsync();
-
-	/**
-	 * Get the default {@link ReadPreference} for query or data read operations.
-	 * @return Optional default {@link ReadPreference}
-	 */
-	Optional<ReadPreference> getDefaultReadPreference();
-
-	/**
-	 * Get the default {@link ReadConcern} to declare the read operations isolation level.
-	 * @return Optional the default {@link ReadConcern}
-	 */
-	Optional<ReadConcern> getDefaultReadConcern();
-
-	/**
-	 * Get the default {@link WriteConcern} to use with write operations.
-	 * @return Optional default {@link WriteConcern}
-	 */
-	Optional<WriteConcern> getDefaultWriteConcern();
 
 }

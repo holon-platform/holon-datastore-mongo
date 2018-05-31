@@ -37,6 +37,13 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 		extends DatastoreOperations.Builder<D, B> {
 
 	/**
+	 * Set the database name to use.
+	 * @param database The database name to set (not null)
+	 * @return this
+	 */
+	B database(String database);
+
+	/**
 	 * Add a {@link Codec} to be registered in the default Mongo Datastore codec registry.
 	 * <p>
 	 * The {@link Codec} will be available to encode/decode values for the database managed by the Mongo Datastore

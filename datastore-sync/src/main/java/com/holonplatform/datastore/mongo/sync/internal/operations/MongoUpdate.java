@@ -18,32 +18,32 @@ package com.holonplatform.datastore.mongo.sync.internal.operations;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.UpdateOperation;
-import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
+import com.holonplatform.core.datastore.operation.Update;
+import com.holonplatform.core.internal.datastore.operation.AbstractUpdate;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.mongodb.client.MongoDatabase;
 
 /**
- * MongoDB {@link UpdateOperation}.
+ * MongoDB {@link Update}.
  *
  * @since 5.2.0
  */
-public class MongoUpdate extends AbstractUpdateOperation {
+public class MongoUpdate extends AbstractUpdate {
 
 	private static final long serialVersionUID = -6928634330323556178L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, UpdateOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, UpdateOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Update> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Update>() {
 
 		@Override
-		public Class<? extends UpdateOperation> getCommodityType() {
-			return UpdateOperation.class;
+		public Class<? extends Update> getCommodityType() {
+			return Update.class;
 		}
 
 		@Override
-		public UpdateOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public Update createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new MongoUpdate(context);
 		}

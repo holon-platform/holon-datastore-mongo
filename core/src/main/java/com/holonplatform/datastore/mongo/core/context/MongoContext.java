@@ -15,11 +15,15 @@
  */
 package com.holonplatform.datastore.mongo.core.context;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 
 /**
  * MongoDB Datastore base context.
@@ -39,6 +43,24 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 * @return the default {@link EnumCodecStrategy}s
 	 */
 	EnumCodecStrategy getDefaultEnumCodecStrategy();
+
+	/**
+	 * Get the default {@link ReadPreference} for query or data read operations.
+	 * @return Optional default {@link ReadPreference}
+	 */
+	Optional<ReadPreference> getDefaultReadPreference();
+
+	/**
+	 * Get the default {@link ReadConcern} to declare the read operations isolation level.
+	 * @return Optional the default {@link ReadConcern}
+	 */
+	Optional<ReadConcern> getDefaultReadConcern();
+
+	/**
+	 * Get the default {@link WriteConcern} to use with write operations.
+	 * @return Optional default {@link WriteConcern}
+	 */
+	Optional<WriteConcern> getDefaultWriteConcern();
 
 	/**
 	 * Trace given JSON expression.

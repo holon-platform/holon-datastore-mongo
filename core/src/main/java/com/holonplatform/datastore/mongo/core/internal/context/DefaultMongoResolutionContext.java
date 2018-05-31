@@ -32,6 +32,9 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 
 /**
  * Default {@link MongoResolutionContext} implementation.
@@ -136,6 +139,33 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public EnumCodecStrategy getDefaultEnumCodecStrategy() {
 		return getContext().getDefaultEnumCodecStrategy();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultReadPreference()
+	 */
+	@Override
+	public Optional<ReadPreference> getDefaultReadPreference() {
+		return getContext().getDefaultReadPreference();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultReadConcern()
+	 */
+	@Override
+	public Optional<ReadConcern> getDefaultReadConcern() {
+		return getContext().getDefaultReadConcern();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultWriteConcern()
+	 */
+	@Override
+	public Optional<WriteConcern> getDefaultWriteConcern() {
+		return getContext().getDefaultWriteConcern();
 	}
 
 	/*

@@ -15,18 +15,21 @@
  */
 package com.holonplatform.datastore.mongo.async;
 
+import com.holonplatform.async.datastore.AsyncDatastore;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
-import com.holonplatform.core.datastore.async.AsyncDatastore;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.internal.DefaultAsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoDatabase;
 
 /**
- * TODO
+ * MongoDB {@link AsyncDatastore} implementation.
+ *
+ * @since 5.2.0
  */
 public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandler<MongoDatabase>,
 		DatastoreCommodityRegistrar<AsyncMongoDatastoreCommodityContext> {
@@ -36,9 +39,7 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 	 * @return Datastore builder
 	 */
 	static Builder builder() {
-		// return new DefaultJdbcDatastore.DefaultBuilder();
-		// TODO
-		return null;
+		return new DefaultAsyncMongoDatastore.DefaultBuilder();
 	}
 
 	/**
@@ -54,20 +55,12 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 		Builder client(MongoClient client);
 
 		/**
-		 * Set the database name to use.
-		 * @param database The database name to set (not null)
-		 * @return this
-		 */
-		Builder database(String database);
-
-		/**
 		 * Register a {@link AsyncMongoDatastoreCommodityFactory}.
 		 * @param <C> Commodity type
 		 * @param commodityFactory The factory to register (not null)
 		 * @return this
 		 */
-		<C extends DatastoreCommodity> Builder withCommodity(
-				AsyncMongoDatastoreCommodityFactory<C> commodityFactory);
+		<C extends DatastoreCommodity> Builder withCommodity(AsyncMongoDatastoreCommodityFactory<C> commodityFactory);
 
 	}
 

@@ -22,9 +22,9 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.DeleteOperation;
+import com.holonplatform.core.datastore.operation.Delete;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractDelete;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.CollationOption;
@@ -43,25 +43,25 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
 /**
- * MongoDB {@link DeleteOperation}.
+ * MongoDB {@link Delete}.
  *
  * @since 5.2.0
  */
-public class MongoDelete extends AbstractDeleteOperation {
+public class MongoDelete extends AbstractDelete {
 
 	private static final long serialVersionUID = 7267920035347307152L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, DeleteOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Delete> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Delete>() {
 
 		@Override
-		public Class<? extends DeleteOperation> getCommodityType() {
-			return DeleteOperation.class;
+		public Class<? extends Delete> getCommodityType() {
+			return Delete.class;
 		}
 
 		@Override
-		public DeleteOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public Delete createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new MongoDelete(context);
 		}
@@ -108,7 +108,7 @@ public class MongoDelete extends AbstractDeleteOperation {
 
 			// get and configure collection
 			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureWrite(database.getCollection(collectionName), operationContext, getConfiguration());
+					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
 			// encode Document
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();

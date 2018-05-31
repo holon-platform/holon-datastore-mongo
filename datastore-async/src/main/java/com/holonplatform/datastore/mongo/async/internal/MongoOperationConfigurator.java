@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.sync.internal;
+package com.holonplatform.datastore.mongo.async.internal;
 
 import java.util.Optional;
 
@@ -25,7 +25,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * Helper class to configure the Mongo Datastore operations.

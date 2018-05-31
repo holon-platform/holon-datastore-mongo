@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.mongo.core.test.context;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.holonplatform.core.ExpressionResolver;
@@ -25,6 +26,9 @@ import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 
 public class MongoTestContext implements MongoContext {
 
@@ -51,12 +55,40 @@ public class MongoTestContext implements MongoContext {
 		return DocumentIdResolver.getDefault();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultEnumCodecStrategy()
 	 */
 	@Override
 	public EnumCodecStrategy getDefaultEnumCodecStrategy() {
 		return EnumCodecStrategy.getDefault();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultReadPreference()
+	 */
+	@Override
+	public Optional<ReadPreference> getDefaultReadPreference() {
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultReadConcern()
+	 */
+	@Override
+	public Optional<ReadConcern> getDefaultReadConcern() {
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDefaultWriteConcern()
+	 */
+	@Override
+	public Optional<WriteConcern> getDefaultWriteConcern() {
+		return Optional.empty();
 	}
 
 	/*

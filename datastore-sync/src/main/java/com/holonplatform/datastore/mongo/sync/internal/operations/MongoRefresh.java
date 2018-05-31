@@ -20,9 +20,9 @@ import org.bson.types.ObjectId;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.RefreshOperation;
+import com.holonplatform.core.datastore.operation.Refresh;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractRefresh;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -38,25 +38,25 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
 /**
- * MongoDB {@link RefreshOperation}.
+ * MongoDB {@link Refresh}.
  *
  * @since 5.2.0
  */
-public class MongoRefresh extends AbstractRefreshOperation {
+public class MongoRefresh extends AbstractRefresh {
 
 	private static final long serialVersionUID = -7486319071876743650L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, RefreshOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, RefreshOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Refresh> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Refresh>() {
 
 		@Override
-		public Class<? extends RefreshOperation> getCommodityType() {
-			return RefreshOperation.class;
+		public Class<? extends Refresh> getCommodityType() {
+			return Refresh.class;
 		}
 
 		@Override
-		public RefreshOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public Refresh createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new MongoRefresh(context);
 		}
@@ -103,7 +103,7 @@ public class MongoRefresh extends AbstractRefreshOperation {
 
 			// get and configure collection
 			final MongoCollection<Document> collection = MongoOperationConfigurator.configureRead(
-					database.getCollection(collectionName), operationContext, getConfiguration().getParameters());
+					database.getCollection(collectionName), context, getConfiguration().getParameters());
 
 			// get document by id
 			Document document = collection.find(Filters.eq(id)).first();

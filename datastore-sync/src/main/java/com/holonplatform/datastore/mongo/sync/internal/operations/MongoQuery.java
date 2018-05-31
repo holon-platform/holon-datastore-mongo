@@ -31,6 +31,7 @@ import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
+import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
@@ -96,21 +97,20 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		return operationContext.withDatabase(database -> {
 
 			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator.configureRead(
-					database.getCollection(collectionName), operationContext, queryOperation.getConfiguration());
+			final MongoCollection<Document> collection = MongoOperationConfigurator
+					.configureRead(database.getCollection(collectionName), context, queryOperation.getConfiguration());
 
 			// query operation type
 			switch (query.getOperationType()) {
 			case AGGREGATE:
-				return aggregate(operationContext, context, collection, queryOperation.getProjection().getType(),
-						query);
+				return aggregate(context, collection, queryOperation.getProjection().getType(), query);
 			case COUNT:
-				return count(operationContext, collection, query.getDefinition());
+				return count(context, collection, query.getDefinition());
 			case DISTINCT:
-				return distinct(operationContext, context, collection, queryOperation.getProjection().getType(), query);
+				return distinct(context, collection, queryOperation.getProjection().getType(), query);
 			case FIND:
 			default:
-				return find(operationContext, context, collection, queryOperation.getProjection().getType(), query);
+				return find(context, collection, queryOperation.getProjection().getType(), query);
 			}
 		});
 	}
@@ -118,17 +118,17 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	/**
 	 * Perform a <em>count</em> operation on given collection using given {@link BsonQueryDefinition}.
 	 * @param <R> Operation result type
-	 * @param operationContext Operation context
+	 * @param context Operation context
 	 * @param collection The collection to use
 	 * @param definition Query definition
 	 * @return The operation result
 	 */
 	@SuppressWarnings("unchecked")
-	private static <R> Stream<R> count(MongoOperationContext<MongoDatabase> operationContext,
-			MongoCollection<Document> collection, BsonQueryDefinition definition) {
+	private static <R> Stream<R> count(MongoContext context, MongoCollection<Document> collection,
+			BsonQueryDefinition definition) {
 
 		// trace
-		operationContext.trace("COUNT query",
+		context.trace("COUNT query",
 				"Filter: \n" + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
 
 		// count
@@ -140,16 +140,14 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	/**
 	 * Perform a <em>find</em> operation on given collection using given {@link BsonQuery}.
 	 * @param <R> Operation result type
-	 * @param operationContext Operation context
 	 * @param context Resolution context
 	 * @param collection The collection to use
 	 * @param resultType Expected query result type
 	 * @param query Query definition
 	 * @return The operation result
 	 */
-	private static <R> Stream<R> find(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
-			BsonQuery query) {
+	private static <R> Stream<R> find(MongoResolutionContext context, MongoCollection<Document> collection,
+			Class<? extends R> resultType, BsonQuery query) {
 
 		// check converter
 		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
@@ -210,20 +208,19 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		query.getProjection().ifPresent(p -> fi.projection(p));
 
 		// trace
-		operationContext.trace("FIND query", () -> traceQuery(query));
+		context.trace("FIND query", () -> traceQuery(query));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
 				.map(document -> documentConverter.convert(context, document));
 	}
 
-	private static <R> Stream<R> distinct(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
-			BsonQuery query) {
+	private static <R> Stream<R> distinct(MongoResolutionContext context, MongoCollection<Document> collection,
+			Class<? extends R> resultType, BsonQuery query) {
 
 		// check distinct field name
 		if (!query.getDistinctFieldName().isPresent()) {
-			return find(operationContext, context, collection, resultType, query);
+			return find(context, collection, resultType, query);
 		}
 
 		final String fieldName = query.getDistinctFieldName().get();
@@ -252,7 +249,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getCollation().ifPresent(c -> fi.collation(c));
 
 		// trace
-		operationContext.trace("DISTINCT query", () -> traceQuery(query));
+		context.trace("DISTINCT query", () -> traceQuery(query));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
@@ -270,9 +267,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param query Query definition
 	 * @return The operation result
 	 */
-	private static <R> Stream<R> aggregate(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext context, MongoCollection<Document> collection, Class<? extends R> resultType,
-			BsonQuery query) {
+	private static <R> Stream<R> aggregate(MongoResolutionContext context, MongoCollection<Document> collection,
+			Class<? extends R> resultType, BsonQuery query) {
 		// TODO
 		return null;
 	}

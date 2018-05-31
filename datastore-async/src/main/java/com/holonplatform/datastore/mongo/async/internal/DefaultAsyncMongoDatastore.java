@@ -13,40 +13,34 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.sync.internal;
+package com.holonplatform.datastore.mongo.async.internal;
 
 import org.bson.codecs.configuration.CodecRegistries;
 
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoInsert;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRefresh;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
 import com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
-import com.holonplatform.datastore.mongo.sync.MongoDatastore;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoBulkDelete;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoBulkInsert;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoBulkUpdate;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoDelete;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoInsert;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoQuery;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoRefresh;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoSave;
-import com.holonplatform.datastore.mongo.sync.internal.operations.MongoUpdate;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.async.client.MongoClient;
+import com.mongodb.async.client.MongoDatabase;
 
 /**
- * Default {@link MongoDatastore} implementation.
+ * Default {@link AsyncMongoDatastore} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatastoreCommodityContext, MongoDatabase>
-		implements MongoDatastore, SyncMongoDatastoreCommodityContext {
+public class DefaultAsyncMongoDatastore
+		extends AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, MongoDatabase>
+		implements AsyncMongoDatastore, AsyncMongoDatastoreCommodityContext {
 
-	private static final long serialVersionUID = -3618780277490335232L;
+	private static final long serialVersionUID = 5851873626687056062L;
 
 	/**
 	 * Mongo client
@@ -57,22 +51,23 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 	 * Constructor.
 	 * @param initialize Whether to initialize the Datastore
 	 */
-	public DefaultMongoDatastore(boolean initialize) {
-		super(SyncMongoDatastoreCommodityFactory.class);
+	public DefaultAsyncMongoDatastore(boolean initialize) {
+		super(AsyncMongoDatastoreCommodityFactory.class);
 
 		// default resolvers
 		addExpressionResolvers(MongoExpressionResolver.getDefaultResolvers());
 
+		// TODO
 		// register operation commodities
-		registerCommodity(MongoRefresh.FACTORY);
-		registerCommodity(MongoInsert.FACTORY);
-		registerCommodity(MongoUpdate.FACTORY);
-		registerCommodity(MongoSave.FACTORY);
-		registerCommodity(MongoDelete.FACTORY);
-		registerCommodity(MongoBulkInsert.FACTORY);
-		registerCommodity(MongoBulkUpdate.FACTORY);
-		registerCommodity(MongoBulkDelete.FACTORY);
-		registerCommodity(MongoQuery.FACTORY);
+		registerCommodity(AsyncMongoRefresh.FACTORY);
+		registerCommodity(AsyncMongoInsert.FACTORY);
+		/*
+		 * registerCommodity(MongoRefresh.FACTORY); registerCommodity(MongoInsert.FACTORY);
+		 * registerCommodity(MongoUpdate.FACTORY); registerCommodity(MongoSave.FACTORY);
+		 * registerCommodity(MongoDelete.FACTORY); registerCommodity(MongoBulkInsert.FACTORY);
+		 * registerCommodity(MongoBulkUpdate.FACTORY); registerCommodity(MongoBulkDelete.FACTORY);
+		 * registerCommodity(MongoQuery.FACTORY);
+		 */
 
 		// check initialize
 		if (initialize) {
@@ -82,10 +77,19 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync()
+	 */
+	@Override
+	public boolean isAsync() {
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.core.internal.datastore.AbstractDatastore#getCommodityContext()
 	 */
 	@Override
-	protected SyncMongoDatastoreCommodityContext getCommodityContext() throws CommodityConfigurationException {
+	protected AsyncMongoDatastoreCommodityContext getCommodityContext() throws CommodityConfigurationException {
 		return this;
 	}
 
@@ -99,7 +103,7 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext#getClient()
+	 * @see com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext#getClient()
 	 */
 	@Override
 	public MongoClient getClient() {
@@ -119,15 +123,6 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 			throw new IllegalStateException("No MongoClient configured");
 		}
 		return client;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync()
-	 */
-	@Override
-	public boolean isAsync() {
-		return false;
 	}
 
 	/**
@@ -169,40 +164,51 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 	 */
 	@Override
 	public String toString() {
-		return "[Sync] MongoDatastore [database name=" + databaseName + ", data context id=" + getDataContextId() + "]";
+		return "[Async] MongoDatastore [database name=" + databaseName + ", data context id=" + getDataContextId()
+				+ "]";
 	}
 
 	// ------- Builder
 
 	public static class DefaultBuilder extends
-			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, SyncMongoDatastoreCommodityContext, DefaultMongoDatastore, MongoDatastore, MongoDatastore.Builder>
-			implements MongoDatastore.Builder {
+			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
+			implements AsyncMongoDatastore.Builder {
 
 		public DefaultBuilder() {
-			super(new DefaultMongoDatastore(false));
+			super(new DefaultAsyncMongoDatastore(false));
 		}
 
 		@Override
-		protected MongoDatastore.Builder getActualBuilder() {
+		protected AsyncMongoDatastore.Builder getActualBuilder() {
 			return this;
 		}
 
 		@Override
-		public MongoDatastore.Builder client(MongoClient client) {
+		public AsyncMongoDatastore.Builder client(MongoClient client) {
 			ObjectUtils.argumentNotNull(client, "MongoClient must be not null");
 			getDatastore().setClient(client);
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.async.AsyncMongoDatastore.Builder#withCommodity(com.holonplatform.datastore
+		 * .mongo.async.config.AsyncMongoDatastoreCommodityFactory)
+		 */
 		@Override
-		public <C extends DatastoreCommodity> MongoDatastore.Builder withCommodity(
-				SyncMongoDatastoreCommodityFactory<C> commodityFactory) {
+		public <C extends DatastoreCommodity> Builder withCommodity(
+				AsyncMongoDatastoreCommodityFactory<C> commodityFactory) {
 			getDatastore().registerCommodity(commodityFactory);
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#build()
+		 */
 		@Override
-		public MongoDatastore build() {
+		public AsyncMongoDatastore build() {
 			return configure();
 		}
 

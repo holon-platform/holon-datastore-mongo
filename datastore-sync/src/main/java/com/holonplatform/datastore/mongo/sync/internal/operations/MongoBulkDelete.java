@@ -19,7 +19,7 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
-import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDelete;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.mongodb.client.MongoDatabase;
@@ -29,7 +29,7 @@ import com.mongodb.client.MongoDatabase;
  * 
  * @since 5.2.0
  */
-public class MongoBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> implements BulkDelete {
+public class MongoBulkDelete extends AbstractBulkDelete {
 
 	private static final long serialVersionUID = 4726239970165566199L;
 
@@ -58,20 +58,11 @@ public class MongoBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> imp
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.operation.AbstractDatastoreOperation#getActualOperation()
-	 */
-	@Override
-	protected BulkDelete getActualOperation() {
-		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
 	@Override
 	public OperationResult execute() {
-		// TODO 
+		// TODO
 		return null;
 	}
 

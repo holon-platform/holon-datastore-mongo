@@ -22,8 +22,8 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.InsertOperation;
-import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
+import com.holonplatform.core.datastore.operation.Insert;
+import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -39,25 +39,25 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertOneOptions;
 
 /**
- * MongoDB {@link InsertOperation}.
+ * MongoDB {@link Insert}.
  *
  * @since 5.2.0
  */
-public class MongoInsert extends AbstractInsertOperation {
+public class MongoInsert extends AbstractInsert {
 
 	private static final long serialVersionUID = -6120583386835783717L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, InsertOperation>() {
+	public static final DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Insert> FACTORY = new DatastoreCommodityFactory<SyncMongoDatastoreCommodityContext, Insert>() {
 
 		@Override
-		public Class<? extends InsertOperation> getCommodityType() {
-			return InsertOperation.class;
+		public Class<? extends Insert> getCommodityType() {
+			return Insert.class;
 		}
 
 		@Override
-		public InsertOperation createCommodity(SyncMongoDatastoreCommodityContext context)
+		public Insert createCommodity(SyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new MongoInsert(context);
 		}
@@ -96,7 +96,7 @@ public class MongoInsert extends AbstractInsertOperation {
 
 			// get and configure collection
 			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureWrite(database.getCollection(collectionName), operationContext, getConfiguration());
+					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
 			// encode Document
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();

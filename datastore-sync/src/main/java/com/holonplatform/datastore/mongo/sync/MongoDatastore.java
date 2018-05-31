@@ -55,13 +55,6 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 		Builder client(MongoClient client);
 
 		/**
-		 * Set the database name to use.
-		 * @param database The database name to set (not null)
-		 * @return this
-		 */
-		Builder database(String database);
-
-		/**
 		 * Register a {@link SyncMongoDatastoreCommodityFactory}.
 		 * @param <C> Commodity type
 		 * @param commodityFactory The factory to register (not null)

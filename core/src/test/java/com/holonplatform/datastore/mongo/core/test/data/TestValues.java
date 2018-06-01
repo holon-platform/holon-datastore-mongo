@@ -21,8 +21,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class TestValues {
 
@@ -48,6 +52,11 @@ public final class TestValues {
 	public static final EnumValue[] A_ENM = { EnumValue.THIRD, EnumValue.SECOND };
 	public static final char[] A_CHR = { 'a', 'b', 'c' };
 	public static final byte[] A_BYT = { 1, 2, 3 };
+	public static final List<String> C_STR = Arrays.asList("d", "e", "f");
+	public static final Set<Integer> C_INT = new HashSet<>(Arrays.asList(4, 5, 6));
+	public static final Set<EnumValue> C_ENM = new HashSet<>(
+			Arrays.asList(EnumValue.FIRST, EnumValue.SECOND, EnumValue.THIRD));
+	public static final List<Long> C_LNG = Arrays.asList(10L, 11L, 12L);
 
 	static {
 		Calendar c = Calendar.getInstance();

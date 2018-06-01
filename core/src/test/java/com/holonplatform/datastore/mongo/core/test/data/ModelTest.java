@@ -69,6 +69,12 @@ public interface ModelTest {
 	public static final PathProperty<char[]> A_CHR = PathProperty.create("achr", char[].class);
 	public static final PathProperty<byte[]> A_BYT = PathProperty.create("abyt", byte[].class);
 
+	public static ListPathProperty<String> C_STR = ListPathProperty.create("cstr", String.class);
+	public static SetPathProperty<Integer> C_INT = SetPathProperty.create("cint", Integer.class);
+	public static SetPathProperty<EnumValue> C_ENM = SetPathProperty.create("cenm", EnumValue.class);
+	public static ListPathProperty<Long> C_LNG = ListPathProperty.create("clng", Long.class)
+			.elementConverter(String.class, Long::valueOf, String::valueOf);
+
 	public final static PathProperty<Boolean> NBL = PathProperty.create("nbl", boolean.class)
 			.converter(PropertyValueConverter.numericBoolean(Integer.class));
 
@@ -76,7 +82,7 @@ public interface ModelTest {
 			pb -> "STR:" + pb.getValue(STR));
 
 	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR, BYT,
-			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, NBL, VRT);
+			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, C_STR, C_INT, C_ENM, C_LNG, NBL, VRT);
 
 	public static final PathProperty<EnumValue> ENM2 = PathProperty.create("enm2", EnumValue.class)
 			.configuration(EnumCodecStrategy.CONFIG_PROPERTY, EnumCodecStrategy.ORDINAL);

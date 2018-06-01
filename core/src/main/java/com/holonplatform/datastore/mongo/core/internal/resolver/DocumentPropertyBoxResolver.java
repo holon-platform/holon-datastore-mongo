@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,6 +25,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -62,8 +65,8 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 		final MongoDocumentContext documentContext = MongoDocumentContext.isDocumentContext(context).orElseThrow(
 				() -> new InvalidExpressionException("The resolution context must be a MongoDocumentContext"));
 
-		return Optional.ofNullable(PropertyBoxValue.create(
-				decodePropertyBox(documentContext, null, expression.getValue(), documentContext.getPropertySet())));
+		return Optional
+				.ofNullable(PropertyBoxValue.create(decodePropertyBox(documentContext, null, expression.getValue())));
 	}
 
 	/*
@@ -89,21 +92,20 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @param context Resolution context
 	 * @param parent Optional parent field name expression
 	 * @param document Document to decode
-	 * @param propertySet Property set to use
 	 * @return Decoded PropertyBox instance
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static PropertyBox decodePropertyBox(final MongoResolutionContext context, final String parent,
-			Map<String, Object> document, PropertySet<?> propertySet) throws InvalidExpressionException {
+	private static PropertyBox decodePropertyBox(final MongoDocumentContext context, final String parent,
+			Map<String, Object> document) throws InvalidExpressionException {
 		// PropertyBox builder
-		final PropertyBox propertyBox = PropertyBox.builder(propertySet).invalidAllowed(true).build();
+		final PropertyBox propertyBox = PropertyBox.builder(context.getPropertySet()).invalidAllowed(true).build();
 
 		// Adapter
 		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(propertyBox)
 				.pathMatcher(DocumentPathMatcher.INSTANCE).build();
 
 		// decode
-		decodeDocument(context, parent, document, adapter);
+		decodeDocument(context, parent, document, propertyBox, adapter);
 
 		return propertyBox;
 	}
@@ -114,62 +116,80 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @param context Resolution context
 	 * @param parent Optional parent field name expression
 	 * @param document Document to decode
+	 * @param propertyBox PropertyBox to use to collect the decoded values
 	 * @param adapter PropertyBox adapter
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static void decodeDocument(final MongoResolutionContext context, final String parent,
-			Map<String, Object> document, PathPropertyBoxAdapter adapter) throws InvalidExpressionException {
+	private static void decodeDocument(final MongoDocumentContext context, final String parent,
+			Map<String, Object> document, PropertyBox propertyBox, PathPropertyBoxAdapter adapter)
+			throws InvalidExpressionException {
+		final List<Property<?>> properties = new ArrayList<>(context.getPropertySet().asList());
 		document.entrySet().stream().forEach(entry -> {
-			decodeDocumentField(context, adapter, parent, entry.getKey(), entry.getValue());
+			decodeDocumentField(context, propertyBox, adapter, parent, entry.getKey(), entry.getValue())
+					.ifPresent(p -> {
+						properties.remove(p);
+					});
 		});
+		// check properties with converter and force value set
+		for (Property<?> property : properties) {
+			if (property.getConverter().isPresent() && propertyBox.contains(property)) {
+				propertyBox.setValue(property, null);
+			}
+		}
 	}
 
 	/**
 	 * Decode a document field.
 	 * @param context Resolution context
+	 * @param propertyBox PropertyBox to use to collect the decoded values
 	 * @param adapter PropertyBox adapter to use to set the decoded field value
 	 * @param parent Optional parent field name expression
 	 * @param name Field name
 	 * @param value Field value
+	 * @return If a matching property into which to decode the field value is found, it is returned
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	@SuppressWarnings("unchecked")
-	private static void decodeDocumentField(MongoResolutionContext context, PathPropertyBoxAdapter adapter,
-			String parent, String name, Object value) throws InvalidExpressionException {
+	private static Optional<Property<?>> decodeDocumentField(MongoDocumentContext context, PropertyBox propertyBox,
+			PathPropertyBoxAdapter adapter, String parent, String name, Object value)
+			throws InvalidExpressionException {
+
 		// full path
 		final String fieldName = composeFieldPath(parent, name);
 
+		// check nested document
 		if (value != null && Map.class.isAssignableFrom(value.getClass())) {
 			// nested value
 			Map<String, Object> nested = (Map<String, Object>) value;
 			// decode property using full path name
-			decodeDocument(context.childContext(), fieldName, nested, adapter);
+			decodeDocument(context.documentContext(context.getPropertySet()), fieldName, nested, propertyBox, adapter);
 			// check PropertyBox type property into which to decode the nested map
 			final Path<?> nestedPath = Path.of(fieldName, Object.class);
-			adapter.getProperty(nestedPath).filter(p -> PropertyBox.class.isAssignableFrom(p.getType()))
-					.ifPresent(p -> {
+			return adapter.getProperty(nestedPath).filter(p -> PropertyBox.class.isAssignableFrom(p.getType()))
+					.map(p -> {
 						final PropertySet<?> propertySet = p.getConfiguration()
 								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE)
 								.orElseThrow(() -> new InvalidExpressionException(
 										"Failed to deserialize PropertyBox type path [" + fieldName
 												+ "]: missing PropertySet. Check property configuration attribute ["
 												+ PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE.getKey() + "]"));
-						PropertyBox pb = decodePropertyBox(context.childContext(), parent, nested, propertySet);
+						PropertyBox pb = decodePropertyBox(context.documentContext(propertySet), parent, nested);
 						adapter.setValue((Path) nestedPath, pb);
+						return p;
 					});
-		} else {
-			// resolve Path
-			final Path<?> path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
-			// resolve value
-			adapter.getProperty(path).ifPresent(p -> {
-				Object resolvedValue = context.resolveOrFail(
-						FieldValue.create(value, p,
-								p.getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
-						Value.class).getValue();
-				adapter.setValue((Path) path, resolvedValue);
-			});
 		}
 
+		// resolve Path
+		final Path<?> path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
+		// resolve value
+		return adapter.getProperty(path).map(p -> {
+			Object resolvedValue = context.resolveOrFail(
+					FieldValue.create(value, p,
+							p.getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
+					Value.class).getValue();
+			adapter.setValue((Path) path, resolvedValue);
+			return p;
+		});
 	}
 
 	/**

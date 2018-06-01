@@ -66,6 +66,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.VRT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -158,6 +159,32 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(Arrays.equals(TestValues.A_BYT, pb.getValue(A_BYT)));
 		assertTrue(pb.getValue(NBL));
 		assertEquals("STR:" + TestValues.STR, pb.getValue(VRT));
+	}
+	
+	@Test
+	public void testPropertyBoxResolutionConverters() {
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+		
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+		
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET1).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertNotNull(pb.getValue(NBL));
+		assertFalse(pb.getValue(NBL));
 	}
 
 	@Test

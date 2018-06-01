@@ -22,8 +22,10 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -74,6 +76,7 @@ public class MongoInsert extends AbstractInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
 
@@ -104,7 +107,7 @@ public class MongoInsert extends AbstractInsert {
 			// options
 			final InsertOneOptions options = new InsertOneOptions();
 			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			
+
 			// insert
 			collection.insertOne(document, options);
 
@@ -121,7 +124,17 @@ public class MongoInsert extends AbstractInsert {
 				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
 				if (oid != null) {
 					context.getDocumentIdPath().ifPresent(idp -> {
-						builder.withInsertedKey(idp, context.getDocumentIdResolver().decode(oid, idp.getType()));
+						final Object idPropertyValue = context.getDocumentIdResolver().decode(oid, idp.getType());
+						builder.withInsertedKey(idp, idPropertyValue);
+
+						// check bring back ids
+						if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+							context.getDocumentIdProperty().ifPresent(idProperty -> {
+								if (value.contains(idProperty)) {
+									value.setValue((Property<Object>) idProperty, idPropertyValue);
+								}
+							});
+						}
 					});
 				}
 			}

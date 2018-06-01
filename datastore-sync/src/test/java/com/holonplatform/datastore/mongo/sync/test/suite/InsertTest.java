@@ -69,6 +69,7 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
@@ -228,6 +229,27 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
 		assertEquals(0, count);
 
+	}
+
+	@Test
+	public void testBringBackIds() {
+
+		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
+
+		OperationResult result = getDatastore().insert(TARGET, value, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+		assertEquals(1, result.getAffectedCount());
+		assertTrue(result.getFirstInsertedKey().isPresent());
+
+		ObjectId oid = result.getFirstInsertedKey(ObjectId.class).orElse(null);
+		assertNotNull(oid);
+
+		assertNotNull(value.getValue(ID));
+
+		assertEquals(oid, value.getValue(ID));
+
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
 	}
 
 	@Test

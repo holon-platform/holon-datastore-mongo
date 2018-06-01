@@ -27,6 +27,8 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
@@ -78,6 +80,7 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.commons.ExecutableOperation#execute()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
@@ -132,8 +135,18 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
 				if (oid != null) {
 					context.getDocumentContext().getDocumentIdPath().ifPresent(idp -> {
-						builder.withInsertedKey(idp,
-								context.getDocumentContext().getDocumentIdResolver().decode(oid, idp.getType()));
+						final Object idPropertyValue = context.getDocumentContext().getDocumentIdResolver().decode(oid,
+								idp.getType());
+						builder.withInsertedKey(idp, idPropertyValue);
+						// check bring back ids
+						if (context.getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+							context.getDocumentContext().getDocumentIdProperty().ifPresent(idProperty -> {
+								if (context.getConfiguration().getValue().contains(idProperty)) {
+									context.getConfiguration().getValue().setValue((Property<Object>) idProperty,
+											idPropertyValue);
+								}
+							});
+						}
 					});
 				}
 			}

@@ -54,6 +54,7 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
@@ -120,6 +121,15 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 
 		result = getDatastore().delete(TARGET, value);
 		assertEquals(1, result.getAffectedCount());
+	}
+
+	@Test(expected = DataAccessException.class)
+	public void testRefreshMissingId() {
+
+		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
+
+		getDatastore().refresh(TARGET, value);
+		
 	}
 
 }

@@ -29,6 +29,7 @@ import com.holonplatform.core.property.BooleanProperty;
 import com.holonplatform.core.property.ListPathProperty;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertyBoxProperty;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
@@ -132,5 +133,12 @@ public interface ModelTest {
 	public static final SetPathProperty<EnumValue> CP_ENM = SetPathProperty.create("cpenm", EnumValue.class);
 
 	public static final PropertySet<?> SET9 = PropertySet.of(ID, STR, CP_LIST, CP_SET, CP_ENM);
+
+	// collection of PropertyBox
+
+	public static final ListPathProperty<PropertyBox> C_PBX = ListPathProperty.create("cpbx", PropertyBox.class)
+			.configuration(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE, NESTED_SET);
+
+	public static final PropertySet<?> SET10 = PropertySet.of(ID, STR, C_PBX);
 
 }

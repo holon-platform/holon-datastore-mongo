@@ -16,6 +16,8 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.property.CollectionProperty;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
@@ -181,6 +184,44 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 
 		// resolve Path
 		final Path<?> path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
+
+		// check collection of nested documents
+		if (value != null && Collection.class.isAssignableFrom(value.getClass()) && !((Collection) value).isEmpty()) {
+			Object firstElement = ((Collection) value).iterator().next();
+			if (firstElement != null && Map.class.isAssignableFrom(firstElement.getClass())) {
+				// check PropertyBox CollectionProperty type
+				CollectionProperty<PropertyBox, Collection<PropertyBox>> collectionProperty = adapter.getProperty(path)
+						.filter(p -> CollectionProperty.class.isAssignableFrom(p.getClass()))
+						.map(p -> (CollectionProperty<?, ?>) p)
+						.filter(cp -> PropertyBox.class.isAssignableFrom(cp.getElementType()))
+						.map(cp -> (CollectionProperty<PropertyBox, Collection<PropertyBox>>) cp).orElse(null);
+				if (collectionProperty != null) {
+					// check property set
+					final PropertySet<?> propertySet = collectionProperty.getConfiguration()
+							.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE)
+							.orElseThrow(() -> new InvalidExpressionException(
+									"Failed to deserialize PropertyBox type path [" + fieldName
+											+ "]: missing PropertySet. Check property configuration attribute ["
+											+ PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE.getKey() + "]"));
+					// collection
+					final int size = ((Collection) value).size();
+					boolean isList = adapter.getProperty(path).filter(p -> List.class.isAssignableFrom(p.getType()))
+							.orElse(null) != null;
+					Collection<PropertyBox> propertyValues = isList ? new ArrayList<>(size) : new HashSet<>(size);
+					for (Object element : ((Collection) value)) {
+						// decode
+						PropertyBox pb = decodePropertyBox(context.documentContext(propertySet), parent,
+								(Map<String, Object>) element);
+						if (pb != null) {
+							propertyValues.add(pb);
+						}
+					}
+					propertyBox.setValue(collectionProperty, propertyValues);
+					return Optional.of(collectionProperty);
+				}
+			}
+		}
+
 		// resolve value
 		return adapter.getProperty(path).map(p -> {
 			Object resolvedValue = context.resolveOrFail(

@@ -26,6 +26,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BYT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_ENM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_LIST;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.CP_SET;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_PBX;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
@@ -53,6 +54,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET10;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET3;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
@@ -72,7 +74,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,7 +164,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(pb.getValue(NBL));
 		assertEquals("STR:" + TestValues.STR, pb.getValue(VRT));
 	}
-	
+
 	@Test
 	public void testPropertyBoxResolutionConverters() {
 		final ObjectId oid = new ObjectId();
@@ -169,16 +173,16 @@ public class TestPropertyBoxDocumentResolution {
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
-		
+
 		Document doc = value.get().getValue();
 		assertNotNull(doc);
-		
+
 		Optional<PropertyBoxValue> pbValue = context.documentContext(SET1).resolve(DocumentValue.create(doc),
 				PropertyBoxValue.class);
 		assertTrue(pbValue.isPresent());
 
 		pb = pbValue.get().getValue();
-		
+
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
@@ -503,6 +507,62 @@ public class TestPropertyBoxDocumentResolution {
 		assertEquals(2, sevs.size());
 		assertTrue(sevs.contains(EnumValue.FIRST));
 		assertTrue(sevs.contains(EnumValue.SECOND));
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPropertyBoxCollection() {
+
+		final ObjectId oid = new ObjectId();
+
+		List<PropertyBox> nestedList = new LinkedList<>();
+		nestedList.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n1v1").set(NESTED_V2, "n1v2").build());
+		nestedList.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n2v1").set(NESTED_V2, "n2v2").build());
+		nestedList.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n3v1").set(NESTED_V2, "n3v2").build());
+
+		PropertyBox pb = PropertyBox.builder(SET10).set(ID, oid).set(STR, "testn").set(C_PBX, nestedList).build();
+
+		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
+		assertTrue(value.isPresent());
+
+		Document doc = value.get().getValue();
+		assertNotNull(doc);
+
+		assertNotNull(checkJson(doc));
+
+		assertTrue(doc.containsKey("cpbx"));
+		assertTrue(doc.get("cpbx") instanceof Collection);
+		assertEquals(3, doc.get("cpbx", Collection.class).size());
+
+		Collection<Object> vs = doc.get("cpbx", Collection.class);
+		for (Object v : vs) {
+			assertTrue(v instanceof Map);
+			Map<String, Object> element = (Map<String, Object>) v;
+			assertEquals(2, element.size());
+			assertTrue(element.containsKey("v1"));
+			assertTrue(element.containsKey("v2"));
+		}
+
+		Optional<PropertyBoxValue> pbValue = context.documentContext(SET10).resolve(DocumentValue.create(doc),
+				PropertyBoxValue.class);
+
+		assertTrue(pbValue.isPresent());
+
+		pb = pbValue.get().getValue();
+		assertNotNull(pb);
+
+		assertEquals(oid, pb.getValue(ID));
+		assertEquals("testn", pb.getValue(STR));
+
+		List<PropertyBox> values = pb.getValue(C_PBX);
+		assertNotNull(values);
+		assertEquals(3, values.size());
+		
+		for (PropertyBox vpb : values) {
+			assertNotNull(vpb.getValue(NESTED_V1));
+			assertNotNull(vpb.getValue(NESTED_V2));
+		}
 
 	}
 

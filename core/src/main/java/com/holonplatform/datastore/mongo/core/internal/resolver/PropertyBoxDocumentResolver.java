@@ -15,8 +15,10 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,6 +30,7 @@ import org.bson.Document;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.property.CollectionProperty;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
@@ -157,6 +160,7 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @return Encoded field name and value
 	 * @throws InvalidExpressionException If an error occurred
 	 */
+	@SuppressWarnings("unchecked")
 	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(
 			MongoResolutionContext context, final PropertyBox propertyBox, P property, String name)
 			throws InvalidExpressionException {
@@ -176,13 +180,30 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 						.documentContext(property.getConfiguration()
 								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false)
 						.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
+			} else if (CollectionProperty.class.isAssignableFrom(property.getClass())
+					&& PropertyBox.class.isAssignableFrom(((CollectionProperty<?, ?>) property).getElementType())
+					&& Collection.class.isAssignableFrom(value.getClass())) {
+				final Collection<PropertyBox> values = (Collection<PropertyBox>) value;
+				if (values.isEmpty()) {
+					return Collections.emptyMap();
+				}
+				fieldValue = new ArrayList<Document>(values.size());
+				for (PropertyBox pb : values) {
+					Document doc = context
+							.documentContext(
+									property.getConfiguration()
+											.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb),
+									false)
+							.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
+					if (doc != null) {
+						((List<Document>) fieldValue).add(doc);
+					}
+				}
 			} else {
 				fieldValue = context
 						.resolveOrFail(
-								Value
-										.create(value, property,
-												property.getConfiguration()
-														.getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
+								Value.create(value, property, property.getConfiguration()
+										.getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
 								FieldValue.class)
 						.getValue();
 			}

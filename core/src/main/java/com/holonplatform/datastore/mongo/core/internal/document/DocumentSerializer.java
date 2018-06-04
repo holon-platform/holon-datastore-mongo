@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.document;
 
+import java.util.List;
+
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
@@ -40,6 +42,21 @@ public interface DocumentSerializer {
 	 * @return Serialized document
 	 */
 	String toJson(Document document);
+
+	/**
+	 * Serialize given documents to JSON.
+	 * @param codecRegistry The codec registry to use (not null)
+	 * @param documents The documents to serialize
+	 * @return Serialized documents
+	 */
+	String toJson(CodecRegistry codecRegistry, List<Document> documents);
+
+	/**
+	 * Serialize given documents to JSON using the default codec registry.
+	 * @param document The documents to serialize
+	 * @return Serialized documents
+	 */
+	String toJson(List<Document> documents);
 
 	/**
 	 * Serialize given {@link Bson} value to JSON.

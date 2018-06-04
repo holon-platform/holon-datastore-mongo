@@ -38,6 +38,16 @@ public enum DocumentWriteOption implements WriteOption {
 	 * Applies to the <code>update</code> operation.
 	 * </p>
 	 */
-	UPSERT;
+	UPSERT,
+
+	/**
+	 * A {@link WriteOption} which applies to multiple document insertion, to specify to not insert the documents in the
+	 * order provided (stopping on the first failed insertion). When this option is provided, the server will attempt to
+	 * insert all the documents regardless of any failure.
+	 * <p>
+	 * Applies to the <code>bulk insert</code> operation.
+	 * </p>
+	 */
+	UNORDERED;
 
 }

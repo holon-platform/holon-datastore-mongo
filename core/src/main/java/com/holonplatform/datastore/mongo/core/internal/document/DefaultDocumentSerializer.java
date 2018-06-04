@@ -18,6 +18,8 @@ package com.holonplatform.datastore.mongo.core.internal.document;
 import static java.util.Arrays.asList;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 
+import java.util.List;
+
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.BsonValueCodecProvider;
@@ -85,6 +87,27 @@ public enum DefaultDocumentSerializer implements DocumentSerializer {
 	@Override
 	public String toJson(Document document) {
 		return toJson(DEFAULT_CODEC_REGISTRY, document);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer#toJson(org.bson.codecs.configuration.CodecRegistry, java.util.List)
+	 */
+	@Override
+	public String toJson(CodecRegistry codecRegistry, List<Document> documents) {
+		final StringBuilder sb = new StringBuilder();
+		documents.forEach(doc -> {
+			sb.append(toJson(codecRegistry, doc));
+			sb.append("\n");
+		});
+		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer#toJson(java.util.List)
+	 */
+	@Override
+	public String toJson(List<Document> documents) {
+		return toJson(DEFAULT_CODEC_REGISTRY, documents);
 	}
 
 	/*

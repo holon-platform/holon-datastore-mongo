@@ -229,9 +229,8 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertTrue(value.getValue(NBL));
 		assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
 
-		getDatastore().delete(TARGET, value);
-		count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
-		assertEquals(0, count);
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
 
 	}
 

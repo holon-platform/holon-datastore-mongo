@@ -17,13 +17,18 @@ package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import java.util.Optional;
 
+import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.datastore.operation.Save;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.operation.AbstractSave;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
@@ -35,6 +40,7 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -51,6 +57,8 @@ import com.mongodb.client.result.UpdateResult;
 public class MongoSave extends AbstractSave {
 
 	private static final long serialVersionUID = -7779005644734871789L;
+
+	private final static Logger LOGGER = MongoDatastoreLogger.create();
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -78,12 +86,9 @@ public class MongoSave extends AbstractSave {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
-		
-		// TODO
-		
-		/*
 
 		// validate
 		getConfiguration().validate();
@@ -92,10 +97,20 @@ public class MongoSave extends AbstractSave {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value, true);
 
-		// document id property
+		// document id
 		final Optional<Property<?>> idProperty = context.getDocumentIdProperty();
+		final ObjectId id = idProperty.map(p -> context.getDocumentIdResolver().encode(value.getValue(p))).orElse(null);
+
+		// check id property/value
+		if (!idProperty.isPresent() || id == null) {
+			// fallback to insert
+			LOGGER.debug(() -> "Save operation: missing id property or value, fallback to insert");
+			return operationContext.create(Insert.class).target(getConfiguration().getTarget())
+					.value(getConfiguration().getValue()).withWriteOptions(getConfiguration().getWriteOptions())
+					.execute();
+		}
 
 		// resolve collection
 		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
@@ -116,25 +131,46 @@ public class MongoSave extends AbstractSave {
 			getConfiguration().getWriteOption(CollationOption.class)
 					.ifPresent(o -> options.collation(o.getCollation()));
 			options.upsert(true);
-			
-			//collection.up
 
-			// update
+			// update with upsert
 			UpdateResult result = collection.updateOne(Filters.eq(id), document, options);
 
-			int affected = result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1;
+			// check insert
+			BsonValue upsertedId = result.getUpsertedId();
+
+			final OperationType operationType = (upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE;
+			final int affected = (upsertedId != null) ? 1
+					: (result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1);
 
 			// trace
-			operationContext.trace("Updated document",
+			operationContext.trace("Saved document [" + operationType.name() + "]",
 					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
 
+			final OperationResult.Builder builder = OperationResult.builder().type(operationType)
+					.affectedCount(affected);
+
+			// upserted key
+			if (upsertedId != null) {
+				final ObjectId oid = upsertedId.asObjectId().getValue();
+				context.getDocumentIdPath().ifPresent(idp -> {
+					final Object idPropertyValue = context.getDocumentIdResolver().decode(oid, idp.getType());
+					builder.withInsertedKey(idp, idPropertyValue);
+
+					// check bring back ids
+					if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+						idProperty.ifPresent(idprp -> {
+							if (value.contains(idprp)) {
+								value.setValue((Property<Object>) idprp, idPropertyValue);
+							}
+						});
+					}
+				});
+			}
+
 			// result
-			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(affected).build();
+			return builder.build();
 
 		});
-		*/
-		
-		return null;
 	}
 
 }

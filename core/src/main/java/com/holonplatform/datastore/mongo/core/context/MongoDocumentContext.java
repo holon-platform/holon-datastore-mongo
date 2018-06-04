@@ -42,6 +42,13 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	PropertySet<?> getPropertySet();
 
 	/**
+	 * Get whether this document context is intended for an update type operation.
+	 * @return <code>true</code> if this document context is intended for an update type operation, <code>false</code>
+	 *         otherwise
+	 */
+	boolean isForUpdate();
+
+	/**
 	 * Get the {@link Path} which acts as document id, if available.
 	 * @return Optional document id path
 	 */
@@ -86,7 +93,18 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
 	static MongoDocumentContext create(MongoContext context, PropertySet<?> propertySet) {
-		return new DefaultMongoDocumentContext(context, propertySet);
+		return new DefaultMongoDocumentContext(context, propertySet, false);
+	}
+
+	/**
+	 * Create a new {@link MongoDocumentContext}.
+	 * @param context Mongo context (not null)
+	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 * @param forUpdate Whether this document context is intended for an update type operation
+	 * @return A new {@link MongoDocumentContext} instance
+	 */
+	static MongoDocumentContext create(MongoContext context, PropertySet<?> propertySet, boolean forUpdate) {
+		return new DefaultMongoDocumentContext(context, propertySet, forUpdate);
 	}
 
 }

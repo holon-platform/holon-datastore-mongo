@@ -136,8 +136,7 @@ public interface ModelTest {
 
 	// collection of PropertyBox
 
-	public static final ListPathProperty<PropertyBox> C_PBX = ListPathProperty.create("cpbx", PropertyBox.class)
-			.configuration(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE, NESTED_SET);
+	public static final ListPathProperty<PropertyBox> C_PBX = ListPathProperty.propertyBox("cpbx", NESTED_SET);
 
 	public static final PropertySet<?> SET10 = PropertySet.of(ID, STR, C_PBX);
 

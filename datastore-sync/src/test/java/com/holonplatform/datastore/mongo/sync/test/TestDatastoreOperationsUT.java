@@ -23,9 +23,10 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 import com.holonplatform.datastore.mongo.sync.test.suite.InsertTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.RefreshTest;
+import com.holonplatform.datastore.mongo.sync.test.suite.UpdateTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ InsertTest.class, RefreshTest.class })
+@Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, RefreshTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops";

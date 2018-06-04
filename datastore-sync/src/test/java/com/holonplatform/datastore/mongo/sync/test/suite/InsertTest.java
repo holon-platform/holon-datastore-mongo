@@ -26,6 +26,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BYT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_ENM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_LNG;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_PBX;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
@@ -50,6 +51,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET10;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET8;
@@ -63,6 +65,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -268,7 +272,6 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals(oid, value.getValue(ID));
 		assertEquals("testn", value.getValue(STR));
 		assertEquals(EnumValue.FIRST, value.getValue(ENM));
 		assertEquals("n1v1", value.getValue(N1_V1));
@@ -342,6 +345,35 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 		assertEquals("n1v1", nested.getValue(NESTED_V1));
 		assertEquals("n1v2", nested.getValue(NESTED_V2));
+
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+	}
+
+	@Test
+	public void testInsertPropertyBoxCollections() {
+
+		final ObjectId oid = new ObjectId();
+
+		List<PropertyBox> nesteds = new LinkedList<>();
+		nesteds.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n1v1").set(NESTED_V2, "n1v2").build());
+		nesteds.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n2v1").set(NESTED_V2, "n2v2").build());
+		nesteds.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n3v1").set(NESTED_V2, "n3v2").build());
+
+		PropertyBox value = PropertyBox.builder(SET10).set(ID, oid).set(STR, "testnpb").set(C_PBX, nesteds).build();
+
+		OperationResult result = getDatastore().insert(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET10).orElse(null);
+		assertNotNull(value);
+
+		assertEquals(oid, value.getValue(ID));
+		assertEquals("testnpb", value.getValue(STR));
+
+		List<PropertyBox> nvs = value.getValue(C_PBX);
+		assertNotNull(nvs);
+		assertEquals(3, nvs.size());
 
 		result = getDatastore().delete(TARGET, value);
 		assertEquals(1, result.getAffectedCount());

@@ -18,8 +18,10 @@ package com.holonplatform.datastore.mongo.core.internal.resolver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -57,6 +59,8 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 
 	INSTANCE;
 
+	private static final Object NO_VALUE = "";
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
@@ -69,17 +73,30 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 		// validate
 		expression.validate();
 
-		// get the serialization tree
-		final PropertySetSerializationTree tree = MongoPropertySetSerializationTreeResolver.getDefault()
-				.resolve(expression.getPropertySet());
-
 		// Document context
-		final MongoDocumentContext documentContext = context.documentContext(expression.getPropertySet());
+		final MongoDocumentContext documentContext = MongoDocumentContext.isDocumentContext(context)
+				.orElse(context.documentContext(expression.getPropertySet()));
 
 		// Encode document
-		final Document document = new Document(encodePropertyBoxNodes(documentContext, expression.getValue(), tree));
+		final Map<String, Object> nodes = encodePropertyBox(documentContext, expression.getValue(), null,
+				documentContext.isForUpdate());
 
-		return Optional.of(DocumentValue.create(document));
+		if (documentContext.isForUpdate()) {
+			// update operators
+			final Map<String, Object> unset = new HashMap<>();
+			final Map<String, Object> set = processDocumentForUpdate(nodes, unset);
+
+			Document document = new Document();
+			if (!set.isEmpty()) {
+				document.append("$set", set);
+			}
+			if (!unset.isEmpty()) {
+				document.append("$unset", unset);
+			}
+			return Optional.of(DocumentValue.create(document));
+		}
+
+		return Optional.of(DocumentValue.create(new Document(nodes)));
 	}
 
 	/*
@@ -101,18 +118,52 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	}
 
 	/**
+	 * Process given document to create a $set/$unset update operation model.
+	 * @param document Document to process
+	 * @param unset $unset fields global map
+	 * @return The processed document
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> processDocumentForUpdate(Map<String, Object> document,
+			Map<String, Object> unset) {
+		final Map<String, Object> set = new HashMap<>(document.size());
+		for (Entry<String, Object> entry : document.entrySet()) {
+			if (entry.getValue() == null || NO_VALUE.equals(entry.getValue())) {
+				unset.put(entry.getKey(), "");
+			} else {
+				if (Map.class.isAssignableFrom(entry.getValue().getClass())) {
+					set.put(entry.getKey(), processDocumentForUpdate((Map<String, Object>) entry.getValue(), unset));
+				} else {
+					set.put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		return set;
+	}
+
+	private static Document encodePropertyBox(MongoDocumentContext context, PropertyBox propertyBox, String parentPath,
+			boolean forUpdate) throws InvalidExpressionException {
+		// get the serialization tree
+		final PropertySetSerializationTree nodes = MongoPropertySetSerializationTreeResolver.getDefault()
+				.resolve(context.getPropertySet());
+		return new Document(encodePropertyBoxNodes(context, propertyBox, nodes, parentPath, forUpdate));
+	}
+
+	/**
 	 * Encode a set of {@link PropertySetSerializationNode} into a document.
 	 * @param context Resolution context
 	 * @param propertyBox The PropertyBox to encode
 	 * @param nodes The property set serialization nodes
+	 * @param parentPath Parent nodes path
 	 * @return The document field-value map
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static Map<String, Object> encodePropertyBoxNodes(MongoResolutionContext context, PropertyBox propertyBox,
-			Iterable<PropertySetSerializationNode> nodes) throws InvalidExpressionException {
+	private static Map<String, Object> encodePropertyBoxNodes(MongoDocumentContext context, PropertyBox propertyBox,
+			Iterable<PropertySetSerializationNode> nodes, String parentPath, boolean forUpdate)
+			throws InvalidExpressionException {
 		return StreamSupport.stream(nodes.spliterator(), false)
-				.map(node -> encodePropertyBoxNode(context, propertyBox, node)).map(Map::entrySet)
-				.flatMap(Collection::stream)
+				.map(node -> encodePropertyBoxNode(context, propertyBox, node, parentPath, forUpdate))
+				.map(Map::entrySet).flatMap(Collection::stream)
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (u, v) -> u));
 	}
 
@@ -121,17 +172,20 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @param context Resolution context
 	 * @param propertyBox The PropertyBox to encode
 	 * @param node The property set serialization node
+	 * @param parentPath Parent nodes path
 	 * @return The document fragment field-value map
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static Map<String, Object> encodePropertyBoxNode(MongoResolutionContext context, PropertyBox propertyBox,
-			PropertySetSerializationNode node) throws InvalidExpressionException {
-		return isValidNodeProperty(node).map(p -> encodeProperty(context, propertyBox, p, node.getName()))
+	private static Map<String, Object> encodePropertyBoxNode(MongoDocumentContext context, PropertyBox propertyBox,
+			PropertySetSerializationNode node, String parentPath, boolean forUpdate) throws InvalidExpressionException {
+		return isValidNodeProperty(node)
+				.map(p -> encodeProperty(context, propertyBox, p, node.getName(), parentPath, forUpdate))
 				.orElseGet(() -> {
 					// nested
-					Map<String, Object> nested = encodePropertyBoxNodes(context.childContext(), propertyBox,
-							node.getChildren());
-					return Collections.singletonMap(node.getName(), nested);
+					String parent = composeFieldPath(parentPath, node.getName());
+					Map<String, Object> nested = encodePropertyBoxNodes(context, propertyBox, node.getChildren(),
+							parent, forUpdate);
+					return forUpdate ? nested : Collections.singletonMap(node.getName(), nested);
 				});
 	}
 
@@ -150,6 +204,16 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	}
 
 	/**
+	 * Compose a field path using an optional parent path.
+	 * @param parent Optional parent path
+	 * @param name Field name
+	 * @return Full path
+	 */
+	private static String composeFieldPath(String parent, String name) {
+		return (parent == null) ? name : parent + "." + name;
+	}
+
+	/**
 	 * Encode a PropertyBox property into a field name and value pair.
 	 * @param <T> Property type
 	 * @param <P> Path & Property type
@@ -161,11 +225,21 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(
-			MongoResolutionContext context, final PropertyBox propertyBox, P property, String name)
+	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(MongoDocumentContext context,
+			final PropertyBox propertyBox, P property, String name, String parentPath, boolean forUpdate)
 			throws InvalidExpressionException {
 		final T value = propertyBox.getValue(property);
 		if (value == null) {
+			if (forUpdate) {
+				// exclude document id
+				if (context.isDocumentIdProperty(property)) {
+					return Collections.emptyMap();
+				}
+				// resolve field name
+				String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
+				// return empty value for $unset
+				return Collections.singletonMap(composeFieldPath(parentPath, fieldName), NO_VALUE);
+			}
 			return Collections.emptyMap();
 		}
 		try {
@@ -176,10 +250,15 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 			if (PropertyBox.class.isAssignableFrom(property.getType())) {
 				// nested PropertyBox
 				final PropertyBox pb = (PropertyBox) value;
-				fieldValue = context
-						.documentContext(property.getConfiguration()
-								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false)
-						.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
+				Document encoded = encodePropertyBox(
+						context.documentContext(property.getConfiguration()
+								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false),
+						pb, forUpdate ? composeFieldPath(parentPath, fieldName) : parentPath, forUpdate);
+				if (forUpdate) {
+					return encoded;
+				} else {
+					fieldValue = encoded;
+				}
 			} else if (CollectionProperty.class.isAssignableFrom(property.getClass())
 					&& PropertyBox.class.isAssignableFrom(((CollectionProperty<?, ?>) property).getElementType())
 					&& Collection.class.isAssignableFrom(value.getClass())) {
@@ -187,18 +266,19 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 				if (values.isEmpty()) {
 					return Collections.emptyMap();
 				}
-				fieldValue = new ArrayList<Document>(values.size());
+				List<Document> encoded = new ArrayList<>(values.size());
 				for (PropertyBox pb : values) {
-					Document doc = context
-							.documentContext(
+					Document doc = encodePropertyBox(
+							context.documentContext(
 									property.getConfiguration()
 											.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb),
-									false)
-							.resolveOrFail(PropertyBoxValue.create(pb), DocumentValue.class).getValue();
+									false),
+							pb, parentPath, forUpdate);
 					if (doc != null) {
-						((List<Document>) fieldValue).add(doc);
+						encoded.add(doc);
 					}
 				}
+				fieldValue = encoded;
 			} else {
 				fieldValue = context
 						.resolveOrFail(
@@ -207,7 +287,9 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 								FieldValue.class)
 						.getValue();
 			}
-			return Collections.singletonMap(fieldName, fieldValue);
+			// check for update
+			return Collections.singletonMap(forUpdate ? composeFieldPath(parentPath, fieldName) : fieldName,
+					(fieldValue != null) ? fieldValue : NO_VALUE);
 		} catch (Exception e) {
 			throw new InvalidExpressionException(
 					"Failed to encode Property [" + property + "] using field name [" + name + "]", e);

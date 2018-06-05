@@ -15,14 +15,40 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdate;
+import com.holonplatform.datastore.mongo.core.CollationOption;
+import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
+import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.operator.Set;
+import com.holonplatform.datastore.mongo.core.operator.Unset;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 
 /**
  * Mongo {@link BulkUpdate} implementation.
@@ -62,8 +88,77 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 	 */
 	@Override
 	public OperationResult execute() {
-		// TODO
-		return null;
+
+		// validate
+		getConfiguration().validate();
+
+		// context
+		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+
+		// resolve collection
+		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+				.getName();
+
+		// resolve filter
+		Optional<Bson> filter = getConfiguration().getFilter()
+				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+
+		// resolve values
+		final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
+		List<Bson> updates = new ArrayList<>(values.size());
+		for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
+			if (value.getValue() == null) {
+				// $unset for null values
+				updates.add(context.resolveOrFail(Unset.create(value.getKey()), BsonExpression.class).getValue());
+			}
+			// check operator resolution
+			updates.add(
+					context.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue()).orElseGet(() -> {
+						// check constant value
+						final Object constantValue = context.resolveOrFail(value.getValue(), FieldValue.class)
+								.getValue();
+						return context.resolveOrFail(Set.create((TypedExpression) value.getKey(), constantValue),
+								BsonExpression.class).getValue();
+					}));
+
+		}
+
+		Bson update = Updates.combine(updates);
+
+		return operationContext.withDatabase(database -> {
+
+			// get and configure collection
+			final MongoCollection<Document> collection = MongoOperationConfigurator
+					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
+
+			// options
+			UpdateOptions options = new UpdateOptions();
+			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+			getConfiguration().getWriteOption(CollationOption.class)
+					.ifPresent(o -> options.collation(o.getCollation()));
+
+			// trace
+			operationContext.trace("Update documents:", trace(filter, update));
+
+			// delete
+			UpdateResult result = collection.updateMany(filter.orElse(null), update, options);
+
+			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result.getModifiedCount())
+					.build();
+
+		});
+	}
+
+	private static String trace(Optional<Bson> filter, Bson update) {
+		final StringBuilder sb = new StringBuilder();
+		filter.ifPresent(f -> {
+			sb.append("Filter:\n");
+			sb.append(DocumentSerializer.getDefault().toJson(f));
+			sb.append("\n");
+		});
+		sb.append("Values:\n");
+		sb.append(DocumentSerializer.getDefault().toJson(update));
+		return sb.toString();
 	}
 
 }

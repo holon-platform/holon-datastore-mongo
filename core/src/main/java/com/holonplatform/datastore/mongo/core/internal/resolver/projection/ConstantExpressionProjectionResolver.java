@@ -21,22 +21,21 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * {@link ConstantExpressionProjection} resolver.
+ * {@link ConstantExpression} projection resolver.
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 1000)
 public enum ConstantExpressionProjectionResolver
-		implements MongoExpressionResolver<ConstantExpressionProjection, BsonProjection> {
+		implements MongoExpressionResolver<ConstantExpression, BsonProjection> {
 
 	/**
 	 * Singleton instance
@@ -48,8 +47,8 @@ public enum ConstantExpressionProjectionResolver
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends ConstantExpressionProjection> getExpressionType() {
-		return ConstantExpressionProjection.class;
+	public Class<? extends ConstantExpression> getExpressionType() {
+		return ConstantExpression.class;
 	}
 
 	/*
@@ -68,7 +67,7 @@ public enum ConstantExpressionProjectionResolver
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<BsonProjection> resolve(ConstantExpressionProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(ConstantExpression expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate

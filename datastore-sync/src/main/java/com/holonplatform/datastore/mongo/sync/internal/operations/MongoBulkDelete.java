@@ -15,14 +15,29 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import java.util.Optional;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDelete;
+import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
+import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.DeleteOptions;
+import com.mongodb.client.result.DeleteResult;
 
 /**
  * Mongo {@link BulkDelete} implementation.
@@ -62,8 +77,42 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 	 */
 	@Override
 	public OperationResult execute() {
-		// TODO
-		return null;
+
+		// validate
+		getConfiguration().validate();
+
+		// context
+		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+
+		// resolve collection
+		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+				.getName();
+
+		// resolve filter
+		Optional<Bson> filter = getConfiguration().getFilter()
+				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+
+		return operationContext.withDatabase(database -> {
+
+			// get and configure collection
+			final MongoCollection<Document> collection = MongoOperationConfigurator
+					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
+
+			// options
+			DeleteOptions options = new DeleteOptions();
+			getConfiguration().getWriteOption(CollationOption.class)
+					.ifPresent(o -> options.collation(o.getCollation()));
+
+			// trace
+			operationContext.trace("Delete documents - filter:",
+					filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
+
+			// delete
+			DeleteResult result = collection.deleteMany(filter.orElse(null), options);
+
+			return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount()).build();
+
+		});
 	}
 
 }

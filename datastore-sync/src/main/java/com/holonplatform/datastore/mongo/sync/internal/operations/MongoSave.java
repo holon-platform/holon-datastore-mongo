@@ -97,7 +97,7 @@ public class MongoSave extends AbstractSave {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value, true);
+		final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext, value);
 
 		// document id
 		final Optional<Property<?>> idProperty = context.getDocumentIdProperty();

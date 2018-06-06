@@ -18,8 +18,6 @@ package com.holonplatform.datastore.mongo.core.internal.resolver;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.holonplatform.datastore.mongo.core.internal.resolver.operator.SetOperatorResolver;
-import com.holonplatform.datastore.mongo.core.internal.resolver.operator.UnsetOperatorResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.BeanProjectionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.ConstantExpressionProjectionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.CountAllProjectionResolver;
@@ -61,8 +59,6 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(BeanProjectionResolver.INSTANCE);
 		expressionResolvers.add(QueryConfigurationResolver.INSTANCE);
 		expressionResolvers.add(QueryOperationResolver.INSTANCE);
-		expressionResolvers.add(SetOperatorResolver.INSTANCE);
-		expressionResolvers.add(UnsetOperatorResolver.INSTANCE);
 	}
 
 	/**

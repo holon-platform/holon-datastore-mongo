@@ -33,8 +33,14 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentPathMatc
  */
 public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext implements MongoDocumentContext {
 
+	/**
+	 * Document property set
+	 */
 	private final PropertySet<?> propertySet;
-	private final boolean forUpdate;
+
+	/**
+	 * Whether to resolve the document id property/path
+	 */
 	private final boolean resolveDocumentId;
 
 	/**
@@ -43,10 +49,9 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 */
 	public DefaultMongoDocumentContext(MongoContext context, PropertySet<?> propertySet, boolean forUpdate) {
-		super(context);
+		super(context, forUpdate);
 		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
 		this.propertySet = propertySet;
-		this.forUpdate = forUpdate;
 		this.resolveDocumentId = true;
 	}
 
@@ -61,17 +66,7 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 		super(parent);
 		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
 		this.propertySet = propertySet;
-		this.forUpdate = false;
 		this.resolveDocumentId = resolveDocumentId;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoDocumentContext#isForUpdate()
-	 */
-	@Override
-	public boolean isForUpdate() {
-		return forUpdate;
 	}
 
 	/*

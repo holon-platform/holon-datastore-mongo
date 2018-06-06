@@ -38,10 +38,9 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
-import com.holonplatform.datastore.mongo.core.operator.Set;
-import com.holonplatform.datastore.mongo.core.operator.Unset;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -107,20 +106,28 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 		final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
 		List<Bson> updates = new ArrayList<>(values.size());
 		for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
-			if (value.getValue() == null) {
-				// $unset for null values
-				updates.add(context.resolveOrFail(Unset.create(value.getKey()), BsonExpression.class).getValue());
-			}
-			// check operator resolution
-			updates.add(
-					context.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue()).orElseGet(() -> {
-						// check constant value
-						final Object constantValue = context.resolveOrFail(value.getValue(), FieldValue.class)
-								.getValue();
-						return context.resolveOrFail(Set.create((TypedExpression) value.getKey(), constantValue),
-								BsonExpression.class).getValue();
-					}));
+			// child update context
+			final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
 
+			if (value.getValue() == null) {
+				// resolve field name
+				final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
+				// $unset for null values
+				updates.add(Updates.unset(fieldName));
+			} else {
+				// check value expression resolution
+				updates.add(context.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
+						.orElseGet(() -> {
+							// resolve field name
+							final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
+									.getFieldName();
+							// resolve field value
+							final Object fieldValue = context.resolveOrFail(value.getValue(), FieldValue.class)
+									.getValue();
+							// $set value
+							return Updates.set(fieldName, fieldValue);
+						}));
+			}
 		}
 
 		Bson update = Updates.combine(updates);

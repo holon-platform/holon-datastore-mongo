@@ -15,21 +15,17 @@
  */
 package com.holonplatform.datastore.mongo.core.expression;
 
+import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
 
 /**
- * A {@link TypedExpression} which represents an <em>operator</em> applied to a document field.
- * 
- * @param <T> Field expression type
+ * @author BODSI08
  *
- * @since 5.2.0
  */
-public interface FieldOperatorExpression<T> extends TypedExpression<T> {
+public interface UpdateExpression<T> extends TypedExpression<T> {
 
-	/**
-	 * Get the expression which represents the document field.
-	 * @return Field expression
-	 */
-	TypedExpression<T> getFieldExpression();
-
+	Path<?> getPath();
+	
+	
+	
 }

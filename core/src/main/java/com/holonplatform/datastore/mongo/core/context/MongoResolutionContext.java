@@ -22,6 +22,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
+import com.holonplatform.core.Path;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResolutionContext;
 
@@ -37,6 +38,20 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @return Optional parent context
 	 */
 	Optional<MongoResolutionContext> getParent();
+
+	/**
+	 * Get whether this context is intended for an update type operation.
+	 * @return <code>true</code> if this context is intended for an update type operation, <code>false</code> otherwise
+	 */
+	boolean isForUpdate();
+
+	/**
+	 * If this context is intended for an update type operation, get the optional single {@link Path} to which the
+	 * update operation refers.
+	 * @return Optional {@link Path} to which the update operation refers
+	 * @see #isForUpdate()
+	 */
+	Optional<Path<?>> getUpdatePath();
 
 	/**
 	 * Try to resolve given <code>expression</code> using current context resolvers to obtain a
@@ -90,6 +105,21 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	MongoResolutionContext childContext();
 
 	/**
+	 * Create a new {@link MongoResolutionContext} as child of this context for update type operations. This context
+	 * will be setted as parent of the new context.
+	 * @return A new {@link MongoResolutionContext} with this context as parent
+	 */
+	MongoResolutionContext childContextForUpdate();
+
+	/**
+	 * Create a new {@link MongoResolutionContext} as child of this context for update type operations. This context
+	 * will be setted as parent of the new context.
+	 * @param updatePath The path to which the update operation refers
+	 * @return A new {@link MongoResolutionContext} with this context as parent
+	 */
+	MongoResolutionContext childContextForUpdate(Path<?> updatePath);
+
+	/**
 	 * Create a {@link MongoDocumentContext} as child of this context.
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
@@ -113,6 +143,26 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 */
 	static MongoResolutionContext create(MongoContext context) {
 		return new DefaultMongoResolutionContext(context);
+	}
+
+	/**
+	 * Create a new default {@link MongoResolutionContext} for an update type operation.
+	 * @param context MongoContext to use (not null)
+	 * @return A new {@link MongoResolutionContext}
+	 */
+	static MongoResolutionContext createForUpdate(MongoContext context) {
+		return new DefaultMongoResolutionContext(context, true);
+	}
+
+	/**
+	 * Create a new default {@link MongoResolutionContext} for an update type operation, specifying the {@link Path} to
+	 * which the update operation refers.
+	 * @param context MongoContext to use (not null)
+	 * @param updatePath Update operation {@link Path}
+	 * @return A new {@link MongoResolutionContext}
+	 */
+	static MongoResolutionContext createForUpdate(MongoContext context, Path<?> updatePath) {
+		return new DefaultMongoResolutionContext(context, updatePath);
 	}
 
 	/**

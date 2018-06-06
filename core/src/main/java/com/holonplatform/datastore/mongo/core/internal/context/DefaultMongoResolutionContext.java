@@ -23,6 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.ExpressionResolverRegistry;
+import com.holonplatform.core.Path;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.PropertySet;
@@ -61,16 +62,39 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	private final MongoResolutionContext parent;
 
 	/**
+	 * Update mode
+	 */
+	private final boolean forUpdate;
+
+	/**
+	 * Update path
+	 */
+	private final Path<?> updatePath;
+
+	/**
 	 * Default constructor.
 	 * @param context Mongo context (not null)
 	 */
 	public DefaultMongoResolutionContext(MongoContext context) {
-		super();
-		ObjectUtils.argumentNotNull(context, "Mongo context must be not null");
-		this.context = context;
-		this.parent = null;
-		// inherit resolvers
-		addExpressionResolvers(context.getExpressionResolvers());
+		this(context, null, false, null);
+	}
+
+	/**
+	 * Constructor for update type context.
+	 * @param context Mongo context (not null)
+	 * @param forUpdate Whether this context is intended for an update type operation
+	 */
+	public DefaultMongoResolutionContext(MongoContext context, boolean forUpdate) {
+		this(context, null, forUpdate, null);
+	}
+
+	/**
+	 * Constructor for update type context.
+	 * @param context Mongo context (not null)
+	 * @param updatePath Optional update path
+	 */
+	public DefaultMongoResolutionContext(MongoContext context, Path<?> updatePath) {
+		this(context, null, true, updatePath);
 	}
 
 	/**
@@ -78,12 +102,45 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param parent Parent context (not null)
 	 */
 	public DefaultMongoResolutionContext(MongoResolutionContext parent) {
+		this(parent, parent, false, null);
+	}
+
+	/**
+	 * Constructor with parent composition context.
+	 * @param parent Parent context (not null)
+	 * @param forUpdate Whether this context is intended for an update type operation
+	 */
+	public DefaultMongoResolutionContext(MongoResolutionContext parent, boolean forUpdate) {
+		this(parent, parent, forUpdate, null);
+	}
+
+	/**
+	 * Constructor with parent composition context.
+	 * @param parent Parent context (not null)
+	 * @param updatePath Optional update path
+	 * @param forUpdate Whether this context is intended for an update type operation
+	 */
+	public DefaultMongoResolutionContext(MongoResolutionContext parent, Path<?> updatePath) {
+		this(parent, parent, true, updatePath);
+	}
+
+	/**
+	 * Internal constructor.
+	 * @param context Mongo context (not null)
+	 * @param parent Optional parent context
+	 * @param forUpdate Whether this context is intended for an update type operation
+	 * @param updatePath Optional update {@link Path}
+	 */
+	protected DefaultMongoResolutionContext(MongoContext context, MongoResolutionContext parent, boolean forUpdate,
+			Path<?> updatePath) {
 		super();
-		ObjectUtils.argumentNotNull(parent, "Parent context must be not null");
-		this.context = parent;
+		ObjectUtils.argumentNotNull(context, "Mongo context must be not null");
+		this.context = context;
 		this.parent = parent;
+		this.forUpdate = forUpdate;
+		this.updatePath = updatePath;
 		// inherit resolvers
-		addExpressionResolvers(parent.getExpressionResolvers());
+		addExpressionResolvers(context.getExpressionResolvers());
 	}
 
 	/**
@@ -105,11 +162,49 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#isForUpdate()
+	 */
+	@Override
+	public boolean isForUpdate() {
+		return forUpdate;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getUpdatePath()
+	 */
+	@Override
+	public Optional<Path<?>> getUpdatePath() {
+		return Optional.ofNullable(updatePath);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#childContext()
 	 */
 	@Override
 	public MongoResolutionContext childContext() {
 		return new DefaultMongoResolutionContext(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#childContextForUpdate()
+	 */
+	@Override
+	public MongoResolutionContext childContextForUpdate() {
+		return new DefaultMongoResolutionContext(this, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#childContextForUpdate(com.holonplatform.
+	 * core.Path)
+	 */
+	@Override
+	public MongoResolutionContext childContextForUpdate(Path<?> updatePath) {
+		return new DefaultMongoResolutionContext(this, updatePath);
 	}
 
 	/*

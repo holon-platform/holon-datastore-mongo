@@ -16,17 +16,25 @@
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -77,50 +85,78 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
+		try {
+			// validate
+			getConfiguration().validate();
 
-		// validate
-		getConfiguration().validate();
+			// property set
+			final PropertySet<?> propertySet = getConfiguration().getPropertySet()
+					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 
-		// property set
-		final PropertySet<?> propertySet = getConfiguration().getPropertySet()
-				.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
+			// resolution context
+			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
 
-		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
+			// encode documents
+			final Map<Document, PropertyBox> documentValues = new LinkedHashMap<>(
+					getConfiguration().getValues().size());
+			getConfiguration().getValues().forEach(v -> {
+				documentValues.put(context.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue(),
+						v);
+			});
 
-		// encode documents
-		final List<Document> documents = new ArrayList<>(getConfiguration().getValues().size());
-		getConfiguration().getValues().forEach(v -> {
-			documents.add(context.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue());
-		});
+			// resolve collection
+			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+					.getName();
 
-		// resolve collection
-		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
-				.getName();
+			return operationContext.withDatabase(database -> {
 
-		return operationContext.withDatabase(database -> {
+				// get and configure collection
+				final MongoCollection<Document> collection = MongoOperationConfigurator
+						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
+				// options
+				final InsertManyOptions options = new InsertManyOptions();
+				options.bypassDocumentValidation(
+						getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+				options.ordered(!getConfiguration().hasWriteOption(DocumentWriteOption.UNORDERED));
 
-			// options
-			final InsertManyOptions options = new InsertManyOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			options.ordered(!getConfiguration().hasWriteOption(DocumentWriteOption.UNORDERED));
+				// insert
+				final List<Document> documents = new ArrayList<>(documentValues.keySet());
 
-			// insert
-			collection.insertMany(documents, options);
+				collection.insertMany(documents, options);
 
-			// trace
-			operationContext.trace("Inserted documents",
-					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), documents));
+				// trace
+				operationContext.trace("Inserted documents",
+						DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), documents));
 
-			return OperationResult.builder().type(OperationType.INSERT).affectedCount(documents.size()).build();
+				final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
+						.affectedCount(documents.size());
 
-		});
+				// check inserted keys
+				if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+					context.getDocumentIdProperty().ifPresent(idProperty -> {
+						for (Entry<Document, PropertyBox> document : documentValues.entrySet()) {
+							final ObjectId oid = document.getKey().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
+							if (oid != null) {
+								final Object idPropertyValue = context.getDocumentIdResolver().decode(oid,
+										idProperty.getType());
+								if (document.getValue().contains(idProperty)) {
+									document.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
+								}
+							}
+						}
+					});
+				}
+
+				return builder.build();
+
+			});
+		} catch (Exception e) {
+			throw new DataAccessException("Bulk INSERT operation failed", e);
+		}
 	}
 
 }

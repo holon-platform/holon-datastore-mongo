@@ -31,6 +31,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdate;
 import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
@@ -87,73 +88,77 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 	 */
 	@Override
 	public OperationResult execute() {
+		try {
+			// validate
+			getConfiguration().validate();
 
-		// validate
-		getConfiguration().validate();
+			// context
+			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 
-		// context
-		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			// resolve collection
+			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+					.getName();
 
-		// resolve collection
-		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
-				.getName();
+			// resolve filter
+			Optional<Bson> filter = getConfiguration().getFilter()
+					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 
-		// resolve filter
-		Optional<Bson> filter = getConfiguration().getFilter()
-				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+			// resolve values
+			final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
+			List<Bson> updates = new ArrayList<>(values.size());
+			for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
+				// child update context
+				final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
 
-		// resolve values
-		final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
-		List<Bson> updates = new ArrayList<>(values.size());
-		for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
-			// child update context
-			final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
-
-			if (value.getValue() == null) {
-				// resolve field name
-				final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
-				// $unset for null values
-				updates.add(Updates.unset(fieldName));
-			} else {
-				// check value expression resolution
-				updates.add(context.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
-						.orElseGet(() -> {
-							// resolve field name
-							final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
-									.getFieldName();
-							// resolve field value
-							final Object fieldValue = context.resolveOrFail(value.getValue(), FieldValue.class)
-									.getValue();
-							// $set value
-							return Updates.set(fieldName, fieldValue);
-						}));
+				if (value.getValue() == null) {
+					// resolve field name
+					final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
+					// $unset for null values
+					updates.add(Updates.unset(fieldName));
+				} else {
+					// check value expression resolution
+					updates.add(subContext.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
+							.orElseGet(() -> {
+								// resolve field name
+								final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
+										.getFieldName();
+								// resolve field value
+								final Object fieldValue = subContext.resolveOrFail(value.getValue(), FieldValue.class)
+										.getValue();
+								// $set value
+								return Updates.set(fieldName, fieldValue);
+							}));
+				}
 			}
+
+			Bson update = Updates.combine(updates);
+
+			return operationContext.withDatabase(database -> {
+
+				// get and configure collection
+				final MongoCollection<Document> collection = MongoOperationConfigurator
+						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
+
+				// options
+				UpdateOptions options = new UpdateOptions();
+				options.bypassDocumentValidation(
+						getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+				getConfiguration().getWriteOption(CollationOption.class)
+						.ifPresent(o -> options.collation(o.getCollation()));
+
+				// trace
+				operationContext.trace("Update documents", trace(filter, update));
+
+				// delete
+				UpdateResult result = collection.updateMany(filter.orElse(null), update, options);
+
+				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result.getModifiedCount())
+						.build();
+
+			});
+		} catch (Exception e) {
+			throw new DataAccessException("Bulk UPDATE operation failed", e);
 		}
-
-		Bson update = Updates.combine(updates);
-
-		return operationContext.withDatabase(database -> {
-
-			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
-
-			// options
-			UpdateOptions options = new UpdateOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-
-			// trace
-			operationContext.trace("Update documents:", trace(filter, update));
-
-			// delete
-			UpdateResult result = collection.updateMany(filter.orElse(null), update, options);
-
-			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result.getModifiedCount())
-					.build();
-
-		});
 	}
 
 	private static String trace(Optional<Bson> filter, Bson update) {

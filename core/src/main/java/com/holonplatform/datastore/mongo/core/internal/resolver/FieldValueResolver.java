@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.Array;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
 
+import org.bson.BsonTimestamp;
 import org.bson.types.Binary;
 import org.bson.types.Code;
 import org.bson.types.Decimal128;
@@ -115,8 +117,9 @@ public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Va
 			}
 
 			// check document id property value conversion
-			if (ObjectId.class.isAssignableFrom(value.getClass()) && !ObjectId.class.isAssignableFrom(targetType)) {
-				decoded = context.getDocumentIdResolver().decode((ObjectId) value, targetType);
+			if (decoded != null && ObjectId.class.isAssignableFrom(decoded.getClass())
+					&& !ObjectId.class.isAssignableFrom(targetType)) {
+				decoded = context.getDocumentIdResolver().decode((ObjectId) decoded, targetType);
 			}
 
 			final Object v = decoded;
@@ -155,6 +158,15 @@ public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Va
 			// decimal
 			if (Decimal128.class.isAssignableFrom(value.getClass())) {
 				return ((Decimal128) value).bigDecimalValue();
+			}
+			// timestamp
+			if (BsonTimestamp.class.isAssignableFrom(value.getClass())) {
+				final BsonTimestamp ts = (BsonTimestamp) value;
+				if (LocalDateTime.class.isAssignableFrom(targetType)) {
+					return LocalDateTime.ofInstant(Instant.ofEpochSecond(ts.getTime()),
+							TimeZone.getDefault().toZoneId());
+				}
+				return new Date(ts.getTime());
 			}
 		}
 		return value;

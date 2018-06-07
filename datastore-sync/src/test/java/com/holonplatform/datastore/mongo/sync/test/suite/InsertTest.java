@@ -33,6 +33,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.FLT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
@@ -52,6 +53,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NESTED_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET10;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET8;
@@ -228,6 +230,51 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
 		assertTrue(value.getValue(NBL));
 		assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+	}
+
+	@Test
+	public void testInsertIdType() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox value = PropertyBox.builder(SET4).set(ID4, oid.toString()).set(STR, TestValues.STR).build();
+		OperationResult result = getDatastore().insert(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+	}
+
+	@Test
+	public void testInsertBringBackIdType() {
+
+		PropertyBox value = PropertyBox.builder(SET4).set(STR, TestValues.STR).build();
+		OperationResult result = getDatastore().insert(TARGET, value);
+
+		assertEquals(1, result.getAffectedCount());
+		assertTrue(result.getFirstInsertedKey().isPresent());
+		String oid = result.getFirstInsertedKey(String.class).orElse(null);
+		assertNotNull(oid);
+
+		value.setValue(ID4, oid);
+		result = getDatastore().delete(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+		value = PropertyBox.builder(SET4).set(STR, TestValues.STR).build();
+		result = getDatastore().insert(TARGET, value, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+		assertEquals(1, result.getAffectedCount());
+		assertTrue(result.getFirstInsertedKey().isPresent());
+
+		oid = result.getFirstInsertedKey(String.class).orElse(null);
+		assertNotNull(oid);
+
+		assertNotNull(value.getValue(ID4));
+		assertEquals(oid, value.getValue(ID4));
 
 		result = getDatastore().delete(TARGET, value);
 		assertEquals(1, result.getAffectedCount());

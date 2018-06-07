@@ -59,6 +59,7 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(BeanProjectionResolver.INSTANCE);
 		expressionResolvers.add(QueryConfigurationResolver.INSTANCE);
 		expressionResolvers.add(QueryOperationResolver.INSTANCE);
+		expressionResolvers.add(UpdateFunctionResolver.INSTANCE);
 	}
 
 	/**

@@ -25,6 +25,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDelete;
 import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
@@ -77,42 +78,46 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 	 */
 	@Override
 	public OperationResult execute() {
+		try {
+			// validate
+			getConfiguration().validate();
 
-		// validate
-		getConfiguration().validate();
+			// context
+			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 
-		// context
-		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			// resolve collection
+			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+					.getName();
 
-		// resolve collection
-		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
-				.getName();
+			// resolve filter
+			Optional<Bson> filter = getConfiguration().getFilter()
+					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 
-		// resolve filter
-		Optional<Bson> filter = getConfiguration().getFilter()
-				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+			return operationContext.withDatabase(database -> {
 
-		return operationContext.withDatabase(database -> {
+				// get and configure collection
+				final MongoCollection<Document> collection = MongoOperationConfigurator
+						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
-					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
+				// options
+				DeleteOptions options = new DeleteOptions();
+				getConfiguration().getWriteOption(CollationOption.class)
+						.ifPresent(o -> options.collation(o.getCollation()));
 
-			// options
-			DeleteOptions options = new DeleteOptions();
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
+				// trace
+				operationContext.trace("Delete documents - filter:",
+						filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
 
-			// trace
-			operationContext.trace("Delete documents - filter:",
-					filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
+				// delete
+				DeleteResult result = collection.deleteMany(filter.orElse(null), options);
 
-			// delete
-			DeleteResult result = collection.deleteMany(filter.orElse(null), options);
+				return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount())
+						.build();
 
-			return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount()).build();
-
-		});
+			});
+		} catch (Exception e) {
+			throw new DataAccessException("Bulk DELETE operation failed", e);
+		}
 	}
 
 }

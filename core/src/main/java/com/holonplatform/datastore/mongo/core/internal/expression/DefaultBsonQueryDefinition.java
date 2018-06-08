@@ -34,6 +34,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	private String collectionName;
 	private Bson filter;
 	private Bson sort;
+	private Bson group;
 	private Integer limit;
 	private Integer offset;
 	private Long timeout;
@@ -80,6 +81,15 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	@Override
 	public Optional<Bson> getSort() {
 		return Optional.ofNullable(sort);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition#getGroup()
+	 */
+	@Override
+	public Optional<Bson> getGroup() {
+		return Optional.ofNullable(group);
 	}
 
 	/*
@@ -236,6 +246,10 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		this.sort = sort;
 	}
 
+	public void setGroup(Bson group) {
+		this.group = group;
+	}
+
 	public void setLimit(Integer limit) {
 		this.limit = limit;
 	}
@@ -347,6 +361,18 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		@Override
 		public Builder sort(Bson sort) {
 			instance.setSort(sort);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition.Builder#group(org.bson.conversions.
+		 * Bson)
+		 */
+		@Override
+		public Builder group(Bson group) {
+			instance.setGroup(group);
 			return this;
 		}
 

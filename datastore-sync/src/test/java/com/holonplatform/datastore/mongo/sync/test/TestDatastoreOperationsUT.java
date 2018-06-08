@@ -28,11 +28,12 @@ import com.holonplatform.datastore.mongo.sync.test.suite.DeleteTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.InsertTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.RefreshTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.SaveTest;
+import com.holonplatform.datastore.mongo.sync.test.suite.TemporalFunctionQueryTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.UpdateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,
-		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class })
+		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, TemporalFunctionQueryTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops";

@@ -69,13 +69,13 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 		this.resolveDocumentId = resolveDocumentId;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoDocumentContext#getPropertySet()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public PropertySet<?> getPropertySet() {
-		return propertySet;
+	public <P extends Property<?>> PropertySet<P> getPropertySet() {
+		return (PropertySet<P>) propertySet;
 	}
 
 	/*

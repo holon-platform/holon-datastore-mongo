@@ -86,7 +86,7 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 		// projection fields
 		beanProjection.getSelection().ifPresent(selection -> {
 			for (Path path : selection) {
-				builder.fieldExpression(context.resolveOrFail(path, FieldName.class).getFieldName(), path);
+				builder.field(context.resolveOrFail(path, FieldName.class).getFieldName());
 			}
 		});
 

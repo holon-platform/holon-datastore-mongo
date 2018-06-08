@@ -21,6 +21,9 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.property.PathPropertySetAdapter;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
@@ -64,7 +67,6 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Optional<BsonProjection> resolve(TypedExpression expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
@@ -72,10 +74,42 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 		// validate
 		expression.validate();
 
+		// check document context
+		Optional<BsonProjection> projection = MongoDocumentContext.isDocumentContext(context)
+				.flatMap(documentContext -> resolveDocumentExpression(documentContext, expression));
+		if (projection.isPresent()) {
+			return projection;
+		}
+
+		return resolveExpression(context, expression);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Optional<BsonProjection> resolveDocumentExpression(MongoDocumentContext context,
+			TypedExpression<?> expression) {
+
+		// check property
+		return context.getPropertySet().stream().filter(p -> p.equals(expression)).map(p -> (Property<?>) p).findFirst()
+				.flatMap(property -> {
+					// check path
+					return PathPropertySetAdapter.create(context.getPropertySet()).getPath(property).map(path -> {
+						// resolve field name
+						final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
+						// build projection
+						return BsonProjection.builder(property.getType()).field(fieldName)
+								.converter((DocumentConverter) DocumentConverter.expression(property, fieldName))
+								.build();
+					});
+				});
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Optional<BsonProjection> resolveExpression(MongoResolutionContext context,
+			TypedExpression<?> expression) {
 		return context.resolve(expression, FieldName.class)
-				.map(fn -> BsonProjection.builder(((TypedExpression<?>) expression).getType())
-						.fieldExpression(fn.getFieldName(), expression)
-						.converter(DocumentConverter.expression(expression, fn.getFieldName())).build());
+				.map(fn -> BsonProjection.builder(expression.getType()).field(fn.getFieldName())
+						.converter((DocumentConverter) DocumentConverter.expression(expression, fn.getFieldName()))
+						.build());
 	}
 
 }

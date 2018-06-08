@@ -20,13 +20,13 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.property.PathPropertySetAdapter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.PropertySetProjection;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -74,12 +74,23 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 		// validate
 		expression.validate();
 
+		// document context
+		final MongoDocumentContext documentContext = context.documentContext(expression.getPropertySet());
+
 		final BsonProjection.Builder builder = BsonProjection.builder(PropertyBox.class);
 
-		// projection fields
-		PathPropertySetAdapter adapter = PathPropertySetAdapter.create(expression.getPropertySet());
-		adapter.propertyPaths().forEach(p -> builder
-				.fieldExpression(context.resolveOrFail(p.getPath(), FieldName.class).getFieldName(), p.getProperty()));
+		documentContext.getPropertySet().forEach(property -> {
+			documentContext.resolve(property, BsonProjection.class).ifPresent(projection -> {
+				final BsonProjection<?> p = projection;
+				// add field projections
+				p.getFields().forEach((name, bson) -> {
+					builder.field(name, bson);
+				});
+				// check type
+				p.getOperationType().filter(t -> t == QueryOperationType.AGGREGATE)
+						.ifPresent(t -> builder.operationType(t));
+			});
+		});
 
 		// converter
 		builder.converter(DocumentConverter.propertyBox(expression.getPropertySet()));

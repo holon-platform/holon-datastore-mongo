@@ -63,13 +63,13 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 
 		projection.getOperationType().ifPresent(ot -> builder.operationType(ot));
 
-		if (projection.getFields() != null && !projection.getFields().isEmpty()) {
-			builder.projection(Projections.include(projection.getFields()));
+		if (!projection.isEmpty()) {
+			builder.projection(Projections.fields(projection.getFieldProjections()));
 		}
 
 		// check distinct
 		if (expression.getConfiguration().isDistinct() && projection.getFields().size() == 1) {
-			builder.distinct(projection.getFields().get(0));
+			builder.distinct(projection.getFieldNames().get(0));
 		}
 
 		projection.getConverter().ifPresent(c -> builder.converter(c));

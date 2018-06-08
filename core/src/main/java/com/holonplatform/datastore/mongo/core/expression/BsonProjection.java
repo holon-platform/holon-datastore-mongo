@@ -16,7 +16,11 @@
 package com.holonplatform.datastore.mongo.core.expression;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.bson.conversions.Bson;
 
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
@@ -39,17 +43,34 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	Optional<QueryOperationType> getOperationType();
 
 	/**
-	 * Get the projection fields.
-	 * @return the projection field names
+	 * Get whether the projection is empty.
+	 * @return whether the projection is empty
 	 */
-	List<String> getFields();
+	default boolean isEmpty() {
+		return getFields().isEmpty();
+	}
 
 	/**
-	 * Get the {@link TypedExpression} to which a projection field name is bound, if available.
-	 * @param fieldName Field name (not null)
-	 * @return The {@link TypedExpression} to which a projection field name is bound, if available
+	 * Get the projection fields as field name - Bson map.
+	 * @return the projection fields
 	 */
-	Optional<TypedExpression<?>> getFieldExpression(String fieldName);
+	Map<String, Bson> getFields();
+
+	/**
+	 * Get the field names.
+	 * @return field names
+	 */
+	default List<String> getFieldNames() {
+		return getFields().entrySet().stream().map(entry -> entry.getKey()).collect(Collectors.toList());
+	}
+
+	/**
+	 * Get the field projection values.
+	 * @return field projection values
+	 */
+	default List<Bson> getFieldProjections() {
+		return getFields().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+	}
 
 	/**
 	 * Get the projection {@link DocumentConverter}.
@@ -82,19 +103,19 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 		Builder<R> operationType(QueryOperationType operationType);
 
 		/**
+		 * Add a projection field.
+		 * @param fieldName Projection field name (not null)
+		 * @param bson Field projection (not null)
+		 * @return this
+		 */
+		Builder<R> field(String fieldName, Bson bson);
+
+		/**
 		 * Add a projection field name.
-		 * @param fieldName Projection field name to add (not null)
+		 * @param fieldName Projection field name (not null)
 		 * @return this
 		 */
 		Builder<R> field(String fieldName);
-
-		/**
-		 * Add a projection field name and the bound field expression.
-		 * @param fieldName Projection field name to add (not null)
-		 * @param expression Field expression
-		 * @return this
-		 */
-		Builder<R> fieldExpression(String fieldName, TypedExpression<?> expression);
 
 		/**
 		 * Set the document results converter.

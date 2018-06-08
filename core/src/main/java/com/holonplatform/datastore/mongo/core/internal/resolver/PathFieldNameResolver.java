@@ -32,7 +32,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
+@Priority(Integer.MAX_VALUE - 100)
 public enum PathFieldNameResolver implements MongoExpressionResolver<Path, FieldName> {
 
 	INSTANCE;

@@ -16,10 +16,13 @@
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
@@ -40,10 +43,12 @@ import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Aggregates;
 
 /**
  * MongoDB {@link QueryAdapter}.
@@ -270,7 +275,65 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	private static <R> Stream<R> aggregate(MongoResolutionContext context, MongoCollection<Document> collection,
 			Class<? extends R> resultType, BsonQuery query) {
 		// TODO
-		return null;
+
+		// check converter
+		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
+		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+					+ "] is not compatible with the query projection type [" + resultType + "]");
+		}
+
+		@SuppressWarnings("unchecked")
+		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
+
+		// aggregation pipeline
+		List<Bson> pipeline = new LinkedList<>();
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+
+		// ------ match
+		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
+
+		// ------ group
+		// TODO
+		definition.getGroup().ifPresent(g -> {
+			
+		});
+
+		// ------ sort
+		definition.getSort().ifPresent(s -> pipeline.add(Aggregates.sort(s)));
+
+		// ------ limit
+		definition.getLimit().ifPresent(l -> pipeline.add(Aggregates.limit(l)));
+
+		// ------ skip
+		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
+
+		// ------ project
+		// TODO
+		query.getProjection().ifPresent(p -> pipeline.add(Aggregates.project(p)));
+
+		// trace
+		context.trace("Aggregation pipeline", () -> traceAggregationPipeline(pipeline));
+
+		// iterable
+		final AggregateIterable<Document> ai = collection.aggregate(pipeline);
+
+		// timeout
+		definition.getTimeout().ifPresent(t -> ai.maxTime(t, definition.getTimeoutUnit()));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> ai.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> ai.collation(c));
+		// comment
+		definition.getComment().ifPresent(c -> ai.comment(c));
+		// hint
+		definition.getHint().ifPresent(h -> ai.hint(h));
+
+		// stream with converter mapper
+		return StreamSupport.stream(ai.spliterator(), false)
+				.map(document -> documentConverter.convert(context, document));
 	}
 
 	/**
@@ -297,6 +360,20 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 			sb.append(DocumentSerializer.getDefault().toJson(p));
 		});
 
+		return sb.toString();
+	}
+
+	/**
+	 * Build the trace information for given aggregation pipeline.
+	 * @param pipeline Aggregation pipeline to trace
+	 * @return String Aggregation pipeline trace information
+	 */
+	private static String traceAggregationPipeline(List<Bson> pipeline) {
+		final StringBuilder sb = new StringBuilder();
+		pipeline.forEach(stage -> {
+			sb.append(DocumentSerializer.getDefault().toJson(stage));
+			sb.append("\n");
+		});
 		return sb.toString();
 	}
 

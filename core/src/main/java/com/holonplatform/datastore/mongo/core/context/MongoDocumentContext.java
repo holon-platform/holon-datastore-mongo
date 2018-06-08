@@ -37,9 +37,10 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 
 	/**
 	 * Get the {@link PropertySet} to which the document resolution is bound.
+	 * @param <P> Property type
 	 * @return The document {@link PropertySet}
 	 */
-	PropertySet<?> getPropertySet();
+	<P extends Property<?>> PropertySet<P> getPropertySet();
 
 	/**
 	 * Get the {@link Path} which acts as document id, if available.

@@ -15,13 +15,14 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.expression;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.holonplatform.core.TypedExpression;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
@@ -39,9 +40,10 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	private final Class<R> projectionType;
 
 	private QueryOperationType operationType;
+
 	private DocumentConverter<R> converter;
 
-	private final Map<String, TypedExpression<?>> fields = new LinkedHashMap<>();
+	private final Map<String, Bson> fields = new LinkedHashMap<>();
 
 	public DefaultBsonProjection(Class<R> projectionType) {
 		super();
@@ -59,21 +61,11 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoProjection#getFields()
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#getFields()
 	 */
 	@Override
-	public List<String> getFields() {
-		return new ArrayList<>(fields.keySet());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#getFieldExpession(java.lang.String)
-	 */
-	@Override
-	public Optional<TypedExpression<?>> getFieldExpression(String fieldName) {
-		ObjectUtils.argumentNotNull(fieldName, "Field name must be not null");
-		return Optional.ofNullable(fields.get(fieldName));
+	public Map<String, Bson> getFields() {
+		return Collections.unmodifiableMap(fields);
 	}
 
 	/*
@@ -105,11 +97,12 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	/**
 	 * Add a projection field name.
 	 * @param fieldName Field name (not null)
-	 * @param expression Optional field expression
+	 * @param bson Bson representation (not null)
 	 */
-	public void addField(String fieldName, TypedExpression<?> expression) {
+	public void addField(String fieldName, Bson bson) {
 		ObjectUtils.argumentNotNull(fieldName, "Field name must be not null");
-		this.fields.put(fieldName, expression);
+		ObjectUtils.argumentNotNull(bson, "Field Bson representation must be not null");
+		this.fields.put(fieldName, bson);
 	}
 
 	/**
@@ -154,23 +147,22 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#field(java.lang.String)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#field(java.lang.String,
+		 * org.bson.conversions.Bson)
 		 */
 		@Override
-		public Builder<T> field(String fieldName) {
-			return fieldExpression(fieldName, null);
+		public Builder<T> field(String fieldName, Bson bson) {
+			instance.addField(fieldName, bson);
+			return this;
 		}
 
 		/*
 		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#fieldExpression(java.lang.String,
-		 * com.holonplatform.core.TypedExpression)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#field(java.lang.String)
 		 */
 		@Override
-		public Builder<T> fieldExpression(String fieldName, TypedExpression<?> expression) {
-			instance.addField(fieldName, expression);
-			return this;
+		public Builder<T> field(String fieldName) {
+			return field(fieldName, new Document(fieldName, Integer.valueOf(1)));
 		}
 
 		/*

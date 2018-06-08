@@ -51,6 +51,12 @@ public interface BsonQueryDefinition extends Expression {
 	Optional<Bson> getSort();
 
 	/**
+	 * Get the group id for aggregation type query.
+	 * @return Optional group id
+	 */
+	Optional<Bson> getGroup();
+
+	/**
 	 * Get the query results limit.
 	 * @return Optional query results limit
 	 */
@@ -184,6 +190,13 @@ public interface BsonQueryDefinition extends Expression {
 		 * @return this
 		 */
 		Builder sort(Bson sort);
+
+		/**
+		 * Set the group id for aggregation type query.
+		 * @param group Group id to set
+		 * @return this
+		 */
+		Builder group(Bson group);
 
 		/**
 		 * Set the query results limit.

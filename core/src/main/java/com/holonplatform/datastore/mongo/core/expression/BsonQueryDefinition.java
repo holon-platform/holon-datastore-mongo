@@ -57,6 +57,12 @@ public interface BsonQueryDefinition extends Expression {
 	Optional<Bson> getGroup();
 
 	/**
+	 * Get the filter to apply to the group stage in an aggregation type query.
+	 * @return Optional filter to apply to the group stage in an aggregation type query
+	 */
+	Optional<Bson> getGroupFilter();
+
+	/**
 	 * Get the query results limit.
 	 * @return Optional query results limit
 	 */
@@ -197,6 +203,13 @@ public interface BsonQueryDefinition extends Expression {
 		 * @return this
 		 */
 		Builder group(Bson group);
+
+		/**
+		 * Set the filter to apply to the group stage in an aggregation type query.
+		 * @param groupFilter Group filter to set
+		 * @return this
+		 */
+		Builder groupFilter(Bson groupFilter);
 
 		/**
 		 * Set the query results limit.

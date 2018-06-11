@@ -15,11 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
@@ -28,7 +25,6 @@ import org.bson.Document;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryConfiguration;
-import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -36,7 +32,6 @@ import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
-import com.mongodb.client.model.Filters;
 
 /**
  * {@link QueryConfiguration} to {@link BsonQueryDefinition} resolver.
@@ -68,46 +63,38 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 		});
 
 		// filters
-		final List<QueryFilter> filters = new LinkedList<>();
-
 		expression.getFilter().ifPresent(f -> {
-			filters.add(f);
+			builder.filter(context.resolveOrFail(f, BsonExpression.class).getValue());
 		});
-		expression.getAggregation().flatMap(a -> a.getAggregationFilter()).ifPresent(f -> {
-			filters.add(f);
-		});
-
-		if (!filters.isEmpty()) {
-			if (filters.size() == 1) {
-				builder.filter(context.resolveOrFail(filters.get(0), BsonExpression.class).getValue());
-			} else {
-				builder.filter(
-						Filters.and(filters.stream().map(f -> context.resolveOrFail(f, BsonExpression.class).getValue())
-								.collect(Collectors.toList())));
-			}
-		}
 
 		// sort
 		expression.getSort().ifPresent(s -> {
 			builder.sort(context.resolveOrFail(s, BsonExpression.class).getValue());
 		});
 
-		// group by
-		expression.getAggregation().map(a -> a.getAggregationPaths()).filter(p -> (p != null && p.length > 0))
-				.ifPresent(paths -> {
-					if (paths.length == 1) {
-						final String fieldName = context.resolveOrFail(paths[0], FieldName.class).getFieldName();
-						builder.group(new Document(fieldName, "$" + fieldName));
-					} else {
-						final Document groups = new Document();
-						for (Path<?> path : paths) {
-							final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
-							groups.append(fieldName, "$" + fieldName);
-						}
-						// TODO multiple fields group id
-						builder.group(new Document("_id", groups));
+		// aggregation
+		expression.getAggregation().ifPresent(a -> {
+			Path<?>[] paths = a.getAggregationPaths();
+			if (paths != null && paths.length > 0) {
+				if (paths.length == 1) {
+					final String fieldName = context.resolveOrFail(paths[0], FieldName.class).getFieldName();
+					builder.group(new Document(fieldName, "$" + fieldName));
+				} else {
+					final Document groups = new Document();
+					for (Path<?> path : paths) {
+						final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
+						groups.append(fieldName, "$" + fieldName);
 					}
+					// TODO multiple fields group id
+					builder.group(new Document("_id", groups));
+				}
+
+				// filter
+				a.getAggregationFilter().ifPresent(f -> {
+					builder.groupFilter(context.resolveOrFail(f, BsonExpression.class).getValue());
 				});
+			}
+		});
 
 		// limit and offset
 		expression.getLimit().ifPresent(l -> builder.limit(l));

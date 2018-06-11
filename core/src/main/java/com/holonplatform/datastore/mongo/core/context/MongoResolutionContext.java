@@ -33,6 +33,8 @@ import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResol
  */
 public interface MongoResolutionContext extends MongoContext, ResolutionContext, ExpressionResolverSupport {
 
+	public static final String DEFAULT_PROJECTION_FIELD_PREFIX = "_!";
+
 	/**
 	 * Get the parent context, if available.
 	 * @return Optional parent context
@@ -52,6 +54,12 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @see #isForUpdate()
 	 */
 	Optional<Path<?>> getUpdatePath();
+
+	/**
+	 * For generated projection field names, get the next sequence number.
+	 * @return The next projection field sequence number
+	 */
+	int getNextProjectionFieldSequence();
 
 	/**
 	 * Try to resolve given <code>expression</code> using current context resolvers to obtain a

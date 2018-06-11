@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.core.internal.context;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import com.holonplatform.core.Expression;
@@ -70,6 +71,11 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * Update path
 	 */
 	private final Path<?> updatePath;
+
+	/**
+	 * Projection sequence
+	 */
+	private final AtomicInteger projectionSequence = new AtomicInteger(0);
 
 	/**
 	 * Default constructor.
@@ -176,6 +182,15 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public Optional<Path<?>> getUpdatePath() {
 		return Optional.ofNullable(updatePath);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getNextProjectionFieldSequence()
+	 */
+	@Override
+	public int getNextProjectionFieldSequence() {
+		return projectionSequence.incrementAndGet();
 	}
 
 	/*

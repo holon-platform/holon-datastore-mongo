@@ -32,6 +32,9 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.FLT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID4;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID5;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
@@ -39,6 +42,9 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET5;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
@@ -47,6 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -288,6 +295,67 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("bktfp1", "bktfp2", "bktfp3")).execute();
 		assertEquals(3, result.getAffectedCount());
+
+	}
+
+	@Test
+	public void testDocumentIdProjection() {
+
+		final ObjectId oid = new ObjectId();
+		OperationResult result = getDatastore().insert(TARGET,
+				PropertyBox.builder(SET3).set(ID3, oid).set(STR, "test1").build());
+		assertEquals(1, result.getAffectedCount());
+
+		PropertyBox value = getDatastore().query(TARGET).filter(ID3.eq(oid)).findOne(SET3).orElse(null);
+		assertNotNull(value);
+
+		assertEquals(oid, value.getValue(ID3));
+		assertEquals("test1", value.getValue(STR));
+
+		result = getDatastore().bulkDelete(TARGET).filter(ID3.eq(oid)).execute();
+		assertEquals(1, result.getAffectedCount());
+
+	}
+
+	@Test
+	public void testDocumentIdProjectionString() {
+
+		final ObjectId oid = new ObjectId();
+		final String code = oid.toHexString();
+
+		OperationResult result = getDatastore().insert(TARGET,
+				PropertyBox.builder(SET4).set(ID4, code).set(STR, "test1").build());
+		assertEquals(1, result.getAffectedCount());
+
+		PropertyBox value = getDatastore().query(TARGET).filter(ID4.eq(code)).findOne(SET4).orElse(null);
+		assertNotNull(value);
+
+		assertEquals(code, value.getValue(ID4));
+		assertEquals("test1", value.getValue(STR));
+
+		result = getDatastore().bulkDelete(TARGET).filter(ID4.eq(code)).execute();
+		assertEquals(1, result.getAffectedCount());
+
+	}
+
+	@Test
+	public void testDocumentIdProjectionBigInteger() {
+
+		final ObjectId oid = new ObjectId();
+		final BigInteger code = new BigInteger(oid.toHexString(), 16);
+
+		OperationResult result = getDatastore().insert(TARGET,
+				PropertyBox.builder(SET5).set(ID5, code).set(STR, "test1").build());
+		assertEquals(1, result.getAffectedCount());
+
+		PropertyBox value = getDatastore().query(TARGET).filter(ID5.eq(code)).findOne(SET5).orElse(null);
+		assertNotNull(value);
+
+		assertEquals(code, value.getValue(ID5));
+		assertEquals("test1", value.getValue(STR));
+
+		result = getDatastore().bulkDelete(TARGET).filter(ID5.eq(code)).execute();
+		assertEquals(1, result.getAffectedCount());
 
 	}
 

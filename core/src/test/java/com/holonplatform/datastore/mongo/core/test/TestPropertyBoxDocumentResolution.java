@@ -235,6 +235,9 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(doc.containsKey("_id"));
 		assertTrue(doc.get("_id") instanceof ObjectId);
 		assertEquals(oid, doc.getObjectId("_id"));
+		assertTrue(doc.containsKey(ID3.getName()));
+		assertTrue(doc.get(ID3.getName()) instanceof ObjectId);
+		assertEquals(oid, doc.getObjectId(ID3.getName()));
 
 		Optional<PropertyBoxValue> pbValue = context.documentContext(SET3).resolve(DocumentValue.create(doc),
 				PropertyBoxValue.class);
@@ -265,6 +268,9 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(doc.containsKey("_id"));
 		assertTrue(doc.get("_id") instanceof ObjectId);
 		assertEquals(oid, doc.getObjectId("_id"));
+		assertTrue(doc.containsKey(ID4.getName()));
+		assertTrue(doc.get(ID4.getName()) instanceof String);
+		assertEquals(oid.toHexString(), doc.getString(ID4.getName()));
 
 		Optional<PropertyBoxValue> pbValue = context.documentContext(SET4).resolve(DocumentValue.create(doc),
 				PropertyBoxValue.class);
@@ -296,6 +302,10 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(doc.containsKey("_id"));
 		assertTrue(doc.get("_id") instanceof ObjectId);
 		assertEquals(oid, doc.getObjectId("_id"));
+		assertTrue(doc.containsKey(ID5.getName()));
+		
+		ObjectId idv = context.getDocumentIdResolver().encode(biv);
+		assertEquals(oid, idv);
 
 		Optional<PropertyBoxValue> pbValue = context.documentContext(SET5).resolve(DocumentValue.create(doc),
 				PropertyBoxValue.class);

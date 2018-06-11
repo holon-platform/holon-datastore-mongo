@@ -21,3 +21,10 @@ _Copies of this document may be made for your own use and for distribution to ot
 - Query always set as "snapshot"?
 - Describe NullFilter and NotNullFilter behaviours
 
+- Document identifier resolution:
+-- Property with path/name "_id": valid if type in (ObjectId,String,BigInteger,byte[])
+-- _Identifier_ property: valid if only one and type in (ObjectId,String,BigInteger,byte[])
+
+- Document identifier encoding/decoding:
+-- When the document identifier property is named differently from "_id", the documents will provide a field with the path name (example "code") AND a "_id" field with the same value treated as ObjectId
+

@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -157,6 +158,9 @@ public enum FieldValueResolver implements MongoExpressionResolver<FieldValue, Va
 			}
 			// decimal
 			if (Decimal128.class.isAssignableFrom(value.getClass())) {
+				if (BigInteger.class.isAssignableFrom(targetType) || TypeUtils.isIntegerNumber(targetType)) {
+					return ((Decimal128) value).bigDecimalValue().toBigInteger();
+				}
 				return ((Decimal128) value).bigDecimalValue();
 			}
 			// timestamp

@@ -21,7 +21,6 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
-import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -49,10 +48,8 @@ public enum PathFieldNameResolver implements MongoExpressionResolver<Path, Field
 		// validate
 		expression.validate();
 
-		// check document id default path
-		return Optional.of(FieldName.create(MongoDocumentContext.isDocumentContext(context)
-				.filter(ctx -> ctx.isDocumentIdPath(expression).isPresent())
-				.map(p -> MongoDocumentContext.ID_FIELD_NAME).orElse(expression.relativeName())));
+		// use Path relative name
+		return Optional.of(FieldName.create(expression.relativeName()));
 	}
 
 	/*

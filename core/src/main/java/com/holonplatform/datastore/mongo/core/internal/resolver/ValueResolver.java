@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -26,6 +28,7 @@ import java.util.Set;
 import javax.annotation.Priority;
 
 import org.bson.types.Binary;
+import org.bson.types.Decimal128;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
@@ -78,7 +81,7 @@ public enum ValueResolver implements MongoExpressionResolver<Value, FieldValue> 
 
 		// check type conversion
 		try {
-			Object encoded = exp.getExpression().filter(p -> isDocumentIdProperty(context, p))
+			Object encoded = exp.getExpression().filter(p -> isDefaultDocumentIdProperty(context, p))
 					.map(p -> (Object) context.getDocumentIdResolver().encode(value))
 					.orElse(checkType(strategy, temporalType, value));
 
@@ -91,19 +94,33 @@ public enum ValueResolver implements MongoExpressionResolver<Value, FieldValue> 
 	}
 
 	/**
-	 * Check if given expression acts as document id property or path.
+	 * Check if given expression acts as document id property or path and the property/path name id the default "_id"
+	 * name.
 	 * @param context Resolution context
 	 * @param expression The expression to check
 	 * @return <code>true</code> if given property acts as document id property, <code>false</code> otherwise
 	 */
-	private static boolean isDocumentIdProperty(MongoResolutionContext context, TypedExpression<?> expression) {
+	private static boolean isDefaultDocumentIdProperty(MongoResolutionContext context, TypedExpression<?> expression) {
+		boolean documentIdProperty = false;
 		if (Property.class.isAssignableFrom(expression.getClass())) {
-			return MongoDocumentContext.isDocumentContext(context)
+			documentIdProperty = MongoDocumentContext.isDocumentContext(context)
 					.map(ctx -> ctx.isDocumentIdProperty((Property) expression)).orElse(false);
-		}
-		if (Path.class.isAssignableFrom(expression.getClass())) {
-			return MongoDocumentContext.isDocumentContext(context)
+		} else if (Path.class.isAssignableFrom(expression.getClass())) {
+			documentIdProperty = MongoDocumentContext.isDocumentContext(context)
 					.map(ctx -> ctx.isDocumentIdPath((Path) expression).isPresent()).orElse(false);
+		}
+		if (documentIdProperty) {
+			return isDocumentIdPropertyPath(expression);
+		}
+		return false;
+	}
+
+	private static boolean isDocumentIdPropertyPath(TypedExpression<?> expression) {
+		if (Path.class.isAssignableFrom(expression.getClass())) {
+			return MongoDocumentContext.ID_FIELD_NAME.equals(((Path) expression).relativeName());
+		}
+		if (Property.class.isAssignableFrom(expression.getClass())) {
+			return MongoDocumentContext.ID_FIELD_NAME.equals(((Property) expression).getName());
 		}
 		return false;
 	}
@@ -163,6 +180,14 @@ public enum ValueResolver implements MongoExpressionResolver<Value, FieldValue> 
 			// binary
 			if (byte[].class == value.getClass()) {
 				return new Binary((byte[]) value);
+			}
+			// BigInteger
+			if (BigInteger.class.isAssignableFrom(value.getClass())) {
+				return new Decimal128(new BigDecimal((BigInteger) value));
+			}
+			// BigDecimal
+			if (BigDecimal.class.isAssignableFrom(value.getClass())) {
+				return new Decimal128((BigDecimal) value);
 			}
 			// check arrays
 			if (value.getClass().isArray()) {

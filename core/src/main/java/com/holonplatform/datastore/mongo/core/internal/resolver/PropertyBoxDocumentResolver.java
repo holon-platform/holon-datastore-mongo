@@ -243,49 +243,34 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 			return Collections.emptyMap();
 		}
 		try {
+			// check nested PropertyBox
+			if (PropertyBox.class.isAssignableFrom(property.getType())) {
+				return encodePropertyBoxTypeProperty(context, property, (PropertyBox) value, name, parentPath,
+						forUpdate);
+			}
+			// check PropertyBox collection property
+			if (isPropertyBoxCollectionProperty(property, value)) {
+				return encodePropertyBoxTypeCollectionProperty(context, property, (Collection<PropertyBox>) value, name,
+						parentPath, forUpdate);
+			}
 			// resolve field name
 			String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
 			// resolve field value
-			final Object fieldValue;
-			if (PropertyBox.class.isAssignableFrom(property.getType())) {
-				// nested PropertyBox
-				final PropertyBox pb = (PropertyBox) value;
-				Document encoded = encodePropertyBox(
-						context.documentContext(property.getConfiguration()
-								.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false),
-						pb, forUpdate ? composeFieldPath(parentPath, fieldName) : parentPath, forUpdate);
-				if (forUpdate) {
+			final Object fieldValue = context.resolveOrFail(
+					Value.create(value, property,
+							property.getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
+					FieldValue.class).getValue();
+
+			// check document id property
+			if (!forUpdate && parentPath == null && fieldValue != null) {
+				if (context.isDocumentIdProperty(property)
+						&& !MongoDocumentContext.ID_FIELD_NAME.equals(property.relativeName())) {
+					// add the default _id field
+					Map<String, Object> encoded = new HashMap<>(2);
+					encoded.put(fieldName, fieldValue);
+					encoded.put(MongoDocumentContext.ID_FIELD_NAME, context.getDocumentIdResolver().encode(value));
 					return encoded;
-				} else {
-					fieldValue = encoded;
 				}
-			} else if (CollectionProperty.class.isAssignableFrom(property.getClass())
-					&& PropertyBox.class.isAssignableFrom(((CollectionProperty<?, ?>) property).getElementType())
-					&& Collection.class.isAssignableFrom(value.getClass())) {
-				final Collection<PropertyBox> values = (Collection<PropertyBox>) value;
-				if (values.isEmpty()) {
-					return Collections.emptyMap();
-				}
-				List<Document> encoded = new ArrayList<>(values.size());
-				for (PropertyBox pb : values) {
-					Document doc = encodePropertyBox(
-							context.documentContext(
-									property.getConfiguration()
-											.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb),
-									false),
-							pb, parentPath, forUpdate);
-					if (doc != null) {
-						encoded.add(doc);
-					}
-				}
-				fieldValue = encoded;
-			} else {
-				fieldValue = context
-						.resolveOrFail(
-								Value.create(value, property, property.getConfiguration()
-										.getParameter(EnumCodecStrategy.CONFIG_PROPERTY).orElse(null)),
-								FieldValue.class)
-						.getValue();
 			}
 			// check for update
 			return Collections.singletonMap(forUpdate ? composeFieldPath(parentPath, fieldName) : fieldName,
@@ -294,6 +279,53 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 			throw new InvalidExpressionException(
 					"Failed to encode Property [" + property + "] using field name [" + name + "]", e);
 		}
+	}
+
+	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodePropertyBoxTypeProperty(
+			MongoDocumentContext context, P property, PropertyBox value, String name, String parentPath,
+			boolean forUpdate) throws InvalidExpressionException {
+		// resolve field name
+		String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
+		// encode nested document
+		Document encoded = encodePropertyBox(
+				context.documentContext(property.getConfiguration()
+						.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(value), false),
+				value, forUpdate ? composeFieldPath(parentPath, fieldName) : parentPath, forUpdate);
+		if (forUpdate) {
+			return encoded;
+		} else {
+			return Collections.singletonMap(fieldName, (encoded != null) ? encoded : NO_VALUE);
+		}
+	}
+
+	private static <T, P extends Path<T> & Property<T>> boolean isPropertyBoxCollectionProperty(P property, T value) {
+		return (CollectionProperty.class.isAssignableFrom(property.getClass())
+				&& PropertyBox.class.isAssignableFrom(((CollectionProperty<?, ?>) property).getElementType())
+				&& Collection.class.isAssignableFrom(value.getClass()));
+	}
+
+	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodePropertyBoxTypeCollectionProperty(
+			MongoDocumentContext context, P property, Collection<PropertyBox> values, String name, String parentPath,
+			boolean forUpdate) throws InvalidExpressionException {
+		// resolve field name
+		String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
+
+		// encode collection elements
+		if (values == null || values.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		List<Document> encoded = new ArrayList<>(values.size());
+		for (PropertyBox pb : values) {
+			Document doc = encodePropertyBox(
+					context.documentContext(property.getConfiguration()
+							.getParameter(PropertySet.PROPERTY_CONFIGURATION_ATTRIBUTE).orElse(pb), false),
+					pb, parentPath, forUpdate);
+			if (doc != null) {
+				encoded.add(doc);
+			}
+		}
+
+		return Collections.singletonMap(forUpdate ? composeFieldPath(parentPath, fieldName) : fieldName, encoded);
 	}
 
 }

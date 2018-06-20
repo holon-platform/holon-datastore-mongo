@@ -22,11 +22,11 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
-import com.mongodb.client.model.Projections;
 
 /**
  * {@link QueryOperation} to {@link BsonQuery} resolver.
@@ -55,24 +55,26 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 		final BsonQueryDefinition definition = context.resolveOrFail(expression.getConfiguration(),
 				BsonQueryDefinition.class);
 
+		// build query
+		final BsonQuery.Builder builder = BsonQuery.builder(definition);
+		
+		// check aggregation query type
+		if (definition.getGroup().isPresent()) {
+			builder.operationType(QueryOperationType.AGGREGATE);
+		}
+
 		// resolve projection
 		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
 
-		// build query
-		final BsonQuery.Builder builder = BsonQuery.builder(definition);
-
+		// check projection operation type
 		projection.getOperationType().ifPresent(ot -> builder.operationType(ot));
 
-		if (!projection.isEmpty()) {
-			builder.projection(Projections.fields(projection.getFieldProjections()));
-		}
+		builder.projection(projection);
 
 		// check distinct
 		if (expression.getConfiguration().isDistinct() && projection.getFields().size() == 1) {
 			builder.distinct(projection.getFieldNames().get(0));
 		}
-
-		projection.getConverter().ifPresent(c -> builder.converter(c));
 
 		return Optional.of(builder.build());
 	}

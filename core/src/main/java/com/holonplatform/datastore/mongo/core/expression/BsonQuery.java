@@ -17,10 +17,7 @@ package com.holonplatform.datastore.mongo.core.expression;
 
 import java.util.Optional;
 
-import org.bson.conversions.Bson;
-
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonQuery;
 
@@ -44,22 +41,16 @@ public interface BsonQuery extends Expression {
 	QueryOperationType getOperationType();
 
 	/**
-	 * Get the query projection document.
+	 * Get the query projection.
 	 * @return Optional query projection
 	 */
-	Optional<Bson> getProjection();
+	Optional<BsonProjection<?>> getProjection();
 
 	/**
 	 * If the query is a <em>distinct</em> field value query, get the field name.
 	 * @return Distinct field name, or empty if not a distinct field value query
 	 */
 	Optional<String> getDistinctFieldName();
-
-	/**
-	 * Get the {@link DocumentConverter} to use to convert the query results.
-	 * @return Optional document results converter
-	 */
-	Optional<DocumentConverter<?>> getConverter();
 
 	/**
 	 * Get a new {@link BsonQuery} builder.
@@ -83,11 +74,11 @@ public interface BsonQuery extends Expression {
 		Builder operationType(QueryOperationType operationType);
 
 		/**
-		 * Set the query prjection document.
-		 * @param projection The query prjection document
+		 * Set the query projection.
+		 * @param projection The query projection
 		 * @return this
 		 */
-		Builder projection(Bson projection);
+		Builder projection(BsonProjection<?> projection);
 
 		/**
 		 * Mark the query as a <em>distinct</em> field value query.
@@ -95,13 +86,6 @@ public interface BsonQuery extends Expression {
 		 * @return this
 		 */
 		Builder distinct(String fieldName);
-
-		/**
-		 * Set the query results converter.
-		 * @param converter The query results converter
-		 * @return this
-		 */
-		Builder converter(DocumentConverter<?> converter);
 
 		/**
 		 * Build the {@link BsonQuery} instance.

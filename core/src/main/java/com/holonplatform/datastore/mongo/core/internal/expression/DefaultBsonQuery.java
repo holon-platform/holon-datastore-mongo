@@ -17,10 +17,8 @@ package com.holonplatform.datastore.mongo.core.internal.expression;
 
 import java.util.Optional;
 
-import org.bson.conversions.Bson;
-
-import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 
@@ -35,11 +33,9 @@ public class DefaultBsonQuery implements BsonQuery {
 
 	private QueryOperationType operationType;
 
-	private Bson projection;
+	private BsonProjection<?> projection;
 
 	private String distinctFieldName;
-
-	private DocumentConverter<?> converter;
 
 	public DefaultBsonQuery(BsonQueryDefinition definition) {
 		super();
@@ -69,7 +65,7 @@ public class DefaultBsonQuery implements BsonQuery {
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery#getProjection()
 	 */
 	@Override
-	public Optional<Bson> getProjection() {
+	public Optional<BsonProjection<?>> getProjection() {
 		return Optional.ofNullable(projection);
 	}
 
@@ -82,20 +78,11 @@ public class DefaultBsonQuery implements BsonQuery {
 		return Optional.ofNullable(distinctFieldName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery#getConverter()
-	 */
-	@Override
-	public Optional<DocumentConverter<?>> getConverter() {
-		return Optional.ofNullable(converter);
-	}
-
 	/**
-	 * Set the query projection document.
+	 * Set the query projection.
 	 * @param projection the projection to set
 	 */
-	public void setProjection(Bson projection) {
+	public void setProjection(BsonProjection<?> projection) {
 		this.projection = projection;
 	}
 
@@ -115,14 +102,6 @@ public class DefaultBsonQuery implements BsonQuery {
 	 */
 	public void setOperationType(QueryOperationType operationType) {
 		this.operationType = operationType;
-	}
-
-	/**
-	 * Set the query results converter.
-	 * @param converter the converter to set
-	 */
-	public void setConverter(DocumentConverter<?> converter) {
-		this.converter = converter;
 	}
 
 	/*
@@ -159,22 +138,10 @@ public class DefaultBsonQuery implements BsonQuery {
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * com.holonplatform.datastore.mongo.core.expression.MongoQuery.Builder#converter(com.holonplatform.datastore.
-		 * mongo.core.document.DocumentConverter)
-		 */
-		@Override
-		public Builder converter(DocumentConverter<?> converter) {
-			instance.setConverter(converter);
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see
 		 * com.holonplatform.datastore.mongo.core.expression.MongoQuery.Builder#projection(org.bson.conversions.Bson)
 		 */
 		@Override
-		public Builder projection(Bson projection) {
+		public Builder projection(BsonProjection<?> projection) {
 			instance.setProjection(projection);
 			return this;
 		}

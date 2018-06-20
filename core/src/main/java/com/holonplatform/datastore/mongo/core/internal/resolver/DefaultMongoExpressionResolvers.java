@@ -41,6 +41,7 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(DataTargetCollectionNameResolver.INSTANCE);
 		expressionResolvers.add(FieldNamePathResolver.INSTANCE);
 		expressionResolvers.add(PathFieldNameResolver.INSTANCE);
+		expressionResolvers.add(QueryFunctionFieldNameResolver.INSTANCE);
 		expressionResolvers.add(NullExpressionResolver.INSTANCE);
 		expressionResolvers.add(CollectionExpressionResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionResolver.INSTANCE);
@@ -61,6 +62,7 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(QueryConfigurationResolver.INSTANCE);
 		expressionResolvers.add(QueryOperationResolver.INSTANCE);
 		expressionResolvers.add(UpdateFunctionResolver.INSTANCE);
+		expressionResolvers.add(QueryFunctionResolver.INSTANCE);
 		expressionResolvers.add(TemporalFunctionProjectionResolver.INSTANCE);
 	}
 

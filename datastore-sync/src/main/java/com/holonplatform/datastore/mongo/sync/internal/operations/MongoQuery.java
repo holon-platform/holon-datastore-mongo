@@ -18,6 +18,7 @@ package com.holonplatform.datastore.mongo.sync.internal.operations;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -49,6 +50,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.BsonField;
+import com.mongodb.client.model.Projections;
 
 /**
  * MongoDB {@link QueryAdapter}.
@@ -155,14 +158,11 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 			Class<? extends R> resultType, BsonQuery query) {
 
 		// check converter
-		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
-		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+		final DocumentConverter<R> documentConverter = getConverter(query);
+		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
 					+ "] is not compatible with the query projection type [" + resultType + "]");
 		}
-
-		@SuppressWarnings("unchecked")
-		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
 
 		final FindIterable<Document> fi = collection.find();
 
@@ -210,14 +210,25 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		}
 
 		// projection
-		query.getProjection().ifPresent(p -> fi.projection(p));
+		Optional<Bson> projection = query.getProjection().filter(p -> !p.isEmpty())
+				.map(p -> Projections.fields(p.getFieldProjections()));
+		projection.ifPresent(p -> fi.projection(p));
 
 		// trace
-		context.trace("FIND query", () -> traceQuery(query));
+		context.trace("FIND query", () -> traceQuery(query, projection.orElse(null)));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
 				.map(document -> documentConverter.convert(context, document));
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <R> DocumentConverter<R> getConverter(BsonQuery query) {
+		DocumentConverter<?> converter = query.getProjection().flatMap(p -> p.getConverter()).orElse(null);
+		if (converter != null) {
+			return (DocumentConverter<R>) converter;
+		}
+		return (DocumentConverter<R>) DocumentConverter.identity();
 	}
 
 	private static <R> Stream<R> distinct(MongoResolutionContext context, MongoCollection<Document> collection,
@@ -231,14 +242,11 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		final String fieldName = query.getDistinctFieldName().get();
 
 		// check converter
-		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
-		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+		final DocumentConverter<R> documentConverter = getConverter(query);
+		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
 					+ "] is not compatible with the query projection type [" + resultType + "]");
 		}
-
-		@SuppressWarnings("unchecked")
-		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
 
 		final DistinctIterable<Object> fi = collection.distinct(fieldName, Object.class);
 
@@ -254,7 +262,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getCollation().ifPresent(c -> fi.collation(c));
 
 		// trace
-		context.trace("DISTINCT query", () -> traceQuery(query));
+		context.trace("DISTINCT query on [" + fieldName + "]", () -> traceQuery(query, null));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
@@ -274,17 +282,13 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 */
 	private static <R> Stream<R> aggregate(MongoResolutionContext context, MongoCollection<Document> collection,
 			Class<? extends R> resultType, BsonQuery query) {
-		// TODO
 
 		// check converter
-		final DocumentConverter<?> converter = query.getConverter().orElse(DocumentConverter.identity());
-		if (!TypeUtils.isAssignable(converter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
+		final DocumentConverter<R> documentConverter = getConverter(query);
+		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
+			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
 					+ "] is not compatible with the query projection type [" + resultType + "]");
 		}
-
-		@SuppressWarnings("unchecked")
-		final DocumentConverter<R> documentConverter = (DocumentConverter<R>) converter;
 
 		// aggregation pipeline
 		List<Bson> pipeline = new LinkedList<>();
@@ -296,9 +300,25 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
 
 		// ------ group
-		// TODO
 		definition.getGroup().ifPresent(g -> {
-			
+
+			final List<BsonField> fieldAccumulators = new LinkedList<>();
+
+			// check projection
+			query.getProjection().ifPresent(p -> {
+				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
+						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
+			});
+
+			if (!fieldAccumulators.isEmpty()) {
+				pipeline.add(Aggregates.group(g, fieldAccumulators));
+			} else {
+				pipeline.add(Aggregates.group(g));
+			}
+
+			definition.getGroupFilter().ifPresent(gf -> {
+				pipeline.add(Aggregates.match(gf));
+			});
 		});
 
 		// ------ sort
@@ -311,9 +331,12 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
 
 		// ------ project
-		// TODO
-		query.getProjection().ifPresent(p -> pipeline.add(Aggregates.project(p)));
-
+		if (!definition.getGroup().isPresent()) {
+			query.getProjection().filter(p -> !p.isEmpty()).map(p -> Projections.fields(p.getFieldProjections()))
+					.ifPresent(prj -> {
+						pipeline.add(Aggregates.project(prj));
+					});
+		}
 		// trace
 		context.trace("Aggregation pipeline", () -> traceAggregationPipeline(pipeline));
 
@@ -339,9 +362,10 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	/**
 	 * Build the trace information for given query.
 	 * @param query Query to trace
+	 * @param projection Optional query projection
 	 * @return Query trace information
 	 */
-	private static String traceQuery(BsonQuery query) {
+	private static String traceQuery(BsonQuery query, Bson projection) {
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("Collection name: ");
@@ -355,10 +379,10 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 			sb.append("\nSort: \n");
 			sb.append(DocumentSerializer.getDefault().toJson(s));
 		});
-		query.getProjection().ifPresent(p -> {
+		if (projection != null) {
 			sb.append("\nProjection: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(p));
-		});
+			sb.append(DocumentSerializer.getDefault().toJson(projection));
+		}
 
 		return sb.toString();
 	}

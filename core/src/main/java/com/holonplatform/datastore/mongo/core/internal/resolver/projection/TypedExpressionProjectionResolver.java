@@ -19,13 +19,14 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import org.bson.conversions.Bson;
+
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.property.PathPropertySetAdapter;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -84,32 +85,59 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 		return resolveExpression(context, expression);
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Optional<BsonProjection> resolveDocumentExpression(MongoDocumentContext context,
 			TypedExpression<?> expression) {
-
 		// check property
-		return context.getPropertySet().stream().filter(p -> p.equals(expression)).map(p -> (Property<?>) p).findFirst()
-				.flatMap(property -> {
-					// check path
-					return PathPropertySetAdapter.create(context.getPropertySet()).getPath(property).map(path -> {
-						// resolve field name
-						final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
-						// build projection
-						return BsonProjection.builder(property.getType()).field(fieldName)
-								.converter((DocumentConverter) DocumentConverter.expression(property, fieldName))
-								.build();
-					});
-				});
+		return context.getPropertySet().stream().filter(p -> p.equals(expression)).findFirst()
+				.flatMap(p -> resolveExpression(context, p));
 	}
 
 	@SuppressWarnings("unchecked")
 	private static Optional<BsonProjection> resolveExpression(MongoResolutionContext context,
 			TypedExpression<?> expression) {
-		return context.resolve(expression, FieldName.class)
-				.map(fn -> BsonProjection.builder(expression.getType()).field(fn.getFieldName())
-						.converter((DocumentConverter) DocumentConverter.expression(expression, fn.getFieldName()))
-						.build());
+		// resolve as field expression
+		return resolveProjectionField(context, expression).map(pf -> {
+			BsonProjection.Builder builder = BsonProjection.builder(expression.getType());
+			if (pf.getFieldExpression().isPresent()) {
+				builder.field(pf.getFieldName(), pf.getFieldExpression().get());
+			} else {
+				builder.field(pf.getFieldName());
+			}
+			builder.converter(DocumentConverter.expression(expression, pf.getFieldName()));
+			return builder.build();
+		});
+	}
+
+	private static Optional<FieldProjection> resolveProjectionField(MongoResolutionContext context,
+			TypedExpression<?> expression) {
+		// resolve field name
+		return context.resolve(expression, FieldName.class).map(fn -> fn.getFieldName()).map(fieldName -> {
+			// try to resolve field expression
+			final Optional<Bson> fieldExpression = context.resolve(expression, BsonExpression.class)
+					.map(e -> e.getValue());
+			return new FieldProjection(fieldName, fieldExpression.orElse(null));
+		});
+	}
+
+	private static final class FieldProjection {
+
+		private final String fieldName;
+		private final Bson fieldExpression;
+
+		public FieldProjection(String fieldName, Bson fieldExpression) {
+			super();
+			this.fieldName = fieldName;
+			this.fieldExpression = fieldExpression;
+		}
+
+		public String getFieldName() {
+			return fieldName;
+		}
+
+		public Optional<Bson> getFieldExpression() {
+			return Optional.ofNullable(fieldExpression);
+		}
+
 	}
 
 }

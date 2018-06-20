@@ -21,55 +21,57 @@ import java.util.concurrent.CompletionStage;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import com.holonplatform.async.datastore.operation.AsyncRefresh;
-import com.holonplatform.async.internal.datastore.operation.AbstractAsyncRefresh;
+import com.holonplatform.async.datastore.operation.AsyncUpdate;
+import com.holonplatform.async.internal.datastore.operation.AbstractAsyncUpdate;
+import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.Property;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
+import com.holonplatform.datastore.mongo.core.CollationOption;
+import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 
 /**
- * MongoDB {@link AsyncRefresh}.
+ * MongoDB {@link AsyncUpdate}.
  *
  * @since 5.2.0
  */
-public class AsyncMongoRefresh extends AbstractAsyncRefresh {
+public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 
-	private static final long serialVersionUID = 5721530187597592446L;
+	private static final long serialVersionUID = 731321494063664934L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<AsyncMongoDatastoreCommodityContext, AsyncRefresh> FACTORY = new DatastoreCommodityFactory<AsyncMongoDatastoreCommodityContext, AsyncRefresh>() {
+	public static final DatastoreCommodityFactory<AsyncMongoDatastoreCommodityContext, AsyncUpdate> FACTORY = new DatastoreCommodityFactory<AsyncMongoDatastoreCommodityContext, AsyncUpdate>() {
 
 		@Override
-		public Class<? extends AsyncRefresh> getCommodityType() {
-			return AsyncRefresh.class;
+		public Class<? extends AsyncUpdate> getCommodityType() {
+			return AsyncUpdate.class;
 		}
 
 		@Override
-		public AsyncRefresh createCommodity(AsyncMongoDatastoreCommodityContext context)
+		public AsyncUpdate createCommodity(AsyncMongoDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new AsyncMongoRefresh(context);
+			return new AsyncMongoUpdate(context);
 		}
 	};
 
 	private final MongoOperationContext<MongoDatabase> operationContext;
 
-	public AsyncMongoRefresh(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoUpdate(MongoOperationContext<MongoDatabase> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -79,60 +81,66 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 	 * @see com.holonplatform.core.datastore.operation.commons.ExecutableOperation#execute()
 	 */
 	@Override
-	public CompletionStage<PropertyBox> execute() {
+	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
 			// validate
 			getConfiguration().validate();
-			// build context
+			// build context (for update)
 			return PropertyBoxOperationContext.create(getConfiguration(), operationContext,
-					MongoDocumentContext.create(operationContext, getConfiguration().getValue()));
+					MongoDocumentContext.createForUpdate(operationContext, getConfiguration().getValue()));
 		}).thenApply(context -> {
 			// resolve collection name
 			final String collectionName = context.getDocumentContext()
 					.resolveOrFail(context.getConfiguration().getTarget(), CollectionName.class).getName();
 			// get and configure collection
 			MongoCollection<Document> collection = context.getOperationContext().withDatabase(database -> {
-				return MongoOperationConfigurator.configureRead(database.getCollection(collectionName),
-						context.getDocumentContext(), context.getConfiguration().getParameters());
+				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName),
+						context.getDocumentContext(), context.getConfiguration());
 			});
 			// build context
 			return DocumentOperationContext.create(context, collection);
 		}).thenCompose(context -> {
 			// id property
 			final Property<?> idProperty = context.getDocumentContext().getDocumentIdProperty().orElseThrow(
-					() -> new DataAccessException("Cannot perform a REFRESH operation: missing document id property"
+					() -> new DataAccessException("Cannot perform a UPDATE operation: missing document id property"
 							+ " for value [" + context.getConfiguration().getValue() + "]"));
 			// document id
 			final ObjectId id = context.getDocumentContext().getDocumentIdResolver()
 					.encode(context.getConfiguration().getValue().getValue(idProperty));
 			if (id == null) {
 				throw new DataAccessException(
-						"Cannot perform a REFRESH operation: missing document id value for property [" + idProperty
+						"Cannot perform a UPDATE operation: missing document id value for property [" + idProperty
 								+ "]");
 			}
+			// options
+			final UpdateOptions options = new UpdateOptions();
+			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+			getConfiguration().getWriteOption(CollationOption.class)
+					.ifPresent(o -> options.collation(o.getCollation()));
+			options.upsert(false);
+			// document
+			final Document document = context.requireDocument();
 			// prepare
 			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
 			// insert
-			context.getCollection().find(Filters.eq(id)).first((result, error) -> {
+			context.getCollection().updateOne(Filters.eq(id), document, (result, error) -> {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(DocumentOperationContext.create(context, context.getCollection(), result));
+					context.setAffectedCount(
+							result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1);
+					operation.complete(context);
 				}
 			});
 			// return the future
 			return operation;
 		}).thenApply(context -> {
-			// check document
-			final Document document = context.getDocument()
-					.orElseThrow(() -> new DataAccessException("No document found using id property ["
-							+ context.getDocumentContext().getDocumentIdProperty().orElse(null) + "]"));
 			// trace
-			context.getOperationContext().trace("Refreshed document",
-					DocumentSerializer.getDefault().toJson(context.getCollection().getCodecRegistry(), document));
-			// build operation result
-			return context.getDocumentContext().resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class)
-					.getValue();
+			context.getOperationContext().trace("Updated document", DocumentSerializer.getDefault()
+					.toJson(context.getCollection().getCodecRegistry(), context.requireDocument()));
+			// operation result
+			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(context.getAffectedCount())
+					.build();
 		});
 	}
 

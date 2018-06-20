@@ -26,14 +26,27 @@ import com.mongodb.async.client.MongoDatabase;
  * 
  * @since 5.2.0
  */
-public interface PropertyBoxOperationContext {
+public interface PropertyBoxOperationContext extends AsyncOperationContext {
 
+	/**
+	 * Get the {@link PropertyBoxOperation} configuration.
+	 * @return Operation configuration
+	 */
 	PropertyBoxOperationConfiguration getConfiguration();
 
-	MongoOperationContext<MongoDatabase> getOperationContext();
-
+	/**
+	 * Get the document context.
+	 * @return Document context
+	 */
 	MongoDocumentContext getDocumentContext();
 
+	/**
+	 * Create a new {@link PropertyBoxOperationContext}.
+	 * @param configuration Operation configuration (not null)
+	 * @param operationContext Operation context (not null)
+	 * @param documentContext Document context (not null)
+	 * @return A new {@link PropertyBoxOperationContext} instance
+	 */
 	static PropertyBoxOperationContext create(PropertyBoxOperationConfiguration configuration,
 			MongoOperationContext<MongoDatabase> operationContext, MongoDocumentContext documentContext) {
 		return new DefaultPropertyBoxOperationContext(configuration, operationContext, documentContext);

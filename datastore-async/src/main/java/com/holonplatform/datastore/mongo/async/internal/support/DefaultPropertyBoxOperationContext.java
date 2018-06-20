@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.async.internal.support;
 
 import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.mongodb.async.client.MongoDatabase;
@@ -25,17 +26,18 @@ import com.mongodb.async.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public class DefaultPropertyBoxOperationContext implements PropertyBoxOperationContext {
+public class DefaultPropertyBoxOperationContext extends AbstractAsyncOperationContext
+		implements PropertyBoxOperationContext {
 
 	private final PropertyBoxOperationConfiguration configuration;
-	private final MongoOperationContext<MongoDatabase> operationContext;
 	private final MongoDocumentContext documentContext;
 
 	public DefaultPropertyBoxOperationContext(PropertyBoxOperationConfiguration configuration,
 			MongoOperationContext<MongoDatabase> operationContext, MongoDocumentContext documentContext) {
-		super();
+		super(operationContext);
+		ObjectUtils.argumentNotNull(configuration, "Operation configuration must be not null");
+		ObjectUtils.argumentNotNull(documentContext, "Document context configuration must be not null");
 		this.configuration = configuration;
-		this.operationContext = operationContext;
 		this.documentContext = documentContext;
 	}
 
@@ -50,20 +52,21 @@ public class DefaultPropertyBoxOperationContext implements PropertyBoxOperationC
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext#getOperationContext()
-	 */
-	@Override
-	public MongoOperationContext<MongoDatabase> getOperationContext() {
-		return operationContext;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext#getDocumentContext()
 	 */
 	@Override
 	public MongoDocumentContext getDocumentContext() {
 		return documentContext;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "PropertyBoxOperationContext [configuration=" + configuration + ", documentContext=" + documentContext
+				+ "]";
 	}
 
 }

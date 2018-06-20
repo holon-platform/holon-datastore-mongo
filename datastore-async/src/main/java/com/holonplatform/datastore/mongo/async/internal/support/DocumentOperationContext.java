@@ -15,8 +15,12 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.support;
 
-import org.bson.Document;
+import java.util.Optional;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -26,12 +30,60 @@ import com.mongodb.async.client.MongoCollection;
  */
 public interface DocumentOperationContext extends PropertyBoxOperationContext {
 
+	/**
+	 * Get the mongo collection reference.
+	 * @return Mongo collection
+	 */
 	MongoCollection<Document> getCollection();
 
-	Document getDocument();
+	/**
+	 * Get the {@link Document} bound to this context, if available.
+	 * @return Optional document
+	 */
+	Optional<Document> getDocument();
 
+	/**
+	 * Get the document id as {@link ObjectId}.
+	 * @return Optional document id
+	 */
+	Optional<ObjectId> getDocumentId();
+
+	/**
+	 * Set the document id.
+	 * @param id Document id
+	 */
+	void setDocumentId(ObjectId id);
+
+	/**
+	 * Get the {@link Document} bound to this context, throwing an {@link IllegalStateException} if not available.
+	 * @return The Document
+	 */
+	default Document requireDocument() {
+		return getDocument().orElseThrow(
+				() -> new IllegalStateException("Failed to resolve a Document from this context: " + this));
+	}
+
+	/**
+	 * Create a new {@link DocumentOperationContext}.
+	 * @param parent Parent context (not null)
+	 * @param collection Mongo collection (not null)
+	 * @return A new {@link DocumentOperationContext} instance
+	 */
+	static DocumentOperationContext create(PropertyBoxOperationContext parent, MongoCollection<Document> collection) {
+		ObjectUtils.argumentNotNull(parent, "Parent context must be not null");
+		return new DefaultDocumentOperationContext(parent, collection);
+	}
+
+	/**
+	 * Create a new {@link DocumentOperationContext}.
+	 * @param parent Parent context (not null)
+	 * @param collection Mongo collection (not null)
+	 * @param document The {@link Document} value
+	 * @return A new {@link DocumentOperationContext} instance
+	 */
 	static DocumentOperationContext create(PropertyBoxOperationContext parent, MongoCollection<Document> collection,
 			Document document) {
+		ObjectUtils.argumentNotNull(parent, "Parent context must be not null");
 		return new DefaultDocumentOperationContext(parent, collection, document);
 	}
 

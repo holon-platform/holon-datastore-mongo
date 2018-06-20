@@ -105,7 +105,7 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 						.ifPresent(o -> options.collation(o.getCollation()));
 
 				// trace
-				operationContext.trace("Delete documents - filter:",
+				operationContext.trace("Delete documents - filter",
 						filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
 
 				// delete

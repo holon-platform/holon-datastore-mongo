@@ -110,9 +110,6 @@ public class MongoDelete extends AbstractDelete {
 			final MongoCollection<Document> collection = MongoOperationConfigurator
 					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-			// encode Document
-			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();
-
 			// options
 			final DeleteOptions options = new DeleteOptions();
 			getConfiguration().getWriteOption(CollationOption.class)
@@ -123,7 +120,9 @@ public class MongoDelete extends AbstractDelete {
 
 			// trace
 			operationContext.trace("Deleted document",
-					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
+					() -> context.resolve(PropertyBoxValue.create(value), DocumentValue.class).map(d -> d.getValue())
+							.map(d -> DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), d))
+							.orElse("with id [" + id + "]"));
 
 			return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount()).build();
 

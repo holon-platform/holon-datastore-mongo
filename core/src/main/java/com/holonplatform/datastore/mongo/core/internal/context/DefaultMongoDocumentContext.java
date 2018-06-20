@@ -69,7 +69,8 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 		this.resolveDocumentId = resolveDocumentId;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoDocumentContext#getPropertySet()
 	 */
 	@SuppressWarnings("unchecked")
@@ -105,6 +106,16 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 	@Override
 	public Optional<Path<?>> isDocumentIdPath(Path<?> path) {
 		return getDocumentIdPath().filter(p -> DocumentPathMatcher.INSTANCE.match(p, path));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultMongoDocumentContext [propertySet=" + propertySet + ", resolveDocumentId=" + resolveDocumentId
+				+ "]";
 	}
 
 }

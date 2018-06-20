@@ -37,8 +37,6 @@ import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -98,12 +96,8 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName),
 						context.getDocumentContext(), context.getConfiguration());
 			});
-			// encode Document
-			Document document = context.getDocumentContext()
-					.resolveOrFail(PropertyBoxValue.create(context.getConfiguration().getValue()), DocumentValue.class)
-					.getValue();
 			// build context
-			return DocumentOperationContext.create(context, collection, document);
+			return DocumentOperationContext.create(context, collection);
 		}).thenCompose(context -> {
 			// options
 			final InsertOneOptions options = new InsertOneOptions();
@@ -112,7 +106,7 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			// prepare
 			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
 			// insert
-			context.getCollection().insertOne(context.getDocument(), options, (result, error) -> {
+			context.getCollection().insertOne(context.requireDocument(), options, (result, error) -> {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
@@ -124,11 +118,11 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 		}).thenApply(context -> {
 			// trace
 			context.getOperationContext().trace("Inserted document", DocumentSerializer.getDefault()
-					.toJson(context.getCollection().getCodecRegistry(), context.getDocument()));
+					.toJson(context.getCollection().getCodecRegistry(), context.requireDocument()));
 			// build operation result
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
-			final Document document = context.getDocument();
+			final Document document = context.requireDocument();
 			// check inserted keys
 			if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
 				// get document id value

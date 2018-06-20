@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.query.QueryAggregation;
 
 public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 
@@ -48,6 +49,24 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		assertTrue(values.contains(Integer.valueOf(10)));
 		assertTrue(values.contains(Integer.valueOf(20)));
 		assertTrue(values.contains(Integer.valueOf(3)));
+
+		values = getDatastore().query(TARGET).filter(STR.in("g1", "g2")).aggregate(STR).list(INT.sum());
+		assertNotNull(values);
+		assertEquals(2, values.size());
+		assertTrue(values.contains(Integer.valueOf(10)));
+		assertTrue(values.contains(Integer.valueOf(20)));
+
+		values = getDatastore().query(TARGET)
+				.aggregate(QueryAggregation.builder().path(STR).filter(INT.sum().gt(10)).build()).list(INT.sum());
+		assertNotNull(values);
+		assertEquals(1, values.size());
+		assertTrue(values.contains(Integer.valueOf(20)));
+
+		values = getDatastore().query(TARGET).filter(INT.lt(10))
+				.aggregate(QueryAggregation.builder().path(STR).filter(INT.sum().goe(10)).build()).list(INT.sum());
+		assertNotNull(values);
+		assertEquals(1, values.size());
+		assertTrue(values.contains(Integer.valueOf(10)));
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute();
 		assertEquals(5, result.getAffectedCount());

@@ -33,7 +33,6 @@ import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOpera
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -109,8 +108,7 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			return operation;
 		}).thenApply(context -> {
 			// trace
-			context.getOperationContext().trace("Inserted document", DocumentSerializer.getDefault()
-					.toJson(context.getCollection().getCodecRegistry(), context.requireDocument()));
+			context.getOperationContext().trace("Inserted document", context.requireDocument());
 			// build operation result
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);

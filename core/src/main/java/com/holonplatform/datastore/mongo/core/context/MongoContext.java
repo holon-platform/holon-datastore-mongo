@@ -15,12 +15,18 @@
  */
 package com.holonplatform.datastore.mongo.core.context;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
@@ -37,6 +43,12 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 * @return the {@link DocumentIdResolver}
 	 */
 	DocumentIdResolver getDocumentIdResolver();
+
+	/**
+	 * Get the {@link CodecRegistry} bound to the current database.
+	 * @return Database {@link CodecRegistry}
+	 */
+	CodecRegistry getDatabaseCodecRegistry();
 
 	/**
 	 * Get the default {@link EnumCodecStrategy}.
@@ -63,6 +75,33 @@ public interface MongoContext extends ExpressionResolverProvider {
 	Optional<WriteConcern> getDefaultWriteConcern();
 
 	/**
+	 * Serialize given document to JSON using the database codec registry.
+	 * @param document The document to serialize
+	 * @return Serialized document
+	 */
+	default String toJson(Document document) {
+		return DocumentSerializer.getDefault().toJson(getDatabaseCodecRegistry(), document);
+	}
+
+	/**
+	 * Serialize given documents to JSON using the database codec registry.
+	 * @param document The documents to serialize
+	 * @return Serialized documents
+	 */
+	default String toJson(List<Document> documents) {
+		return DocumentSerializer.getDefault().toJson(getDatabaseCodecRegistry(), documents);
+	}
+
+	/**
+	 * Serialize given {@link Bson} value to JSON using the database codec registry.
+	 * @param bson The Bson value to serialize
+	 * @return Serialized Bson document
+	 */
+	default String toJson(Bson bson) {
+		return DocumentSerializer.getDefault().toJson(getDatabaseCodecRegistry(), bson);
+	}
+
+	/**
 	 * Trace given JSON expression.
 	 * <p>
 	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
@@ -84,6 +123,32 @@ public interface MongoContext extends ExpressionResolverProvider {
 	 */
 	default void trace(String title, String json) {
 		trace(title, () -> json);
+	}
+
+	/**
+	 * Trace given JSON Document.
+	 * <p>
+	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
+	 * using the <code>DEBUG</code> level.
+	 * </p>
+	 * @param title Optional title
+	 * @param document Document to trace
+	 */
+	default void trace(String title, Document document) {
+		trace(title, () -> toJson(document));
+	}
+
+	/**
+	 * Trace given JSON Documents.
+	 * <p>
+	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
+	 * using the <code>DEBUG</code> level.
+	 * </p>
+	 * @param title Optional title
+	 * @param documents Documents to trace
+	 */
+	default void trace(String title, List<Document> documents) {
+		trace(title, () -> toJson(documents));
 	}
 
 }

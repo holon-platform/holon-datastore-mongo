@@ -40,7 +40,6 @@ import com.holonplatform.datastore.mongo.async.internal.support.SaveOperationCon
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
@@ -151,7 +150,7 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 			// check trace
 			context.getDocument().ifPresent(document -> {
 				context.getOperationContext().trace("Saved document [" + context.getOperationType().name() + "]",
-						DocumentSerializer.getDefault().toJson(context.getCollection().getCodecRegistry(), document));
+						document);
 			});
 
 			// operation result

@@ -15,17 +15,11 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.holonplatform.core.Path;
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
@@ -37,15 +31,11 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
-import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -101,35 +91,8 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 			Optional<Bson> filter = getConfiguration().getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 
-			// resolve values
-			final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
-			List<Bson> updates = new ArrayList<>(values.size());
-			for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
-				// child update context
-				final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
-
-				if (value.getValue() == null) {
-					// resolve field name
-					final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
-					// $unset for null values
-					updates.add(Updates.unset(fieldName));
-				} else {
-					// check value expression resolution
-					updates.add(subContext.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
-							.orElseGet(() -> {
-								// resolve field name
-								final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
-										.getFieldName();
-								// resolve field value
-								final Object fieldValue = subContext.resolveOrFail(value.getValue(), FieldValue.class)
-										.getValue();
-								// $set value
-								return Updates.set(fieldName, fieldValue);
-							}));
-				}
-			}
-
-			Bson update = Updates.combine(updates);
+			// update expression
+			final Bson update = MongoOperations.getUpdateExpression(context, getConfiguration());
 
 			return operationContext.withDatabase(database -> {
 
@@ -138,7 +101,8 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
 				// trace
-				operationContext.trace("Update documents", trace(filter, update));
+				operationContext.trace("Update documents",
+						MongoOperations.traceUpdate(operationContext, filter, update));
 
 				// delete
 				UpdateResult result = collection.updateMany(filter.orElse(null), update,
@@ -151,18 +115,6 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 		} catch (Exception e) {
 			throw new DataAccessException("Bulk UPDATE operation failed", e);
 		}
-	}
-
-	private static String trace(Optional<Bson> filter, Bson update) {
-		final StringBuilder sb = new StringBuilder();
-		filter.ifPresent(f -> {
-			sb.append("Filter:\n");
-			sb.append(DocumentSerializer.getDefault().toJson(f));
-			sb.append("\n");
-		});
-		sb.append("Values:\n");
-		sb.append(DocumentSerializer.getDefault().toJson(update));
-		return sb.toString();
 	}
 
 }

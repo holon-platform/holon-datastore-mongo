@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.support;
 
+import org.bson.Document;
+
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -42,5 +44,14 @@ public interface AsyncOperationContext {
 	 * @param affectedCount Affected count
 	 */
 	void setAffectedCount(long affectedCount);
+	
+	/**
+	 * Serialize given document to JSON using the database codec registry.
+	 * @param document The document to serialize
+	 * @return Serialized document
+	 */
+	default String toJson(Document document) {
+		return getOperationContext().toJson(document);
+	}
 
 }

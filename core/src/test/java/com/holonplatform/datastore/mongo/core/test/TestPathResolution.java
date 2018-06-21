@@ -102,7 +102,7 @@ public class TestPathResolution {
 
 		path = dctx.resolve(FieldName.create("_id"), Path.class);
 		assertTrue(path.isPresent());
-		assertEquals("code", path.get().relativeName());
+		assertEquals("_id", path.get().relativeName());
 
 		Optional<FieldName> name = dctx.resolve(BOOL, FieldName.class);
 		assertTrue(name.isPresent());
@@ -110,7 +110,7 @@ public class TestPathResolution {
 
 		name = dctx.resolve(ID, FieldName.class);
 		assertTrue(name.isPresent());
-		assertEquals("_id", name.get().getFieldName());
+		assertEquals("code", name.get().getFieldName());
 
 	}
 

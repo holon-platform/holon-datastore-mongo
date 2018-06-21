@@ -35,7 +35,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -99,8 +98,8 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 					filter.orElse(null));
 		}).thenCompose(context -> {
 			// trace
-			operationContext.trace("Delete documents - filter",
-					context.getFilter().map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
+			context.getOperationContext().trace("Delete documents - filter",
+					context.getFilter().map(f -> context.getOperationContext().toJson(f)).orElse("[NONE]"));
 			// prepare
 			final CompletableFuture<BulkOperationContext> operation = new CompletableFuture<>();
 			// delete

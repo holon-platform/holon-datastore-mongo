@@ -228,8 +228,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		projection.ifPresent(p -> fi.projection(p));
 
 		// trace
-		queryContext.getOperationContext().trace("FIND query",
-				() -> MongoOperations.traceQuery(queryContext.getQuery(), projection.orElse(null)));
+		queryContext.getOperationContext().trace("FIND query", () -> MongoOperations
+				.traceQuery(queryContext.getOperationContext(), queryContext.getQuery(), projection.orElse(null)));
 
 		// documents
 		final List<Document> documents = new ArrayList<>();
@@ -282,7 +282,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 
 		// trace
 		queryContext.getOperationContext().trace("DISTINCT query on [" + fieldName + "]",
-				() -> MongoOperations.traceQuery(queryContext.getQuery(), null));
+				() -> MongoOperations.traceQuery(queryContext.getOperationContext(), queryContext.getQuery(), null));
 
 		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
 
@@ -365,7 +365,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		}
 		// trace
 		queryContext.getOperationContext().trace("Aggregation pipeline",
-				() -> MongoOperations.traceAggregationPipeline(pipeline));
+				() -> MongoOperations.traceAggregationPipeline(queryContext.getOperationContext(), pipeline));
 
 		// iterable
 		final AggregateIterable<Document> ai = queryContext.getCollection().aggregate(pipeline);

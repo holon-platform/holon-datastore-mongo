@@ -18,6 +18,8 @@ package com.holonplatform.datastore.mongo.core.test.context;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolverRegistry;
 import com.holonplatform.core.internal.DefaultExpressionResolverRegistry;
@@ -89,6 +91,15 @@ public class MongoTestContext implements MongoContext {
 	@Override
 	public Optional<WriteConcern> getDefaultWriteConcern() {
 		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
+	 */
+	@Override
+	public CodecRegistry getDatabaseCodecRegistry() {
+		return null;
 	}
 
 	/*

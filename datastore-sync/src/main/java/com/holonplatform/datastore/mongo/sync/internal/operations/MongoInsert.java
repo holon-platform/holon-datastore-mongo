@@ -29,7 +29,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
@@ -101,8 +100,7 @@ public class MongoInsert extends AbstractInsert {
 			collection.insertOne(document, MongoOperations.getInsertOneOptions(getConfiguration()));
 
 			// trace
-			operationContext.trace("Inserted document",
-					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
+			operationContext.trace("Inserted document", document);
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);

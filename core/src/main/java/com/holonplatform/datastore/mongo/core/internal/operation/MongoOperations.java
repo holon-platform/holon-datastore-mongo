@@ -15,15 +15,22 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.operation;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.TypeUtils;
@@ -31,14 +38,19 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
+import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.expression.FieldName;
+import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -106,6 +118,45 @@ public class MongoOperations {
 	}
 
 	/**
+	 * Build the update expression for given {@link BulkUpdateOperationConfiguration}.
+	 * @param context Resolution context
+	 * @param configuration Operation configuration
+	 * @return Update expression
+	 */
+	public static Bson getUpdateExpression(MongoResolutionContext context,
+			BulkUpdateOperationConfiguration configuration) {
+		// resolve values
+		final Map<Path<?>, TypedExpression<?>> values = configuration.getValues();
+		List<Bson> updates = new ArrayList<>(values.size());
+		for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
+			// child update context
+			final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
+
+			if (value.getValue() == null) {
+				// resolve field name
+				final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
+				// $unset for null values
+				updates.add(Updates.unset(fieldName));
+			} else {
+				// check value expression resolution
+				updates.add(subContext.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
+						.orElseGet(() -> {
+							// resolve field name
+							final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
+									.getFieldName();
+							// resolve field value
+							final Object fieldValue = subContext.resolveOrFail(value.getValue(), FieldValue.class)
+									.getValue();
+							// $set value
+							return Updates.set(fieldName, fieldValue);
+						}));
+			}
+		}
+
+		return Updates.combine(updates);
+	}
+
+	/**
 	 * Check generated document id after an insert type operation, setting the inserted keys using given
 	 * {@link OperationResult} builder.
 	 * @param builder OperationResult builder
@@ -136,6 +187,32 @@ public class MongoOperations {
 					}
 				});
 			}
+		}
+	}
+
+	/**
+	 * Check generated document id after an insert type operation.
+	 * @param documentContext Document context
+	 * @param configuration Operation configuration
+	 * @param documentValues Inserted documents and corresponding {@link PropertyBox} values
+	 */
+	@SuppressWarnings("unchecked")
+	public static void checkInsertedKeys(MongoDocumentContext documentContext,
+			DatastoreOperationConfiguration configuration, Map<Document, PropertyBox> documentValues) {
+		// check inserted keys
+		if (configuration.hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+			documentContext.getDocumentIdProperty().ifPresent(idProperty -> {
+				for (Entry<Document, PropertyBox> document : documentValues.entrySet()) {
+					final ObjectId oid = document.getKey().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
+					if (oid != null) {
+						final Object idPropertyValue = documentContext.getDocumentIdResolver().decode(oid,
+								idProperty.getType());
+						if (document.getValue().contains(idProperty)) {
+							document.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
+						}
+					}
+				}
+			});
 		}
 	}
 
@@ -205,11 +282,12 @@ public class MongoOperations {
 
 	/**
 	 * Build the trace information for given query.
+	 * @param context Mongo context
 	 * @param query Query to trace
 	 * @param projection Optional query projection
 	 * @return Query trace information
 	 */
-	public static String traceQuery(BsonQuery query, Bson projection) {
+	public static String traceQuery(MongoContext context, BsonQuery query, Bson projection) {
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("Collection name: ");
@@ -217,15 +295,15 @@ public class MongoOperations {
 
 		query.getDefinition().getFilter().ifPresent(f -> {
 			sb.append("\nFilter: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(f));
+			sb.append(context.toJson(f));
 		});
 		query.getDefinition().getSort().ifPresent(s -> {
 			sb.append("\nSort: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(s));
+			sb.append(context.toJson(s));
 		});
 		if (projection != null) {
 			sb.append("\nProjection: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(projection));
+			sb.append(context.toJson(projection));
 		}
 
 		return sb.toString();
@@ -233,15 +311,35 @@ public class MongoOperations {
 
 	/**
 	 * Build the trace information for given aggregation pipeline.
+	 * @param context Mongo context
 	 * @param pipeline Aggregation pipeline to trace
-	 * @return String Aggregation pipeline trace information
+	 * @return Aggregation pipeline trace information
 	 */
-	public static String traceAggregationPipeline(List<Bson> pipeline) {
+	public static String traceAggregationPipeline(MongoContext context, List<Bson> pipeline) {
 		final StringBuilder sb = new StringBuilder();
 		pipeline.forEach(stage -> {
-			sb.append(DocumentSerializer.getDefault().toJson(stage));
+			sb.append(context.toJson(stage));
 			sb.append("\n");
 		});
+		return sb.toString();
+	}
+
+	/**
+	 * Build the trace information for given update operation.
+	 * @param context Mongo context
+	 * @param filter Optional filter
+	 * @param update Update expression
+	 * @return Update trace information
+	 */
+	public static String traceUpdate(MongoContext context, Optional<Bson> filter, Bson update) {
+		final StringBuilder sb = new StringBuilder();
+		filter.ifPresent(f -> {
+			sb.append("Filter:\n");
+			sb.append(context.toJson(f));
+			sb.append("\n");
+		});
+		sb.append("Values:\n");
+		sb.append(context.toJson(update));
 		return sb.toString();
 	}
 

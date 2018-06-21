@@ -216,7 +216,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		projection.ifPresent(p -> fi.projection(p));
 
 		// trace
-		context.trace("FIND query", () -> MongoOperations.traceQuery(query, projection.orElse(null)));
+		context.trace("FIND query", () -> MongoOperations.traceQuery(context, query, projection.orElse(null)));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
@@ -250,7 +250,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getCollation().ifPresent(c -> fi.collation(c));
 
 		// trace
-		context.trace("DISTINCT query on [" + fieldName + "]", () -> MongoOperations.traceQuery(query, null));
+		context.trace("DISTINCT query on [" + fieldName + "]", () -> MongoOperations.traceQuery(context, query, null));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
@@ -322,7 +322,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 					});
 		}
 		// trace
-		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(pipeline));
+		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(context, pipeline));
 
 		// iterable
 		final AggregateIterable<Document> ai = collection.aggregate(pipeline);

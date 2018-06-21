@@ -19,21 +19,17 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -41,7 +37,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
@@ -84,7 +79,6 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
 		try {
@@ -122,28 +116,13 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 				collection.insertMany(documents, MongoOperations.getInsertManyOptions(getConfiguration()));
 
 				// trace
-				operationContext.trace("Inserted documents",
-						DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), documents));
+				operationContext.trace("Inserted documents", documents);
 
 				final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 						.affectedCount(documents.size());
 
 				// check inserted keys
-				if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
-					context.getDocumentIdProperty().ifPresent(idProperty -> {
-						for (Entry<Document, PropertyBox> document : documentValues.entrySet()) {
-							final ObjectId oid = document.getKey().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
-							if (oid != null) {
-								final Object idPropertyValue = context.getDocumentIdResolver().decode(oid,
-										idProperty.getType());
-								if (document.getValue().contains(idProperty)) {
-									document.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
-								}
-							}
-						}
-					});
-				}
-
+				MongoOperations.checkInsertedKeys(context, getConfiguration(), documentValues);
 				return builder.build();
 
 			});

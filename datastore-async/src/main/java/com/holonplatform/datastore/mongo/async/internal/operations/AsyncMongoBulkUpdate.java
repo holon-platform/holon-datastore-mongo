@@ -15,10 +15,6 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -28,26 +24,22 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.async.datastore.operation.AsyncBulkUpdate;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncBulkUpdate;
-import com.holonplatform.core.Path;
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.BulkUpdateOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.FieldName;
-import com.holonplatform.datastore.mongo.core.expression.FieldValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.Updates;
 
 /**
  * Mongo {@link AsyncBulkUpdate} implementation.
@@ -88,12 +80,13 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
+			final BulkUpdateOperationConfiguration operationConfiguration = getConfiguration();
 			// validate
-			getConfiguration().validate();
+			operationConfiguration.validate();
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 			// filter
-			Optional<Bson> filter = getConfiguration().getFilter()
+			Optional<Bson> filter = operationConfiguration.getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 			// resolve collection name
 			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
@@ -101,48 +94,18 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 			// get and configure collection
 			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
 				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName), context,
-						getConfiguration());
+						operationConfiguration);
 			});
-
 			// build context
-			return BulkOperationContext.create(operationContext, getConfiguration(), context, collection,
-					filter.orElse(null));
-
+			return BulkUpdateOperationContext.create(operationContext, getConfiguration(), context, collection,
+					filter.orElse(null), operationConfiguration);
 		}).thenCompose(context -> {
-			// resolve values
-			final Map<Path<?>, TypedExpression<?>> values = getConfiguration().getValues();
-			List<Bson> updates = new ArrayList<>(values.size());
-			for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
-				// child update context
-				final MongoResolutionContext subContext = context.getResolutionContext()
-						.childContextForUpdate(value.getKey());
-
-				if (value.getValue() == null) {
-					// resolve field name
-					final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class).getFieldName();
-					// $unset for null values
-					updates.add(Updates.unset(fieldName));
-				} else {
-					// check value expression resolution
-					updates.add(subContext.resolve(value.getValue(), BsonExpression.class).map(be -> be.getValue())
-							.orElseGet(() -> {
-								// resolve field name
-								final String fieldName = subContext.resolveOrFail(value.getKey(), FieldName.class)
-										.getFieldName();
-								// resolve field value
-								final Object fieldValue = subContext.resolveOrFail(value.getValue(), FieldValue.class)
-										.getValue();
-								// $set value
-								return Updates.set(fieldName, fieldValue);
-							}));
-				}
-			}
-
-			Bson update = Updates.combine(updates);
-
+			// update expression
+			final Bson update = MongoOperations.getUpdateExpression(context.getResolutionContext(),
+					context.getOperationConfiguration());
 			// trace
-			operationContext.trace("Update documents", trace(context.getFilter(), update));
-
+			context.getOperationContext().trace("Update documents",
+					MongoOperations.traceUpdate(context.getOperationContext(), context.getFilter(), update));
 			// prepare
 			final CompletableFuture<BulkOperationContext> operation = new CompletableFuture<>();
 			// update
@@ -155,24 +118,11 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 							operation.complete(context);
 						}
 					});
-			// return the future
 			return operation;
 		}).thenApply(context -> {
 			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(context.getAffectedCount())
 					.build();
 		});
-	}
-
-	private static String trace(Optional<Bson> filter, Bson update) {
-		final StringBuilder sb = new StringBuilder();
-		filter.ifPresent(f -> {
-			sb.append("Filter:\n");
-			sb.append(DocumentSerializer.getDefault().toJson(f));
-			sb.append("\n");
-		});
-		sb.append("Values:\n");
-		sb.append(DocumentSerializer.getDefault().toJson(update));
-		return sb.toString();
 	}
 
 }

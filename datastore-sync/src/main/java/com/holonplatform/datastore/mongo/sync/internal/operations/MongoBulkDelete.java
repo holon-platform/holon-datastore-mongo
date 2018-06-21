@@ -31,7 +31,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
@@ -100,7 +99,7 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 
 				// trace
 				operationContext.trace("Delete documents - filter",
-						filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
+						filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
 
 				// delete
 				DeleteResult result = collection.deleteMany(filter.orElse(null),

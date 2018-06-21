@@ -37,7 +37,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -128,8 +127,7 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 					.orElseThrow(() -> new DataAccessException("No document found using id property ["
 							+ context.getDocumentContext().getDocumentIdProperty().orElse(null) + "]"));
 			// trace
-			context.getOperationContext().trace("Refreshed document",
-					DocumentSerializer.getDefault().toJson(context.getCollection().getCodecRegistry(), document));
+			context.getOperationContext().trace("Refreshed document", document);
 			// build operation result
 			return context.getDocumentContext().resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class)
 					.getValue();

@@ -19,12 +19,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.holonplatform.async.datastore.operation.AsyncBulkInsert;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncBulkInsert;
@@ -33,8 +31,6 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
@@ -45,7 +41,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -86,7 +81,6 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.commons.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
@@ -137,28 +131,14 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 		}).thenApply(context -> {
 
 			// trace
-			operationContext.trace("Inserted documents", DocumentSerializer.getDefault().toJson(
-					context.getCollection().getCodecRegistry(), new ArrayList<>(context.getDocuments().keySet())));
+			context.getOperationContext().trace("Inserted documents", new ArrayList<>(context.getDocuments().keySet()));
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(context.getDocuments().size());
 
 			// check inserted keys
-			if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
-				context.getDocumentContext().getDocumentIdProperty().ifPresent(idProperty -> {
-					for (Entry<Document, PropertyBox> document : context.getDocuments().entrySet()) {
-						final ObjectId oid = document.getKey().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
-						if (oid != null) {
-							final Object idPropertyValue = context.getDocumentContext().getDocumentIdResolver()
-									.decode(oid, idProperty.getType());
-							if (document.getValue().contains(idProperty)) {
-								document.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
-							}
-						}
-					}
-				});
-			}
-
+			MongoOperations.checkInsertedKeys(context.getDocumentContext(), context.getConfiguration(),
+					context.getDocuments());
 			return builder.build();
 		});
 	}

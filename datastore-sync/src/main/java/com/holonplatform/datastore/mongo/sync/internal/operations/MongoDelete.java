@@ -30,9 +30,6 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
@@ -114,10 +111,7 @@ public class MongoDelete extends AbstractDelete {
 					MongoOperations.getDeleteOptions(getConfiguration()));
 
 			// trace
-			operationContext.trace("Deleted document",
-					() -> context.resolve(PropertyBoxValue.create(value), DocumentValue.class).map(d -> d.getValue())
-							.map(d -> DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), d))
-							.orElse("with id [" + id + "]"));
+			operationContext.trace("Deleted document", "Deleted document id: " + id);
 
 			return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount()).build();
 

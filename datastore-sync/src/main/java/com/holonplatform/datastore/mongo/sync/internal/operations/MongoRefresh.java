@@ -30,7 +30,6 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
-import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -102,8 +101,8 @@ public class MongoRefresh extends AbstractRefresh {
 		return operationContext.withDatabase(database -> {
 
 			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator.configureRead(
-					database.getCollection(collectionName), context, getConfiguration().getParameters());
+			final MongoCollection<Document> collection = MongoOperationConfigurator
+					.configureRead(database.getCollection(collectionName), context, getConfiguration().getParameters());
 
 			// get document by id
 			Document document = collection.find(Filters.eq(id)).first();
@@ -113,8 +112,7 @@ public class MongoRefresh extends AbstractRefresh {
 			}
 
 			// trace
-			operationContext.trace("Refreshed document",
-					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
+			operationContext.trace("Refreshed document", document);
 
 			// decode the document
 			return context.resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class).getValue();

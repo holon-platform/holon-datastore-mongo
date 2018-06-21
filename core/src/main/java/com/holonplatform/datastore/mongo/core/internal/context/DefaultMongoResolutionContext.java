@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
@@ -240,6 +242,15 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public DocumentIdResolver getDocumentIdResolver() {
 		return getContext().getDocumentIdResolver();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
+	 */
+	@Override
+	public CodecRegistry getDatabaseCodecRegistry() {
+		return getContext().getDatabaseCodecRegistry();
 	}
 
 	/*

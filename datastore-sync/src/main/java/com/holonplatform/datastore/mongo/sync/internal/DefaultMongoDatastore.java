@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.sync.internal;
 
 import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.exceptions.DataAccessException;
@@ -128,6 +129,14 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 	@Override
 	public boolean isAsync() {
 		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
+	 */
+	@Override
+	public CodecRegistry getDatabaseCodecRegistry() {
+		return checkClient().getDatabase(checkDatabaseName()).getCodecRegistry();
 	}
 
 	/**

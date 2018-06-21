@@ -30,7 +30,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
-import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
@@ -42,6 +41,7 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.AggregateIterable;
@@ -140,7 +140,12 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 				"Filter: \n" + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
 
 		// count
-		Long count = definition.getFilter().map(f -> collection.count(f)).orElse(collection.count());
+		Long count;
+		if (definition.getFilter().isPresent()) {
+			count = collection.count(definition.getFilter().get());
+		} else {
+			count = collection.count();
+		}
 
 		return Stream.of((R) count);
 	}
@@ -157,12 +162,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	private static <R> Stream<R> find(MongoResolutionContext context, MongoCollection<Document> collection,
 			Class<? extends R> resultType, BsonQuery query) {
 
-		// check converter
-		final DocumentConverter<R> documentConverter = getConverter(query);
-		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
-					+ "] is not compatible with the query projection type [" + resultType + "]");
-		}
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		final FindIterable<Document> fi = collection.find();
 
@@ -215,20 +216,11 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		projection.ifPresent(p -> fi.projection(p));
 
 		// trace
-		context.trace("FIND query", () -> traceQuery(query, projection.orElse(null)));
+		context.trace("FIND query", () -> MongoOperations.traceQuery(query, projection.orElse(null)));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
 				.map(document -> documentConverter.convert(context, document));
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <R> DocumentConverter<R> getConverter(BsonQuery query) {
-		DocumentConverter<?> converter = query.getProjection().flatMap(p -> p.getConverter()).orElse(null);
-		if (converter != null) {
-			return (DocumentConverter<R>) converter;
-		}
-		return (DocumentConverter<R>) DocumentConverter.identity();
 	}
 
 	private static <R> Stream<R> distinct(MongoResolutionContext context, MongoCollection<Document> collection,
@@ -241,12 +233,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		final String fieldName = query.getDistinctFieldName().get();
 
-		// check converter
-		final DocumentConverter<R> documentConverter = getConverter(query);
-		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
-					+ "] is not compatible with the query projection type [" + resultType + "]");
-		}
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		final DistinctIterable<Object> fi = collection.distinct(fieldName, Object.class);
 
@@ -262,7 +250,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		definition.getCollation().ifPresent(c -> fi.collation(c));
 
 		// trace
-		context.trace("DISTINCT query on [" + fieldName + "]", () -> traceQuery(query, null));
+		context.trace("DISTINCT query on [" + fieldName + "]", () -> MongoOperations.traceQuery(query, null));
 
 		// stream with converter mapper
 		return StreamSupport.stream(fi.spliterator(), false)
@@ -283,12 +271,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	private static <R> Stream<R> aggregate(MongoResolutionContext context, MongoCollection<Document> collection,
 			Class<? extends R> resultType, BsonQuery query) {
 
-		// check converter
-		final DocumentConverter<R> documentConverter = getConverter(query);
-		if (!TypeUtils.isAssignable(documentConverter.getConversionType(), resultType)) {
-			throw new DataAccessException("The query results converter type [" + documentConverter.getConversionType()
-					+ "] is not compatible with the query projection type [" + resultType + "]");
-		}
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		// aggregation pipeline
 		List<Bson> pipeline = new LinkedList<>();
@@ -338,7 +322,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 					});
 		}
 		// trace
-		context.trace("Aggregation pipeline", () -> traceAggregationPipeline(pipeline));
+		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(pipeline));
 
 		// iterable
 		final AggregateIterable<Document> ai = collection.aggregate(pipeline);
@@ -357,48 +341,6 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		// stream with converter mapper
 		return StreamSupport.stream(ai.spliterator(), false)
 				.map(document -> documentConverter.convert(context, document));
-	}
-
-	/**
-	 * Build the trace information for given query.
-	 * @param query Query to trace
-	 * @param projection Optional query projection
-	 * @return Query trace information
-	 */
-	private static String traceQuery(BsonQuery query, Bson projection) {
-		final StringBuilder sb = new StringBuilder();
-
-		sb.append("Collection name: ");
-		sb.append(query.getDefinition().getCollectionName());
-
-		query.getDefinition().getFilter().ifPresent(f -> {
-			sb.append("\nFilter: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(f));
-		});
-		query.getDefinition().getSort().ifPresent(s -> {
-			sb.append("\nSort: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(s));
-		});
-		if (projection != null) {
-			sb.append("\nProjection: \n");
-			sb.append(DocumentSerializer.getDefault().toJson(projection));
-		}
-
-		return sb.toString();
-	}
-
-	/**
-	 * Build the trace information for given aggregation pipeline.
-	 * @param pipeline Aggregation pipeline to trace
-	 * @return String Aggregation pipeline trace information
-	 */
-	private static String traceAggregationPipeline(List<Bson> pipeline) {
-		final StringBuilder sb = new StringBuilder();
-		pipeline.forEach(stage -> {
-			sb.append(DocumentSerializer.getDefault().toJson(stage));
-			sb.append("\n");
-		});
-		return sb.toString();
 	}
 
 }

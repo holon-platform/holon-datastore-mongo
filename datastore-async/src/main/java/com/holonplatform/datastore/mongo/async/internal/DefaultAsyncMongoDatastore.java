@@ -28,6 +28,7 @@ import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBul
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkUpdate;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoDelete;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoInsert;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoQuery;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRefresh;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoSave;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpdate;
@@ -63,7 +64,6 @@ public class DefaultAsyncMongoDatastore
 		// default resolvers
 		addExpressionResolvers(MongoExpressionResolver.getDefaultResolvers());
 
-		// TODO
 		// register operation commodities
 		registerCommodity(AsyncMongoRefresh.FACTORY);
 		registerCommodity(AsyncMongoInsert.FACTORY);
@@ -73,10 +73,7 @@ public class DefaultAsyncMongoDatastore
 		registerCommodity(AsyncMongoBulkDelete.FACTORY);
 		registerCommodity(AsyncMongoBulkInsert.FACTORY);
 		registerCommodity(AsyncMongoBulkUpdate.FACTORY);
-
-		/*
-		 * registerCommodity(MongoQuery.FACTORY);
-		 */
+		registerCommodity(AsyncMongoQuery.FACTORY);
 
 		// check initialize
 		if (initialize) {

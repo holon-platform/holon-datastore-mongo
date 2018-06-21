@@ -16,16 +16,13 @@
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -34,6 +31,7 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -76,7 +74,6 @@ public class MongoInsert extends AbstractInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
 
@@ -92,8 +89,6 @@ public class MongoInsert extends AbstractInsert {
 		// resolve collection
 		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
 				.getName();
-
-		// TODO ensure indexes
 
 		return operationContext.withDatabase(database -> {
 
@@ -117,28 +112,8 @@ public class MongoInsert extends AbstractInsert {
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
-
 			// check inserted keys
-			if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
-				// get document id value
-				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
-				if (oid != null) {
-					context.getDocumentIdPath().ifPresent(idp -> {
-						final Object idPropertyValue = context.getDocumentIdResolver().decode(oid, idp.getType());
-						builder.withInsertedKey(idp, idPropertyValue);
-
-						// check bring back ids
-						if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
-							context.getDocumentIdProperty().ifPresent(idProperty -> {
-								if (value.contains(idProperty)) {
-									value.setValue((Property<Object>) idProperty, idPropertyValue);
-								}
-							});
-						}
-					});
-				}
-			}
-
+			MongoOperations.checkInsertedKeys(builder, context, getConfiguration(), document, value);
 			return builder.build();
 
 		});

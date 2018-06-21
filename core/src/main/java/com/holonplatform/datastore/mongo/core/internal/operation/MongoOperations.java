@@ -17,10 +17,18 @@ package com.holonplatform.datastore.mongo.core.internal.operation;
 
 import java.util.List;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
+import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
@@ -31,6 +39,40 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializ
  * @since 5.2.0
  */
 public class MongoOperations {
+
+	/**
+	 * Check generated document id after an insert type operation, setting the inserted keys using given
+	 * {@link OperationResult} builder.
+	 * @param builder OperationResult builder
+	 * @param documentContext Document context
+	 * @param configuration Operation configuration
+	 * @param document Document result of the insert operation
+	 * @param value Original {@link PropertyBox} value
+	 */
+	@SuppressWarnings("unchecked")
+	public static void checkInsertedKeys(OperationResult.Builder builder, MongoDocumentContext documentContext,
+			DatastoreOperationConfiguration configuration, Document document, PropertyBox value) {
+		// check inserted keys
+		if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
+			// get document id value
+			final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
+			if (oid != null) {
+				documentContext.getDocumentIdPath().ifPresent(idp -> {
+					final Object idPropertyValue = documentContext.getDocumentIdResolver().decode(oid, idp.getType());
+					builder.withInsertedKey(idp, idPropertyValue);
+
+					// check bring back ids
+					if (configuration.hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+						documentContext.getDocumentIdProperty().ifPresent(idProperty -> {
+							if (value.contains(idProperty)) {
+								value.setValue((Property<Object>) idProperty, idPropertyValue);
+							}
+						});
+					}
+				});
+			}
+		}
+	}
 
 	/**
 	 * Get the {@link DocumentConverter} to use to process given query results, checking the conversion type and

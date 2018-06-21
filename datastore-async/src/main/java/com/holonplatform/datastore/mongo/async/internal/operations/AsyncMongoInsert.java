@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.holonplatform.async.datastore.operation.AsyncInsert;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncInsert;
@@ -27,8 +26,6 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
@@ -38,6 +35,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.InsertOneOptions;
@@ -78,7 +76,6 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.commons.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
@@ -122,29 +119,9 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			// build operation result
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
-			final Document document = context.requireDocument();
 			// check inserted keys
-			if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
-				// get document id value
-				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
-				if (oid != null) {
-					context.getDocumentContext().getDocumentIdPath().ifPresent(idp -> {
-						final Object idPropertyValue = context.getDocumentContext().getDocumentIdResolver().decode(oid,
-								idp.getType());
-						builder.withInsertedKey(idp, idPropertyValue);
-						// check bring back ids
-						if (context.getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
-							context.getDocumentContext().getDocumentIdProperty().ifPresent(idProperty -> {
-								if (context.getConfiguration().getValue().contains(idProperty)) {
-									context.getConfiguration().getValue().setValue((Property<Object>) idProperty,
-											idPropertyValue);
-								}
-							});
-						}
-					});
-				}
-			}
-			// done
+			MongoOperations.checkInsertedKeys(builder, context.getDocumentContext(), context.getConfiguration(),
+					context.requireDocument(), context.getConfiguration().getValue());
 			return builder.build();
 		});
 	}

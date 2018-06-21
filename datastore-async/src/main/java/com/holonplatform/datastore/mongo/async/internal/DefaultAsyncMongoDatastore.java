@@ -23,6 +23,9 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkDelete;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkInsert;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkUpdate;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoDelete;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoInsert;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRefresh;
@@ -67,12 +70,11 @@ public class DefaultAsyncMongoDatastore
 		registerCommodity(AsyncMongoUpdate.FACTORY);
 		registerCommodity(AsyncMongoSave.FACTORY);
 		registerCommodity(AsyncMongoDelete.FACTORY);
-		
+		registerCommodity(AsyncMongoBulkDelete.FACTORY);
+		registerCommodity(AsyncMongoBulkInsert.FACTORY);
+		registerCommodity(AsyncMongoBulkUpdate.FACTORY);
+
 		/*
-		 * registerCommodity(MongoRefresh.FACTORY); registerCommodity(MongoInsert.FACTORY);
-		 * registerCommodity(MongoUpdate.FACTORY); registerCommodity(MongoSave.FACTORY);
-		 * registerCommodity(MongoDelete.FACTORY); registerCommodity(MongoBulkInsert.FACTORY);
-		 * registerCommodity(MongoBulkUpdate.FACTORY); registerCommodity(MongoBulkDelete.FACTORY);
 		 * registerCommodity(MongoQuery.FACTORY);
 		 */
 

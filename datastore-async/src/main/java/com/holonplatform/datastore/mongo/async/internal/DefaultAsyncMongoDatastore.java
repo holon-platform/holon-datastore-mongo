@@ -23,8 +23,11 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoDelete;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoInsert;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRefresh;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoSave;
+import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpdate;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
 import com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -61,6 +64,10 @@ public class DefaultAsyncMongoDatastore
 		// register operation commodities
 		registerCommodity(AsyncMongoRefresh.FACTORY);
 		registerCommodity(AsyncMongoInsert.FACTORY);
+		registerCommodity(AsyncMongoUpdate.FACTORY);
+		registerCommodity(AsyncMongoSave.FACTORY);
+		registerCommodity(AsyncMongoDelete.FACTORY);
+		
 		/*
 		 * registerCommodity(MongoRefresh.FACTORY); registerCommodity(MongoInsert.FACTORY);
 		 * registerCommodity(MongoUpdate.FACTORY); registerCommodity(MongoSave.FACTORY);

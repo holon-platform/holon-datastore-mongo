@@ -24,7 +24,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
@@ -36,7 +35,6 @@ import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodity
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.InsertOneOptions;
 
 /**
  * MongoDB {@link Insert}.
@@ -99,12 +97,8 @@ public class MongoInsert extends AbstractInsert {
 			// encode Document
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();
 
-			// options
-			final InsertOneOptions options = new InsertOneOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-
 			// insert
-			collection.insertOne(document, options);
+			collection.insertOne(document, MongoOperations.getInsertOneOptions(getConfiguration()));
 
 			// trace
 			operationContext.trace("Inserted document",

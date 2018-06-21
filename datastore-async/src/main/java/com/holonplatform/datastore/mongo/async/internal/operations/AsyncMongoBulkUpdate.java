@@ -37,8 +37,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
-import com.holonplatform.datastore.mongo.core.CollationOption;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -46,9 +44,9 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 
 /**
@@ -142,26 +140,21 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 
 			Bson update = Updates.combine(updates);
 
-			// options
-			UpdateOptions options = new UpdateOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-
 			// trace
 			operationContext.trace("Update documents", trace(context.getFilter(), update));
 
 			// prepare
 			final CompletableFuture<BulkOperationContext> operation = new CompletableFuture<>();
 			// update
-			context.getCollection().updateMany(context.getFilter().orElse(null), update, options, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					context.setAffectedCount(result.getModifiedCount());
-					operation.complete(context);
-				}
-			});
+			context.getCollection().updateMany(context.getFilter().orElse(null), update,
+					MongoOperations.getUpdateOptions(context.getConfiguration(), false), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							context.setAffectedCount(result.getModifiedCount());
+							operation.complete(context);
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

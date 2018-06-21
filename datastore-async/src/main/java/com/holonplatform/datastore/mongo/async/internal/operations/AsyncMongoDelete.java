@@ -33,14 +33,13 @@ import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodi
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
-import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.Filters;
 
 /**
@@ -99,10 +98,6 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 			// build context
 			return DocumentOperationContext.create(context, collection);
 		}).thenCompose(context -> {
-			// options
-			final DeleteOptions options = new DeleteOptions();
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
 			// id property
 			final Property<?> idProperty = context.getDocumentContext().getDocumentIdProperty().orElseThrow(
 					() -> new DataAccessException("Cannot perform a DELETE operation: missing document id property"
@@ -119,14 +114,15 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 			// prepare
 			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
 			// delete
-			context.getCollection().deleteOne(Filters.eq(id), options, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					context.setAffectedCount(result.getDeletedCount());
-					operation.complete(context);
-				}
-			});
+			context.getCollection().deleteOne(Filters.eq(id),
+					MongoOperations.getDeleteOptions(context.getConfiguration()), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							context.setAffectedCount(result.getDeletedCount());
+							operation.complete(context);
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

@@ -28,10 +28,16 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.mongo.core.CollationOption;
+import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.mongodb.client.model.DeleteOptions;
+import com.mongodb.client.model.InsertManyOptions;
+import com.mongodb.client.model.InsertOneOptions;
+import com.mongodb.client.model.UpdateOptions;
 
 /**
  * Utility class for MongoDB operation configuration.
@@ -39,6 +45,54 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializ
  * @since 5.2.0
  */
 public class MongoOperations {
+
+	/**
+	 * Build a {@link InsertOneOptions} instance using given operation configuration.
+	 * @param configuration Operation configuration
+	 * @return Options
+	 */
+	public static InsertOneOptions getInsertOneOptions(DatastoreOperationConfiguration configuration) {
+		final InsertOneOptions options = new InsertOneOptions();
+		options.bypassDocumentValidation(configuration.hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+		return options;
+	}
+
+	/**
+	 * Build a {@link InsertManyOptions} instance using given operation configuration.
+	 * @param configuration Operation configuration
+	 * @return Options
+	 */
+	public static InsertManyOptions getInsertManyOptions(DatastoreOperationConfiguration configuration) {
+		final InsertManyOptions options = new InsertManyOptions();
+		options.bypassDocumentValidation(configuration.hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+		options.ordered(!configuration.hasWriteOption(DocumentWriteOption.UNORDERED));
+		return options;
+	}
+
+	/**
+	 * Build a {@link UpdateOptions} instance using given operation configuration.
+	 * @param configuration Operation configuration
+	 * @param upsert Set to true if a new document should be inserted if there are no matches to the query filter.
+	 * @return Options
+	 */
+	public static UpdateOptions getUpdateOptions(DatastoreOperationConfiguration configuration, boolean upsert) {
+		final UpdateOptions options = new UpdateOptions();
+		options.bypassDocumentValidation(configuration.hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
+		configuration.getWriteOption(CollationOption.class).ifPresent(o -> options.collation(o.getCollation()));
+		options.upsert(upsert);
+		return options;
+	}
+
+	/**
+	 * Build a {@link DeleteOptions} instance using given operation configuration.
+	 * @param configuration Operation configuration
+	 * @return Options
+	 */
+	public static DeleteOptions getDeleteOptions(DatastoreOperationConfiguration configuration) {
+		final DeleteOptions options = new DeleteOptions();
+		configuration.getWriteOption(CollationOption.class).ifPresent(o -> options.collation(o.getCollation()));
+		return options;
+	}
 
 	/**
 	 * Check generated document id after an insert type operation, setting the inserted keys using given

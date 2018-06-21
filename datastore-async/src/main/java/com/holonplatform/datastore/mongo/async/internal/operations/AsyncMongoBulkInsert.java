@@ -40,16 +40,15 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperationContext;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.InsertManyOptions;
 
 /**
  * Mongo {@link AsyncBulkInsert} implementation.
@@ -117,26 +116,22 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 				documentValues.put(context.getDocumentContext()
 						.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue(), v);
 			});
-			// options
-			final InsertManyOptions options = new InsertManyOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			options.ordered(!getConfiguration().hasWriteOption(DocumentWriteOption.UNORDERED));
-
 			// insert
 			final List<Document> documents = new ArrayList<>(documentValues.keySet());
 
 			// prepare
 			final CompletableFuture<BulkInsertOperationContext> operation = new CompletableFuture<>();
 			// insert
-			context.getCollection().insertMany(documents, options, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					context.setAffectedCount(documents.size());
-					context.setDocuments(documentValues);
-					operation.complete(context);
-				}
-			});
+			context.getCollection().insertMany(documents,
+					MongoOperations.getInsertManyOptions(context.getConfiguration()), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							context.setAffectedCount(documents.size());
+							context.setDocuments(documentValues);
+							operation.complete(context);
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

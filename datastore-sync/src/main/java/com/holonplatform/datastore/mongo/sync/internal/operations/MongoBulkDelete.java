@@ -27,17 +27,16 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDelete;
-import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.result.DeleteResult;
 
 /**
@@ -99,17 +98,13 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 				final MongoCollection<Document> collection = MongoOperationConfigurator
 						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-				// options
-				DeleteOptions options = new DeleteOptions();
-				getConfiguration().getWriteOption(CollationOption.class)
-						.ifPresent(o -> options.collation(o.getCollation()));
-
 				// trace
 				operationContext.trace("Delete documents - filter",
 						filter.map(f -> DocumentSerializer.getDefault().toJson(f)).orElse("[NONE]"));
 
 				// delete
-				DeleteResult result = collection.deleteMany(filter.orElse(null), options);
+				DeleteResult result = collection.deleteMany(filter.orElse(null),
+						MongoOperations.getDeleteOptions(getConfiguration()));
 
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount())
 						.build();

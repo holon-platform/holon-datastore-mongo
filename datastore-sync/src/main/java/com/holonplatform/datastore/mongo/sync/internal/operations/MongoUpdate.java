@@ -27,20 +27,18 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdate;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.CollationOption;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -118,15 +116,9 @@ public class MongoUpdate extends AbstractUpdate {
 			operationContext.trace("Update document",
 					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
 
-			// options
-			final UpdateOptions options = new UpdateOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-			options.upsert(false);
-
 			// update
-			UpdateResult result = collection.updateOne(Filters.eq(id), document, options);
+			UpdateResult result = collection.updateOne(Filters.eq(id), document,
+					MongoOperations.getUpdateOptions(getConfiguration(), false));
 			int affected = result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1;
 
 			// result

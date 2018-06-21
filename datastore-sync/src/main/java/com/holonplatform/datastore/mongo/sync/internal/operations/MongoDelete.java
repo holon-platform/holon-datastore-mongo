@@ -27,18 +27,17 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractDelete;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.CollationOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
@@ -110,13 +109,9 @@ public class MongoDelete extends AbstractDelete {
 			final MongoCollection<Document> collection = MongoOperationConfigurator
 					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-			// options
-			final DeleteOptions options = new DeleteOptions();
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-
 			// delete
-			final DeleteResult result = collection.deleteOne(Filters.eq(id), options);
+			final DeleteResult result = collection.deleteOne(Filters.eq(id),
+					MongoOperations.getDeleteOptions(getConfiguration()));
 
 			// trace
 			operationContext.trace("Deleted document",

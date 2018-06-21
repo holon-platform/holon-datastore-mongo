@@ -33,8 +33,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdate;
-import com.holonplatform.datastore.mongo.core.CollationOption;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -42,11 +40,11 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
@@ -139,18 +137,12 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 				final MongoCollection<Document> collection = MongoOperationConfigurator
 						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-				// options
-				UpdateOptions options = new UpdateOptions();
-				options.bypassDocumentValidation(
-						getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-				getConfiguration().getWriteOption(CollationOption.class)
-						.ifPresent(o -> options.collation(o.getCollation()));
-
 				// trace
 				operationContext.trace("Update documents", trace(filter, update));
 
 				// delete
-				UpdateResult result = collection.updateMany(filter.orElse(null), update, options);
+				UpdateResult result = collection.updateMany(filter.orElse(null), update,
+						MongoOperations.getUpdateOptions(getConfiguration(), false));
 
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result.getModifiedCount())
 						.build();

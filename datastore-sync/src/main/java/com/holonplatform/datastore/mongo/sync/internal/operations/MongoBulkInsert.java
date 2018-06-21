@@ -36,18 +36,17 @@ import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.InsertManyOptions;
 
 /**
  * Mongo {@link BulkInsert} implementation.
@@ -117,16 +116,10 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 				final MongoCollection<Document> collection = MongoOperationConfigurator
 						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
-				// options
-				final InsertManyOptions options = new InsertManyOptions();
-				options.bypassDocumentValidation(
-						getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-				options.ordered(!getConfiguration().hasWriteOption(DocumentWriteOption.UNORDERED));
-
 				// insert
 				final List<Document> documents = new ArrayList<>(documentValues.keySet());
 
-				collection.insertMany(documents, options);
+				collection.insertMany(documents, MongoOperations.getInsertManyOptions(getConfiguration()));
 
 				// trace
 				operationContext.trace("Inserted documents",

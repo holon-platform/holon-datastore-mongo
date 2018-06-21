@@ -33,16 +33,14 @@ import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodi
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
-import com.holonplatform.datastore.mongo.core.CollationOption;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.UpdateOptions;
 
 /**
  * MongoDB {@link AsyncUpdate}.
@@ -112,26 +110,22 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 						"Cannot perform a UPDATE operation: missing document id value for property [" + idProperty
 								+ "]");
 			}
-			// options
-			final UpdateOptions options = new UpdateOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-			options.upsert(false);
 			// document
 			final Document document = context.requireDocument();
 			// prepare
 			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
 			// insert
-			context.getCollection().updateOne(Filters.eq(id), document, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					context.setAffectedCount(
-							result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1);
-					operation.complete(context);
-				}
-			});
+			context.getCollection().updateOne(Filters.eq(id), document,
+					MongoOperations.getUpdateOptions(context.getConfiguration(), false), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							context.setAffectedCount(result.isModifiedCountAvailable()
+									? Long.valueOf(result.getModifiedCount()).intValue()
+									: 1);
+							operation.complete(context);
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

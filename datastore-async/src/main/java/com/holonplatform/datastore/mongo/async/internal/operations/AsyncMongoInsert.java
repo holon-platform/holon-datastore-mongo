@@ -30,7 +30,6 @@ import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodi
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
@@ -38,7 +37,6 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializ
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.InsertOneOptions;
 
 /**
  * MongoDB {@link AsyncInsert}.
@@ -96,20 +94,17 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			// build context
 			return DocumentOperationContext.create(context, collection);
 		}).thenCompose(context -> {
-			// options
-			final InsertOneOptions options = new InsertOneOptions();
-			options.bypassDocumentValidation(
-					context.getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
 			// prepare
 			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
 			// insert
-			context.getCollection().insertOne(context.requireDocument(), options, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(context);
-				}
-			});
+			context.getCollection().insertOne(context.requireDocument(),
+					MongoOperations.getInsertOneOptions(context.getConfiguration()), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(context);
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

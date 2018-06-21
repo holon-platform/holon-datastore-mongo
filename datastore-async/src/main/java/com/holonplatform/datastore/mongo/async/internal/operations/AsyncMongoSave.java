@@ -39,17 +39,15 @@ import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurat
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.SaveOperationContext;
-import com.holonplatform.datastore.mongo.core.CollationOption;
-import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
+import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.UpdateOptions;
 
 /**
  * MongoDB {@link AsyncSave}.
@@ -128,13 +126,6 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 
 			}
 
-			// options - set upsert
-			final UpdateOptions options = new UpdateOptions();
-			options.bypassDocumentValidation(getConfiguration().hasWriteOption(DocumentWriteOption.BYPASS_VALIDATION));
-			getConfiguration().getWriteOption(CollationOption.class)
-					.ifPresent(o -> options.collation(o.getCollation()));
-			options.upsert(true);
-
 			// document
 			final Document document = context.requireDocument();
 
@@ -142,19 +133,23 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 			final CompletableFuture<SaveOperationContext> operation = new CompletableFuture<>();
 
 			// insert
-			context.getCollection().updateOne(Filters.eq(id), document, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					// check insert
-					final BsonValue upsertedId = result.getUpsertedId();
-					operation.complete(SaveOperationContext.create(context.getConfiguration(),
-							context.getOperationContext(), context.getDocumentContext(), context.getCollection(),
-							(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
-							result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1,
-							upsertedId, document));
-				}
-			});
+			context.getCollection().updateOne(Filters.eq(id), document,
+					MongoOperations.getUpdateOptions(context.getConfiguration(), true), (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							// check insert
+							final BsonValue upsertedId = result.getUpsertedId();
+							operation.complete(SaveOperationContext.create(context.getConfiguration(),
+									context.getOperationContext(), context.getDocumentContext(),
+									context.getCollection(),
+									(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+									result.isModifiedCountAvailable()
+											? Long.valueOf(result.getModifiedCount()).intValue()
+											: 1,
+									upsertedId, document));
+						}
+					});
 			// return the future
 			return operation;
 		}).thenApply(context -> {

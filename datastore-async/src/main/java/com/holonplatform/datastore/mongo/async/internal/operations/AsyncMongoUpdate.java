@@ -120,9 +120,7 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 						if (error != null) {
 							operation.completeExceptionally(error);
 						} else {
-							context.setAffectedCount(result.isModifiedCountAvailable()
-									? Long.valueOf(result.getModifiedCount()).intValue()
-									: 1);
+							context.setAffectedCount(MongoOperations.getAffectedCount(result));
 							operation.complete(context);
 						}
 					});

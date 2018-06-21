@@ -25,7 +25,6 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.datastore.operation.Save;
 import com.holonplatform.core.internal.Logger;
@@ -84,7 +83,6 @@ public class MongoSave extends AbstractSave {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
 
@@ -124,15 +122,14 @@ public class MongoSave extends AbstractSave {
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();
 
 			// update with upsert
-			UpdateResult result = collection.updateOne(Filters.eq(id), document,
+			final UpdateResult result = collection.updateOne(Filters.eq(id), document,
 					MongoOperations.getUpdateOptions(getConfiguration(), true));
 
 			// check insert
-			BsonValue upsertedId = result.getUpsertedId();
+			final BsonValue upsertedId = result.getUpsertedId();
 
 			final OperationType operationType = (upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE;
-			final int affected = (upsertedId != null) ? 1
-					: (result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1);
+			final long affected = (upsertedId != null) ? 1 : MongoOperations.getAffectedCount(result);
 
 			// trace
 			operationContext.trace("Saved document [" + operationType.name() + "]",
@@ -142,26 +139,8 @@ public class MongoSave extends AbstractSave {
 					.affectedCount(affected);
 
 			// upserted key
-			if (upsertedId != null) {
-				final ObjectId oid = upsertedId.asObjectId().getValue();
-				context.getDocumentIdPath().ifPresent(idp -> {
-					final Object idPropertyValue = context.getDocumentIdResolver().decode(oid, idp.getType());
-					builder.withInsertedKey(idp, idPropertyValue);
-
-					// check bring back ids
-					if (getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
-						idProperty.ifPresent(idprp -> {
-							if (value.contains(idprp)) {
-								value.setValue((Property<Object>) idprp, idPropertyValue);
-							}
-						});
-					}
-				});
-			}
-
-			// result
+			MongoOperations.checkUpsertedKey(builder, context, getConfiguration(), upsertedId, value);
 			return builder.build();
-
 		});
 	}
 

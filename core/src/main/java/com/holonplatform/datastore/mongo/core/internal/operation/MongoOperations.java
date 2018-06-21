@@ -17,6 +17,7 @@ package com.holonplatform.datastore.mongo.core.internal.operation;
 
 import java.util.List;
 
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -38,6 +39,7 @@ import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.result.UpdateResult;
 
 /**
  * Utility class for MongoDB operation configuration.
@@ -95,6 +97,15 @@ public class MongoOperations {
 	}
 
 	/**
+	 * Get the elements affected by the update operation.
+	 * @param updateResult Update result
+	 * @return Affected elements count
+	 */
+	public static long getAffectedCount(UpdateResult updateResult) {
+		return updateResult.isModifiedCountAvailable() ? Long.valueOf(updateResult.getModifiedCount()).intValue() : 1;
+	}
+
+	/**
 	 * Check generated document id after an insert type operation, setting the inserted keys using given
 	 * {@link OperationResult} builder.
 	 * @param builder OperationResult builder
@@ -125,6 +136,36 @@ public class MongoOperations {
 					}
 				});
 			}
+		}
+	}
+
+	/**
+	 * Check generated document id after an upsert type operation, setting the inserted key using given
+	 * {@link OperationResult} builder.
+	 * @param builder OperationResult builder
+	 * @param documentContext Document context
+	 * @param configuration Operation configuration
+	 * @param upsertedId Optional upserted id value
+	 * @param value Original {@link PropertyBox} value
+	 */
+	@SuppressWarnings("unchecked")
+	public static void checkUpsertedKey(OperationResult.Builder builder, MongoDocumentContext documentContext,
+			DatastoreOperationConfiguration configuration, BsonValue upsertedId, PropertyBox value) {
+		if (upsertedId != null) {
+			final ObjectId oid = upsertedId.asObjectId().getValue();
+			documentContext.getDocumentIdPath().ifPresent(idp -> {
+				final Object idPropertyValue = documentContext.getDocumentIdResolver().decode(oid, idp.getType());
+				builder.withInsertedKey(idp, idPropertyValue);
+
+				// check bring back ids
+				if (configuration.hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
+					documentContext.getDocumentIdProperty().ifPresent(idprp -> {
+						if (value.contains(idprp)) {
+							value.setValue((Property<Object>) idprp, idPropertyValue);
+						}
+					});
+				}
+			});
 		}
 	}
 

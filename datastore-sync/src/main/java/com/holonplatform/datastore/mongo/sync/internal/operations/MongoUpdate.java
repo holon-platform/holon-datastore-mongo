@@ -117,12 +117,12 @@ public class MongoUpdate extends AbstractUpdate {
 					DocumentSerializer.getDefault().toJson(collection.getCodecRegistry(), document));
 
 			// update
-			UpdateResult result = collection.updateOne(Filters.eq(id), document,
+			final UpdateResult result = collection.updateOne(Filters.eq(id), document,
 					MongoOperations.getUpdateOptions(getConfiguration(), false));
-			int affected = result.isModifiedCountAvailable() ? Long.valueOf(result.getModifiedCount()).intValue() : 1;
 
 			// result
-			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(affected).build();
+			return OperationResult.builder().type(OperationType.UPDATE)
+					.affectedCount(MongoOperations.getAffectedCount(result)).build();
 
 		});
 	}

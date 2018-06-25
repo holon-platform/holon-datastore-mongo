@@ -214,10 +214,10 @@ public enum VisitableQueryFilterResolver implements BsonExpressionResolver<Visit
 				regex = ".*" + regex + ".*";
 				break;
 			case ENDS_WITH:
-				regex = ".*" + regex;
+				regex = regex + "$";
 				break;
 			case STARTS_WITH:
-				regex = regex + ".*";
+				regex = "^" + regex;
 				break;
 			default:
 				break;

@@ -21,6 +21,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.CountAllProjection;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
@@ -70,7 +71,10 @@ public enum CountAllProjectionResolver implements MongoExpressionResolver<CountA
 		// validate
 		expression.validate();
 
-		return Optional.of(BsonProjection.builder(Long.class).operationType(QueryOperationType.COUNT).build());
+		// set COUNT type
+		MongoQueryContext.isQueryContext(context).ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.COUNT));
+
+		return Optional.of(BsonProjection.builder(Long.class).build());
 	}
 
 }

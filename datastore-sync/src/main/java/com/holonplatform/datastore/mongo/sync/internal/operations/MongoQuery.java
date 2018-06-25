@@ -36,8 +36,10 @@ import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
@@ -94,7 +96,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		queryOperation.validate();
 
 		// resolution context
-		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+		final MongoQueryContext context = MongoQueryContext.create(operationContext);
 
 		// resolve query
 		final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
@@ -109,7 +111,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 					.configureRead(database.getCollection(collectionName), context, queryOperation.getConfiguration());
 
 			// query operation type
-			switch (query.getOperationType()) {
+			final QueryOperationType queryOperationType = context.getQueryOperationType().orElse(QueryOperationType.FIND);
+			switch (queryOperationType) {
 			case AGGREGATE:
 				return aggregate(context, collection, queryOperation.getProjection().getType(), query);
 			case COUNT:
@@ -223,6 +226,15 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 				.map(document -> documentConverter.convert(context, document));
 	}
 
+	/**
+	 * Perform a <em>distinct</em> operation on given collection using given {@link BsonQuery}.
+	 * @param <R> Operation result type
+	 * @param context Resolution context
+	 * @param collection The collection to use
+	 * @param resultType Expected query result type
+	 * @param query Query definition
+	 * @return The operation result
+	 */
 	private static <R> Stream<R> distinct(MongoResolutionContext context, MongoCollection<Document> collection,
 			Class<? extends R> resultType, BsonQuery query) {
 

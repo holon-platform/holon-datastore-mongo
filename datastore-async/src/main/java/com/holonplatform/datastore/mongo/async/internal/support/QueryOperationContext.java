@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.async.internal.support;
 import org.bson.Document;
 
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -36,7 +36,7 @@ public interface QueryOperationContext<R> extends AsyncOperationContext {
 	 * Get the resolution context.
 	 * @return Resolution context
 	 */
-	MongoResolutionContext getResolutionContext();
+	MongoQueryContext getResolutionContext();
 
 	/**
 	 * Get the mongo collection reference.
@@ -57,7 +57,7 @@ public interface QueryOperationContext<R> extends AsyncOperationContext {
 	Class<? extends R> getResultType();
 
 	static <R> QueryOperationContext<R> create(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext resolutionContext, MongoCollection<Document> collection, BsonQuery query, Class<? extends R> resultType) {
+			MongoQueryContext resolutionContext, MongoCollection<Document> collection, BsonQuery query, Class<? extends R> resultType) {
 		return new DefaultQueryOperationContext<>(operationContext, resolutionContext, collection, query, resultType);
 	}
 

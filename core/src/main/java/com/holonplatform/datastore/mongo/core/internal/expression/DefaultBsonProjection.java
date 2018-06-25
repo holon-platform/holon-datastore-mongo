@@ -25,7 +25,6 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 
 /**
@@ -38,8 +37,6 @@ import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	private final Class<R> projectionType;
-
-	private QueryOperationType operationType;
 
 	private DocumentConverter<R> converter;
 
@@ -70,28 +67,11 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoProjection#getOperationType()
-	 */
-	@Override
-	public Optional<QueryOperationType> getOperationType() {
-		return Optional.ofNullable(operationType);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoProjection#getConverter()
 	 */
 	@Override
 	public Optional<DocumentConverter<R>> getConverter() {
 		return Optional.ofNullable(converter);
-	}
-
-	/**
-	 * Set the {@link QueryOperationType}.
-	 * @param operationType the operation type to set
-	 */
-	public void setOperationType(QueryOperationType operationType) {
-		this.operationType = operationType;
 	}
 
 	/**
@@ -131,18 +111,6 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 		public DefaultBuilder(Class<T> projectionType) {
 			super();
 			this.instance = new DefaultBsonProjection<>(projectionType);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.mongo.core.expression.MongoProjection.Builder#operationType(com.holonplatform.
-		 * datastore.mongo.core.document.QueryOperationType)
-		 */
-		@Override
-		public Builder<T> operationType(QueryOperationType operationType) {
-			instance.setOperationType(operationType);
-			return this;
 		}
 
 		/*

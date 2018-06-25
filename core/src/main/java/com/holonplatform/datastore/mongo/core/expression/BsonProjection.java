@@ -24,7 +24,6 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonProjection;
 
 /**
@@ -35,12 +34,6 @@ import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonPro
  * @since 5.2.0
  */
 public interface BsonProjection<R> extends TypedExpression<R> {
-
-	/**
-	 * Get the {@link QueryOperationType}.
-	 * @return Optional query operation type
-	 */
-	Optional<QueryOperationType> getOperationType();
 
 	/**
 	 * Get whether the projection is empty.
@@ -94,13 +87,6 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	 * @param <R> Projection result type
 	 */
 	public interface Builder<R> {
-
-		/**
-		 * Set the {@link QueryOperationType}.
-		 * @param operationType The query operation type
-		 * @return this
-		 */
-		Builder<R> operationType(QueryOperationType operationType);
 
 		/**
 		 * Add a projection field.

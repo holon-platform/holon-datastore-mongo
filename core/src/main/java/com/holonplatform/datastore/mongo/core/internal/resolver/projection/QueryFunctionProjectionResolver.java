@@ -24,10 +24,13 @@ import org.bson.Document;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.StringFunction.Lower;
+import com.holonplatform.core.query.StringFunction.Upper;
 import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
@@ -43,7 +46,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 1000)
-public enum TemporalFunctionProjectionResolver implements MongoExpressionResolver<QueryFunction, BsonProjection> {
+public enum QueryFunctionProjectionResolver implements MongoExpressionResolver<QueryFunction, BsonProjection> {
 
 	INSTANCE;
 
@@ -60,6 +63,18 @@ public enum TemporalFunctionProjectionResolver implements MongoExpressionResolve
 		expression.validate();
 
 		final Class<? extends QueryFunction> functionType = expression.getClass();
+
+		// String
+		if (Lower.class.isAssignableFrom(functionType)) {
+			return Optional.of(resolveFunction(context, expression, "$toLower",
+					((QueryFunction<?, ?>) expression).getExpressionArguments().get(0)));
+		}
+		if (Upper.class.isAssignableFrom(functionType)) {
+			return Optional.of(resolveFunction(context, expression, "$toUpper",
+					((QueryFunction<?, ?>) expression).getExpressionArguments().get(0)));
+		}
+
+		// Temporal
 
 		if (Year.class.isAssignableFrom(functionType)) {
 			return Optional.of(resolveFunction(context, expression, "$year",
@@ -91,9 +106,12 @@ public enum TemporalFunctionProjectionResolver implements MongoExpressionResolve
 
 		final Document projection = new Document(fieldName, new Document(function, "$" + fieldName));
 
+		// set AGGREGATE type
+		MongoQueryContext.isQueryContext(context)
+				.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+
 		return BsonProjection.builder(expression.getType()).field(fieldName, projection)
-				.converter(DocumentConverter.expression(expression, fieldName))
-				.operationType(QueryOperationType.AGGREGATE).build();
+				.converter(DocumentConverter.expression(expression, fieldName)).build();
 	}
 
 	/*

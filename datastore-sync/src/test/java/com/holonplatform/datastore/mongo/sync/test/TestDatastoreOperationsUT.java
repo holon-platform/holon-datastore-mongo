@@ -33,12 +33,14 @@ import com.holonplatform.datastore.mongo.sync.test.suite.QueryRestrictionTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.QuerySortTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.RefreshTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.SaveTest;
+import com.holonplatform.datastore.mongo.sync.test.suite.StringFunctionsTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.UpdateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,
 		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
-		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class })
+		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
+		StringFunctionsTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops";

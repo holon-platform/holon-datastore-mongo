@@ -25,7 +25,6 @@ import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
-import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
@@ -86,9 +85,6 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 				p.getFields().forEach((name, bson) -> {
 					builder.field(name, bson);
 				});
-				// check type
-				p.getOperationType().filter(t -> t == QueryOperationType.AGGREGATE)
-						.ifPresent(t -> builder.operationType(t));
 			});
 		});
 

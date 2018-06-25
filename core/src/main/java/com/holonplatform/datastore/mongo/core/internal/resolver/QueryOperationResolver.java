@@ -21,6 +21,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryOperation;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
@@ -57,23 +58,18 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 
 		// build query
 		final BsonQuery.Builder builder = BsonQuery.builder(definition);
-		
-		// check aggregation query type
-		if (definition.getGroup().isPresent()) {
-			builder.operationType(QueryOperationType.AGGREGATE);
-		}
 
 		// resolve projection
 		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
-
-		// check projection operation type
-		projection.getOperationType().ifPresent(ot -> builder.operationType(ot));
 
 		builder.projection(projection);
 
 		// check distinct
 		if (expression.getConfiguration().isDistinct() && projection.getFields().size() == 1) {
 			builder.distinct(projection.getFieldNames().get(0));
+			// set DISTINCT type
+			MongoQueryContext.isQueryContext(context)
+					.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.DISTINCT));
 		}
 
 		return Optional.of(builder.build());

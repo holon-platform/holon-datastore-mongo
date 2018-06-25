@@ -18,7 +18,6 @@ package com.holonplatform.datastore.mongo.core.expression;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonQuery;
 
 /**
@@ -33,12 +32,6 @@ public interface BsonQuery extends Expression {
 	 * @return The query definition
 	 */
 	BsonQueryDefinition getDefinition();
-
-	/**
-	 * Get the {@link QueryOperationType}.
-	 * @return the query operation type
-	 */
-	QueryOperationType getOperationType();
 
 	/**
 	 * Get the query projection.
@@ -65,13 +58,6 @@ public interface BsonQuery extends Expression {
 	 * {@link BsonQuery} builder.
 	 */
 	public interface Builder {
-
-		/**
-		 * Set the query operation type.
-		 * @param operationType The query operation type
-		 * @return this
-		 */
-		Builder operationType(QueryOperationType operationType);
 
 		/**
 		 * Set the query projection.

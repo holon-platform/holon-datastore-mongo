@@ -38,7 +38,9 @@ import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
@@ -81,10 +83,12 @@ public enum QueryFunctionResolver implements BsonExpressionResolver<QueryFunctio
 
 		// resolve as BsonExpression
 		return getFunctionName(function).map(name -> {
+
 			// Count as sum of document instances
 			if (Count.class.isAssignableFrom(function.getClass())) {
 				return BsonExpression.create(new Document(name, 1));
 			}
+
 			// resolve arguments as field names
 			final List<String> arguments = new LinkedList<>();
 			if (function.getExpressionArguments() != null) {
@@ -93,12 +97,18 @@ public enum QueryFunctionResolver implements BsonExpressionResolver<QueryFunctio
 					arguments.add(context.resolveOrFail(argument, FieldName.class).getFieldName());
 				}
 			}
+
+			// set AGGREGATE type
+			MongoQueryContext.isQueryContext(context)
+					.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+
 			// add $ prefix
 			List<String> names = arguments.stream().map(a -> "$" + a).collect(Collectors.toList());
 			if (names.size() == 1) {
 				return BsonExpression.create(new Document(name, names.get(0)));
 			}
 			return BsonExpression.create(new Document(name, names));
+
 		});
 	}
 

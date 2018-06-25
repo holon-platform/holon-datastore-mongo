@@ -17,7 +17,6 @@ package com.holonplatform.datastore.mongo.core.internal.expression;
 
 import java.util.Optional;
 
-import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
@@ -30,8 +29,6 @@ import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 public class DefaultBsonQuery implements BsonQuery {
 
 	private final BsonQueryDefinition definition;
-
-	private QueryOperationType operationType;
 
 	private BsonProjection<?> projection;
 
@@ -49,15 +46,6 @@ public class DefaultBsonQuery implements BsonQuery {
 	@Override
 	public BsonQueryDefinition getDefinition() {
 		return definition;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery#getOperationType()
-	 */
-	@Override
-	public QueryOperationType getOperationType() {
-		return (operationType != null) ? operationType : QueryOperationType.FIND;
 	}
 
 	/*
@@ -92,16 +80,7 @@ public class DefaultBsonQuery implements BsonQuery {
 	 * @param distinctFieldExpression the distinct field expression to set
 	 */
 	public void setDistinct(String fieldName) {
-		this.operationType = QueryOperationType.DISTINCT;
 		this.distinctFieldName = fieldName;
-	}
-
-	/**
-	 * Set the query operation type.
-	 * @param operationType the operation type to set
-	 */
-	public void setOperationType(QueryOperationType operationType) {
-		this.operationType = operationType;
 	}
 
 	/*
@@ -122,17 +101,6 @@ public class DefaultBsonQuery implements BsonQuery {
 		public DefaultBuilder(BsonQueryDefinition definition) {
 			super();
 			this.instance = new DefaultBsonQuery(definition);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQuery.Builder#operationType(com.holonplatform.
-		 * datastore.mongo.core.document.QueryOperationType)
-		 */
-		@Override
-		public Builder operationType(QueryOperationType operationType) {
-			instance.setOperationType(operationType);
-			return this;
 		}
 
 		/*

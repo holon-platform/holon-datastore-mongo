@@ -26,7 +26,9 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
@@ -93,6 +95,10 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 				a.getAggregationFilter().ifPresent(f -> {
 					builder.groupFilter(context.resolveOrFail(f, BsonExpression.class).getValue());
 				});
+
+				// set AGGREGATE type
+				MongoQueryContext.isQueryContext(context)
+						.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
 			}
 		});
 

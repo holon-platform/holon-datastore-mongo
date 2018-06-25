@@ -39,8 +39,9 @@ import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodi
 import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.QueryOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
@@ -96,7 +97,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			// validate
 			queryOperation.validate();
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoQueryContext context = MongoQueryContext.create(operationContext);
 			// resolve query
 			final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
 			// resolve collection name
@@ -111,7 +112,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 					queryOperation.getProjection().getType());
 		}).thenCompose(context -> {
 			// query operation type
-			switch (context.getQuery().getOperationType()) {
+			final QueryOperationType queryOperationType = context.getResolutionContext().getQueryOperationType()
+					.orElse(QueryOperationType.FIND);
+			switch (queryOperationType) {
 			case AGGREGATE:
 				return aggregate(context);
 			case COUNT:

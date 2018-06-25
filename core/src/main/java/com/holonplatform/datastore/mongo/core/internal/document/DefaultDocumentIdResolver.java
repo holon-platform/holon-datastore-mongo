@@ -143,6 +143,18 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.document.DocumentIdResolver#isValidDocumentIdType(com.holonplatform.core.
+	 * property.Property)
+	 */
+	@Override
+	public boolean isValidDocumentIdType(Property<?> property) {
+		ObjectUtils.argumentNotNull(property, "Property must be not null");
+		return isValidDocumentIdPropertyType(property);
+	}
+
 	// ------- internal
 
 	/**
@@ -197,7 +209,7 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 		if (propertySet.getIdentifiers().size() == 1) {
 			S id = propertySet.getIdentifiers().iterator().next();
 			if (id != null && Path.class.isAssignableFrom(id.getClass())) {
-				if (isValidDocumentIdType(id)) {
+				if (isValidDocumentIdPropertyType(id)) {
 					return (P) id;
 				}
 			}
@@ -229,7 +241,7 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 			}
 			P property = documentIdProperties.get(0);
 			// check type
-			if (!isValidDocumentIdType(property)) {
+			if (!isValidDocumentIdPropertyType(property)) {
 				throw new InvalidDocumentIdentifierException("The id property [" + property + "] type ["
 						+ property.getType()
 						+ "] is not an admitted document id type. Admitted types are: ObjectId, String, BigInteger.");
@@ -247,7 +259,7 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 	 * @return <code>true</code> if given type is admitted as document identifier type, <code>false</code> otherwise
 	 */
 	@SuppressWarnings("rawtypes")
-	private static boolean isValidDocumentIdType(Property<?> property) {
+	private static boolean isValidDocumentIdPropertyType(Property<?> property) {
 		final Class<?> type = property.getConverter().map(c -> (Class) c.getModelType()).orElse(property.getType());
 		return isAdmittedDocumentIdType(type);
 	}

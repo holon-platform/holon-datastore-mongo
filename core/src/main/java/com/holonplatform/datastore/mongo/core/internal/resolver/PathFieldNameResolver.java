@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.DataMappable;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
@@ -49,7 +50,7 @@ public enum PathFieldNameResolver implements MongoExpressionResolver<Path, Field
 		expression.validate();
 
 		// use Path relative name
-		return Optional.of(FieldName.create(expression.relativeName()));
+		return Optional.of(FieldName.create(getPathName(expression)));
 	}
 
 	/*
@@ -68,6 +69,16 @@ public enum PathFieldNameResolver implements MongoExpressionResolver<Path, Field
 	@Override
 	public Class<? extends FieldName> getResolvedType() {
 		return FieldName.class;
+	}
+
+	/**
+	 * Get the path data model name, using {@link DataMappable#getDataPath()} if available or returning the path name if
+	 * not.
+	 * @param path The path for which to obtain the data path name
+	 * @return The data path name
+	 */
+	private static String getPathName(Path<?> path) {
+		return path.getDataPath().orElse(path.relativeName());
 	}
 
 }

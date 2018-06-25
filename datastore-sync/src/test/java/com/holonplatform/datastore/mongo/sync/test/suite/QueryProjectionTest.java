@@ -66,7 +66,10 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean;
+import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean2;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
 
 public class QueryProjectionTest extends AbstractDatastoreOperationTest {
@@ -357,6 +360,68 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		result = getDatastore().bulkDelete(TARGET).filter(ID5.eq(code)).execute();
 		assertEquals(1, result.getAffectedCount());
 
+	}
+
+	@Test
+	public void testPropertyConversion() {
+
+		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
+				.add(PropertyBox.builder(SET1).set(STR, "nbktfp1").set(NBL, true).build())
+				.add(PropertyBox.builder(SET1).set(STR, "nbktfp2").set(NBL, false).build())
+				.add(PropertyBox.builder(SET1).set(STR, "nbktfp3").build()).execute();
+		assertEquals(3, result.getAffectedCount());
+
+		List<Boolean> values = getDatastore().query().target(TARGET).sort(STR.asc()).list(NBL);
+		assertNotNull(values);
+		assertEquals(3, values.size());
+		assertEquals(Boolean.TRUE, values.get(0));
+		assertEquals(Boolean.FALSE, values.get(1));
+		assertEquals(Boolean.FALSE, values.get(2));
+
+		result = getDatastore().bulkDelete(TARGET).filter(STR.in("nbktfp1", "nbktfp2", "nbktfp3")).execute();
+		assertEquals(3, result.getAffectedCount());
+	}
+
+	@Test
+	public void testProjectionBean() {
+
+		final ObjectId oid1 = new ObjectId();
+		final ObjectId oid2 = new ObjectId();
+
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").build();
+		OperationResult result = getDatastore().insert(TARGET, value1);
+		assertEquals(1, result.getAffectedCount());
+
+		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").build();
+		result = getDatastore().insert(TARGET, value2);
+		assertEquals(1, result.getAffectedCount());
+
+		List<TestProjectionBean> results = getDatastore().query().target(TARGET).sort(STR.asc())
+				.list(BeanProjection.of(TestProjectionBean.class));
+		assertNotNull(results);
+		assertEquals(2, results.size());
+
+		assertEquals(oid1.toHexString(), results.get(0).getId());
+		assertEquals("One", results.get(0).getText());
+
+		assertEquals(oid2.toHexString(), results.get(1).getId());
+		assertEquals("Two", results.get(1).getText());
+
+		List<TestProjectionBean2> results2 = getDatastore().query().target(TARGET).sort(STR.asc())
+				.list(BeanProjection.of(TestProjectionBean2.class));
+		assertNotNull(results);
+		assertEquals(2, results.size());
+
+		assertEquals(oid1, new ObjectId(results2.get(0).getCode().toString(16)));
+		assertEquals("One", results2.get(0).getText());
+
+		assertEquals(oid2, new ObjectId(results2.get(1).getCode().toString(16)));
+		assertEquals("Two", results2.get(1).getText());
+
+		result = getDatastore().delete(TARGET, value1);
+		assertEquals(1, result.getAffectedCount());
+		result = getDatastore().delete(TARGET, value2);
+		assertEquals(1, result.getAffectedCount());
 	}
 
 }

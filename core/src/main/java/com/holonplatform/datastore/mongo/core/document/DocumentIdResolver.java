@@ -71,6 +71,13 @@ public interface DocumentIdResolver {
 	 */
 	<T> T decode(ObjectId id, Class<? extends T> type) throws InvalidDocumentIdentifierException;
 
+	/**
+	 * Checks if the type of given property is a valid document id type.
+	 * @param property Property to check
+	 * @return <code>true</code> if the type of given property is a valid document id typ, <code>false</code> otherwise
+	 */
+	boolean isValidDocumentIdType(Property<?> property);
+
 	// ------- Default resolver
 
 	/**

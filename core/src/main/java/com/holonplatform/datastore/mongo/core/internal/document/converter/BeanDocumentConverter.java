@@ -24,6 +24,7 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
@@ -111,6 +112,17 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 			}
 
 		} else {
+			// check id property
+			if (MongoDocumentContext.ID_FIELD_NAME.equals(fieldName)) {
+				PathProperty identifier = beanPropertySet.getFirstIdentifier().orElse(null);
+				if (identifier != null && context.getDocumentIdResolver().isValidDocumentIdType(identifier)) {
+					Object resolvedValue = context.resolveOrFail(FieldValue.create(value, identifier), Value.class)
+							.getValue();
+					beanPropertySet.write(identifier, resolvedValue, instance);
+					return;
+				}
+			}
+
 			// resolve Path
 			final Path path = context.resolveOrFail(FieldName.create(fieldName), Path.class);
 			// resolve value

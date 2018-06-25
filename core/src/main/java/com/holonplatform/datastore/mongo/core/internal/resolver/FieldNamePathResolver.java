@@ -19,8 +19,11 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.DataMappable;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.property.PathPropertySetAdapter;
+import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -48,8 +51,37 @@ public enum FieldNamePathResolver implements MongoExpressionResolver<FieldName, 
 		// validate
 		expression.validate();
 
+		// field name
+		final String fieldName = expression.getFieldName();
+
+		// check document context
+		@SuppressWarnings("unchecked")
+		Path propertySetPath = MongoDocumentContext.isDocumentContext(context).map(dc -> {
+			PathPropertySetAdapter adapter = PathPropertySetAdapter.create(dc.getPropertySet());
+			return adapter.getProperty(fieldName).flatMap(p -> adapter.getPath(p))
+					.orElse(getPathUsingDataPath(adapter, fieldName));
+		}).orElse(null);
+		if (propertySetPath != null) {
+			return Optional.of(propertySetPath);
+		}
+
 		// path from field name
-		return Optional.of(Path.of(expression.getFieldName(), Object.class));
+		return Optional.of(Path.of(fieldName, Object.class));
+	}
+
+	/**
+	 * Try to obtain a {@link Path} using the {@link DataMappable#getDataPath()} value, if avaialble, to match the field
+	 * name.
+	 * @param adapter PathPropertySetAdapter
+	 * @param fieldName Field name
+	 * @return The {@link Path} mapped to the field name, or <code>null</code> if not found
+	 */
+	public static Path getPathUsingDataPath(PathPropertySetAdapter adapter, String fieldName) {
+		return adapter.propertyPaths()
+				.filter(pp -> fieldName.equals(pp.getPath().getDataPath().orElse(
+						DataMappable.isDataMappable(pp.getProperty()).flatMap(dm -> dm.getDataPath()).orElse(null))))
+				.map(pp -> pp.getPath()).findFirst().orElse(null);
+
 	}
 
 	/*

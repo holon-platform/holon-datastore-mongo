@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Priority;
@@ -65,11 +66,14 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 		builder.projection(projection);
 
 		// check distinct
-		if (expression.getConfiguration().isDistinct() && projection.getFields().size() == 1) {
-			builder.distinct(projection.getFieldNames().get(0));
-			// set DISTINCT type
-			MongoQueryContext.isQueryContext(context)
-					.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.DISTINCT));
+		if (expression.getConfiguration().isDistinct()) {
+			final List<String> filedNames = projection.getFieldNames();
+			if (filedNames.size() == 1) {
+				builder.distinct(filedNames.get(0));
+				// set DISTINCT type
+				MongoQueryContext.isQueryContext(context)
+						.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.DISTINCT));
+			}
 		}
 
 		return Optional.of(builder.build());

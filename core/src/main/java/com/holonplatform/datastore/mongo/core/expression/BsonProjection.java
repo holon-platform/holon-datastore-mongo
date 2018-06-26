@@ -43,7 +43,7 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	}
 
 	/**
-	 * Get the projection fields as field name - Bson map.
+	 * Get the projection fields as field name - Bson expression map.
 	 * @return the projection fields
 	 */
 	Map<String, Bson> getFields();

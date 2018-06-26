@@ -82,7 +82,12 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	 */
 	@Override
 	public List<Bson> getFieldProjections() {
-		return getFields().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+		return getFields().entrySet().stream().map(entry -> {
+			if (entry.getValue() == null) {
+				return new Document(entry.getKey(), Integer.valueOf(1));
+			}
+			return new Document(entry.getKey(), entry.getValue());
+		}).collect(Collectors.toList());
 	}
 
 	/*
@@ -101,7 +106,6 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	 */
 	public void addField(String fieldName, Bson bson) {
 		ObjectUtils.argumentNotNull(fieldName, "Field name must be not null");
-		ObjectUtils.argumentNotNull(bson, "Field Bson representation must be not null");
 		this.fields.put(fieldName, bson);
 	}
 
@@ -150,7 +154,7 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 		 */
 		@Override
 		public Builder<T> field(String fieldName) {
-			return field(fieldName, new Document(fieldName, Integer.valueOf(1)));
+			return field(fieldName, null);
 		}
 
 		/*

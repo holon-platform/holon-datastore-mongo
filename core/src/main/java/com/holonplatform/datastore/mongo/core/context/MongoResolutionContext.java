@@ -62,6 +62,14 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	int getNextProjectionFieldSequence();
 
 	/**
+	 * For generated projection field names, get the next name.
+	 * @return The next projection field name
+	 */
+	default String getNextProjectionFieldName() {
+		return MongoResolutionContext.DEFAULT_PROJECTION_FIELD_PREFIX + getNextProjectionFieldSequence();
+	}
+
+	/**
 	 * Try to resolve given <code>expression</code> using current context resolvers to obtain a
 	 * <code>resolutionType</code> type expression.
 	 * <p>

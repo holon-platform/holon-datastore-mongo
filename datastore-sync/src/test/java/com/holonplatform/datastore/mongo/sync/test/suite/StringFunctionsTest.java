@@ -40,18 +40,21 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 		assertEquals(1, result.getAffectedCount());
 		
 		System.err.println(getDatastore().query().target(TARGET).filter(ID.eq(oid)).count());
-		/*
+		
 		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
 		
 		// TODO
 
+		System.err.println("---------------------");
+		
 		
 		ObjectId id = getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID).orElse(null);
 		assertNotNull(id);
 		assertEquals(oid, id);
 
+		/*
 		result = getDatastore().bulkUpdate(TARGET).set(STR, STR.lower()).filter(ID.eq(oid))
 					.execute();
 		assertEquals(1, result.getAffectedCount());

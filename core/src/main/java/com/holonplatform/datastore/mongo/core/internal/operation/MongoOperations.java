@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -310,7 +309,7 @@ public class MongoOperations {
 
 		// projection
 		Optional<Bson> projection = query.getProjection().filter(p -> !p.isEmpty())
-				.map(p -> Projections.fields(p.getFieldProjections()));
+				.map(p -> Projections.include(p.getFieldNames()));
 		projection.ifPresent(p -> configurator.projection(p));
 
 		return projection;
@@ -375,27 +374,40 @@ public class MongoOperations {
 		// definition
 		final BsonQueryDefinition definition = query.getDefinition();
 
-		// ------ match
-		definition.getFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f)));
-
-		// ------ group
+		// accumulators
 		final List<BsonField> fieldAccumulators = new LinkedList<>();
-
 		definition.getGroup().ifPresent(g -> {
-
 			// check projection to configure accumulators
 			query.getProjection().ifPresent(p -> {
 				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
 						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
 			});
+		});
 
+		// ------ final projection stage
+		final Optional<Bson> projection;
+		if (fieldAccumulators.isEmpty()) {
+			// projection with expressions
+			projection = query.getProjection().filter(f -> !f.isEmpty())
+					.map(p -> Projections.fields(p.getFieldProjections()));
+		} else {
+			// projection using field names
+			projection = query.getProjection().map(p -> p.getFieldNames()).filter(f -> !f.isEmpty())
+					.map(fieldNames -> Projections.include(fieldNames));
+		}
+
+		// ------ match
+		definition.getFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, projection)));
+
+		// ------ group
+		definition.getGroup().ifPresent(g -> {
 			if (!fieldAccumulators.isEmpty()) {
 				pipeline.add(Aggregates.group(g, fieldAccumulators));
 			} else {
 				pipeline.add(Aggregates.group(g));
 			}
-
-			definition.getGroupFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f)));
+			// group filter
+			definition.getGroupFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, projection)));
 		});
 
 		// ------ sort
@@ -408,18 +420,7 @@ public class MongoOperations {
 		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
 
 		// ------ project
-		if (fieldAccumulators.isEmpty()) {
-			// projection with expressions
-			query.getProjection().map(p -> p.getFields()).filter(f -> !f.isEmpty()).ifPresent(fields -> {
-				pipeline.add(Aggregates.project(Projections.fields(fields.entrySet().stream()
-						.map(e -> new Document(e.getKey(), e.getValue())).collect(Collectors.toList()))));
-			});
-		} else {
-			// projection using field names
-			query.getProjection().map(p -> p.getFieldNames()).filter(f -> !f.isEmpty()).ifPresent(fieldNames -> {
-				pipeline.add(Aggregates.project(Projections.include(fieldNames)));
-			});
-		}
+		projection.ifPresent(p -> pipeline.add(Aggregates.project(p)));
 
 		return pipeline;
 	}
@@ -427,14 +428,15 @@ public class MongoOperations {
 	/**
 	 * Process given filter and returns the aggregation pipeline stages to add.
 	 * @param filter Filter
+	 * @param finalProjection Optional final projection
 	 * @return Aggregation pipeline stage
 	 */
-	private static List<Bson> buildAggregationFilter(BsonFilter filter) {
+	private static List<Bson> buildAggregationFilter(BsonFilter filter, Optional<Bson> finalProjection) {
 		final List<Bson> pipeline = new LinkedList<>();
 		if (filter.getPipeline().isPresent()) {
 			final FilterAggregationPipeline fap = filter.getPipeline().get();
 			fap.getProjection().ifPresent(pj -> {
-				pipeline.add(Aggregates.project(pj));
+				pipeline.add(Aggregates.project(finalProjection.map(fp -> Projections.fields(fp, pj)).orElse(pj)));
 			});
 			pipeline.add(Aggregates.match(fap.getMatch()));
 

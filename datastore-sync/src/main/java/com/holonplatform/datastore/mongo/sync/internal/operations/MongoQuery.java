@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -45,15 +44,15 @@ import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncAggregateOperationConfigurator;
+import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncDistinctOperationConfigurator;
+import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncFindOperationConfigurator;
+import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.BsonField;
-import com.mongodb.client.model.Projections;
 
 /**
  * MongoDB {@link QueryAdapter}.
@@ -107,11 +106,12 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		return operationContext.withDatabase(database -> {
 
 			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
+			final MongoCollection<Document> collection = SyncMongoCollectionConfigurator
 					.configureRead(database.getCollection(collectionName), context, queryOperation.getConfiguration());
 
 			// query operation type
-			final QueryOperationType queryOperationType = context.getQueryOperationType().orElse(QueryOperationType.FIND);
+			final QueryOperationType queryOperationType = context.getQueryOperationType()
+					.orElse(QueryOperationType.FIND);
 			switch (queryOperationType) {
 			case AGGREGATE:
 				return aggregate(context, collection, queryOperation.getProjection().getType(), query);
@@ -168,55 +168,11 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
+		// iterable
 		final FindIterable<Document> fi = collection.find();
 
-		// definition
-		final BsonQueryDefinition definition = query.getDefinition();
-		// filter
-		definition.getFilter().ifPresent(f -> fi.filter(f));
-		// sort
-		definition.getSort().ifPresent(s -> fi.sort(s));
-		// limit-offset
-		definition.getLimit().ifPresent(l -> fi.limit(l));
-		definition.getOffset().ifPresent(o -> fi.skip(o));
-		// timeout
-		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
-		// cursor
-		definition.getCursorType().ifPresent(c -> fi.cursorType(c));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> fi.collation(c));
-		// comment
-		definition.getComment().ifPresent(c -> fi.comment(c));
-		// hint
-		definition.getHint().ifPresent(h -> fi.hint(h));
-		// max-min
-		definition.getMax().ifPresent(m -> fi.max(m));
-		definition.getMin().ifPresent(m -> fi.min(m));
-		// max scan
-		definition.getMaxScan().ifPresent(m -> fi.maxScan(m));
-		// partial
-		if (definition.isPartial()) {
-			fi.partial(true);
-		}
-		// return key
-		if (definition.isReturnKey()) {
-			fi.returnKey(true);
-		}
-		// record id
-		if (definition.isShowRecordId()) {
-			fi.showRecordId(true);
-		}
-		// snapshot
-		if (definition.isSnapshot()) {
-			fi.snapshot(true);
-		}
-
-		// projection
-		Optional<Bson> projection = query.getProjection().filter(p -> !p.isEmpty())
-				.map(p -> Projections.fields(p.getFieldProjections()));
-		projection.ifPresent(p -> fi.projection(p));
+		// configure
+		Optional<Bson> projection = MongoOperations.configure(query, new SyncFindOperationConfigurator(fi));
 
 		// trace
 		context.trace("FIND query", () -> MongoOperations.traceQuery(context, query, projection.orElse(null)));
@@ -248,18 +204,11 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
+		// iterable
 		final DistinctIterable<Object> fi = collection.distinct(fieldName, Object.class);
 
-		// definition
-		final BsonQueryDefinition definition = query.getDefinition();
-		// filter
-		definition.getFilter().ifPresent(f -> fi.filter(f));
-		// timeout
-		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> fi.collation(c));
+		// configure
+		MongoOperations.configure(query, new SyncDistinctOperationConfigurator(fi));
 
 		// trace
 		context.trace("DISTINCT query on [" + fieldName + "]", () -> MongoOperations.traceQuery(context, query, null));
@@ -287,68 +236,16 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		// aggregation pipeline
-		List<Bson> pipeline = new LinkedList<>();
+		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(query);
 
-		// definition
-		final BsonQueryDefinition definition = query.getDefinition();
-
-		// ------ match
-		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
-
-		// ------ group
-		definition.getGroup().ifPresent(g -> {
-
-			final List<BsonField> fieldAccumulators = new LinkedList<>();
-
-			// check projection
-			query.getProjection().ifPresent(p -> {
-				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
-						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
-			});
-
-			if (!fieldAccumulators.isEmpty()) {
-				pipeline.add(Aggregates.group(g, fieldAccumulators));
-			} else {
-				pipeline.add(Aggregates.group(g));
-			}
-
-			definition.getGroupFilter().ifPresent(gf -> {
-				pipeline.add(Aggregates.match(gf));
-			});
-		});
-
-		// ------ sort
-		definition.getSort().ifPresent(s -> pipeline.add(Aggregates.sort(s)));
-
-		// ------ limit
-		definition.getLimit().ifPresent(l -> pipeline.add(Aggregates.limit(l)));
-
-		// ------ skip
-		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
-
-		// ------ project
-		if (!definition.getGroup().isPresent()) {
-			query.getProjection().filter(p -> !p.isEmpty()).map(p -> Projections.fields(p.getFieldProjections()))
-					.ifPresent(prj -> {
-						pipeline.add(Aggregates.project(prj));
-					});
-		}
 		// trace
 		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(context, pipeline));
 
 		// iterable
 		final AggregateIterable<Document> ai = collection.aggregate(pipeline);
 
-		// timeout
-		definition.getTimeout().ifPresent(t -> ai.maxTime(t, definition.getTimeoutUnit()));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> ai.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> ai.collation(c));
-		// comment
-		definition.getComment().ifPresent(c -> ai.comment(c));
-		// hint
-		definition.getHint().ifPresent(h -> ai.hint(h));
+		// configure
+		MongoOperations.configure(query, new SyncAggregateOperationConfigurator(ai));
 
 		// stream with converter mapper
 		return StreamSupport.stream(ai.spliterator(), false)

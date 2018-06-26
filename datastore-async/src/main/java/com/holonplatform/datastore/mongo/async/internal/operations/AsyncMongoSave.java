@@ -33,7 +33,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.SaveOperationContext;
@@ -98,7 +98,7 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 					.resolveOrFail(context.getConfiguration().getTarget(), CollectionName.class).getName();
 			// get and configure collection
 			MongoCollection<Document> collection = context.getOperationContext().withDatabase(database -> {
-				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName),
+				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName),
 						context.getDocumentContext(), context.getConfiguration());
 			});
 			// build context

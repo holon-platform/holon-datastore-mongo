@@ -113,9 +113,8 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 		// resolve field name
 		return context.resolve(expression, FieldName.class).map(fn -> fn.getFieldName()).map(fieldName -> {
 			// try to resolve field expression
-			final Optional<Bson> fieldExpression = context.resolve(expression, BsonExpression.class)
-					.map(e -> e.getValue());
-			return new FieldProjection(fieldName, fieldExpression.orElse(null));
+			return context.resolve(expression, BsonExpression.class).map(e -> e.getValue())
+					.map(bson -> new FieldProjection(fieldName, bson)).orElse(new FieldProjection(fieldName));
 		});
 	}
 
@@ -123,6 +122,10 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 
 		private final String fieldName;
 		private final Bson fieldExpression;
+
+		public FieldProjection(String fieldName) {
+			this(fieldName, null);
+		}
 
 		public FieldProjection(String fieldName, Bson fieldExpression) {
 			super();

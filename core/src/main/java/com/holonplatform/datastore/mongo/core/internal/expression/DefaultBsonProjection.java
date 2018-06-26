@@ -17,8 +17,10 @@ package com.holonplatform.datastore.mongo.core.internal.expression;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -63,6 +65,24 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	@Override
 	public Map<String, Bson> getFields() {
 		return Collections.unmodifiableMap(fields);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#getFieldNames()
+	 */
+	@Override
+	public List<String> getFieldNames() {
+		return getFields().entrySet().stream().map(entry -> entry.getKey()).collect(Collectors.toList());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#getFieldProjections()
+	 */
+	@Override
+	public List<Bson> getFieldProjections() {
+		return getFields().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
 	}
 
 	/*

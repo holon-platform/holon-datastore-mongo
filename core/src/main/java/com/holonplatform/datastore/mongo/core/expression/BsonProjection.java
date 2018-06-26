@@ -18,7 +18,6 @@ package com.holonplatform.datastore.mongo.core.expression;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.bson.conversions.Bson;
 
@@ -53,17 +52,13 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	 * Get the field names.
 	 * @return field names
 	 */
-	default List<String> getFieldNames() {
-		return getFields().entrySet().stream().map(entry -> entry.getKey()).collect(Collectors.toList());
-	}
+	List<String> getFieldNames();
 
 	/**
 	 * Get the field projection values.
 	 * @return field projection values
 	 */
-	default List<Bson> getFieldProjections() {
-		return getFields().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
-	}
+	List<Bson> getFieldProjections();
 
 	/**
 	 * Get the projection {@link DocumentConverter}.

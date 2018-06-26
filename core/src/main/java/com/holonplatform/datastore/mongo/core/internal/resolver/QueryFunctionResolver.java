@@ -49,7 +49,7 @@ import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
  * {@link QueryFunction} expression resolver.
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
+@Priority(Integer.MAX_VALUE - 500)
 public enum QueryFunctionResolver implements BsonExpressionResolver<QueryFunction> {
 
 	/**

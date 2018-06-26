@@ -16,10 +16,12 @@
 package com.holonplatform.datastore.mongo.core.internal.operation;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -33,6 +35,7 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
@@ -44,11 +47,15 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
+import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.InsertOneOptions;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
@@ -244,6 +251,177 @@ public class MongoOperations {
 				}
 			});
 		}
+	}
+
+	/**
+	 * Configure a <em>find</em> query using given configurator.
+	 * @param query Query definition (not null)
+	 * @param configurator Operation configurator (not null)
+	 * @return The configured projection, if any
+	 */
+	public static Optional<Bson> configure(BsonQuery query, FindOperationConfigurator configurator) {
+		ObjectUtils.argumentNotNull(query, "Query must be not null");
+		ObjectUtils.argumentNotNull(configurator, "Configurator must be not null");
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+		// filter
+		definition.getFilter().ifPresent(f -> configurator.filter(f));
+		// sort
+		definition.getSort().ifPresent(s -> configurator.sort(s));
+		// limit-offset
+		definition.getLimit().ifPresent(l -> configurator.limit(l));
+		definition.getOffset().ifPresent(o -> configurator.skip(o));
+		// timeout
+		definition.getTimeout().ifPresent(t -> configurator.maxTime(t, definition.getTimeoutUnit()));
+		// cursor
+		definition.getCursorType().ifPresent(c -> configurator.cursorType(c));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> configurator.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> configurator.collation(c));
+		// comment
+		definition.getComment().ifPresent(c -> configurator.comment(c));
+		// hint
+		definition.getHint().ifPresent(h -> configurator.hint(h));
+		// max-min
+		definition.getMax().ifPresent(m -> configurator.max(m));
+		definition.getMin().ifPresent(m -> configurator.min(m));
+		// max scan
+		definition.getMaxScan().ifPresent(m -> configurator.maxScan(m));
+		// partial
+		if (definition.isPartial()) {
+			configurator.partial(true);
+		}
+		// return key
+		if (definition.isReturnKey()) {
+			configurator.returnKey(true);
+		}
+		// record id
+		if (definition.isShowRecordId()) {
+			configurator.showRecordId(true);
+		}
+		// snapshot
+		if (definition.isSnapshot()) {
+			configurator.snapshot(true);
+		}
+
+		// projection
+		Optional<Bson> projection = query.getProjection().filter(p -> !p.isEmpty())
+				.map(p -> Projections.fields(p.getFieldProjections()));
+		projection.ifPresent(p -> configurator.projection(p));
+
+		return projection;
+	}
+
+	/**
+	 * Configure a <em>distinct</em> query using given configurator.
+	 * @param query Query definition (not null)
+	 * @param configurator Operation configurator (not null)
+	 * @return The configured projection, if any
+	 */
+	public static void configure(BsonQuery query, DistinctOperationConfigurator configurator) {
+		ObjectUtils.argumentNotNull(query, "Query must be not null");
+		ObjectUtils.argumentNotNull(configurator, "Configurator must be not null");
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+		// filter
+		definition.getFilter().ifPresent(f -> configurator.filter(f));
+		// timeout
+		definition.getTimeout().ifPresent(t -> configurator.maxTime(t, definition.getTimeoutUnit()));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> configurator.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> configurator.collation(c));
+	}
+
+	/**
+	 * Configure an <em>aggregate</em> query using given configurator.
+	 * @param query Query definition (not null)
+	 * @param configurator Operation configurator (not null)
+	 */
+	public static void configure(BsonQuery query, AggregateOperationConfigurator configurator) {
+		ObjectUtils.argumentNotNull(query, "Query must be not null");
+		ObjectUtils.argumentNotNull(configurator, "Configurator must be not null");
+
+		final BsonQueryDefinition definition = query.getDefinition();
+
+		// timeout
+		definition.getTimeout().ifPresent(t -> configurator.maxTime(t, definition.getTimeoutUnit()));
+		// batch size
+		definition.getBatchSize().ifPresent(b -> configurator.batchSize(b));
+		// collation
+		definition.getCollation().ifPresent(c -> configurator.collation(c));
+		// comment
+		definition.getComment().ifPresent(c -> configurator.comment(c));
+		// hint
+		definition.getHint().ifPresent(h -> configurator.hint(h));
+	}
+
+	/**
+	 * Build an <em>aggregate</em> query pipeline.
+	 * @param query Query definition (not null)
+	 * @return Aggregation pipeline
+	 */
+	public static List<Bson> buildAggregationPipeline(BsonQuery query) {
+		ObjectUtils.argumentNotNull(query, "Query must be not null");
+
+		// aggregation pipeline
+		List<Bson> pipeline = new LinkedList<>();
+
+		// definition
+		final BsonQueryDefinition definition = query.getDefinition();
+
+		// ------ match
+		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
+
+		// ------ group
+		final List<BsonField> fieldAccumulators = new LinkedList<>();
+
+		definition.getGroup().ifPresent(g -> {
+
+			// check projection to configure accumulators
+			query.getProjection().ifPresent(p -> {
+				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
+						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
+			});
+
+			if (!fieldAccumulators.isEmpty()) {
+				pipeline.add(Aggregates.group(g, fieldAccumulators));
+			} else {
+				pipeline.add(Aggregates.group(g));
+			}
+
+			definition.getGroupFilter().ifPresent(gf -> {
+				pipeline.add(Aggregates.match(gf));
+			});
+		});
+
+		// ------ sort
+		definition.getSort().ifPresent(s -> pipeline.add(Aggregates.sort(s)));
+
+		// ------ limit
+		definition.getLimit().ifPresent(l -> pipeline.add(Aggregates.limit(l)));
+
+		// ------ skip
+		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
+
+		// ------ project
+		if (fieldAccumulators.isEmpty()) {
+			// projection with expressions
+			query.getProjection().map(p -> p.getFields()).filter(f -> !f.isEmpty()).ifPresent(fields -> {
+				pipeline.add(Aggregates.project(Projections.fields(fields.entrySet().stream()
+						.map(e -> new Document(e.getKey(), e.getValue())).collect(Collectors.toList()))));
+			});
+		} else {
+			// projection using field names
+			query.getProjection().map(p -> p.getFieldNames()).filter(f -> !f.isEmpty()).ifPresent(fieldNames -> {
+				pipeline.add(Aggregates.project(Projections.include(fieldNames)));
+			});
+		}
+
+		return pipeline;
 	}
 
 	/**

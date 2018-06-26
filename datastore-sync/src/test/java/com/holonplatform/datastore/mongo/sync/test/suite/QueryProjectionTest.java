@@ -271,7 +271,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 						.set(LTMS, LocalDateTime.of(2016, Month.JANUARY, 3, 18, 30)).build())
 				.execute();
 		assertEquals(3, result.getAffectedCount());
-
+		
 		List<Integer> years = getDatastore().query(TARGET).stream(LDAT.year()).collect(Collectors.toList());
 		assertEquals(3, years.size());
 		assertTrue(years.contains(2016));

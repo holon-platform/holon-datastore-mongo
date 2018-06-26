@@ -30,7 +30,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkUpdateOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
@@ -93,7 +93,7 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 					.getName();
 			// get and configure collection
 			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName), context,
+				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
 						operationConfiguration);
 			});
 			// build context

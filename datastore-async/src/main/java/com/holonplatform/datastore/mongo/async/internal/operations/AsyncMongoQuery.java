@@ -17,7 +17,6 @@ package com.holonplatform.datastore.mongo.async.internal.operations;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -36,14 +35,16 @@ import com.holonplatform.core.internal.query.QueryDefinition;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncAggregateOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncDistinctOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncFindOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.QueryOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
-import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.AggregateIterable;
@@ -51,9 +52,6 @@ import com.mongodb.async.client.DistinctIterable;
 import com.mongodb.async.client.FindIterable;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.BsonField;
-import com.mongodb.client.model.Projections;
 
 /**
  * MongoDB {@link AsyncQueryAdapter}.
@@ -104,7 +102,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			final String collectionName = query.getDefinition().getCollectionName();
 			// get and configure collection
 			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return MongoOperationConfigurator.configureRead(database.getCollection(collectionName), context,
+				return AsyncMongoCollectionConfigurator.configureRead(database.getCollection(collectionName), context,
 						queryOperation.getConfiguration());
 			});
 			// build context
@@ -182,53 +180,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 
 		final FindIterable<Document> fi = queryContext.getCollection().find();
 
-		// definition
-		final BsonQueryDefinition definition = queryContext.getQuery().getDefinition();
-		// filter
-		definition.getFilter().ifPresent(f -> fi.filter(f));
-		// sort
-		definition.getSort().ifPresent(s -> fi.sort(s));
-		// limit-offset
-		definition.getLimit().ifPresent(l -> fi.limit(l));
-		definition.getOffset().ifPresent(o -> fi.skip(o));
-		// timeout
-		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
-		// cursor
-		definition.getCursorType().ifPresent(c -> fi.cursorType(c));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> fi.collation(c));
-		// comment
-		definition.getComment().ifPresent(c -> fi.comment(c));
-		// hint
-		definition.getHint().ifPresent(h -> fi.hint(h));
-		// max-min
-		definition.getMax().ifPresent(m -> fi.max(m));
-		definition.getMin().ifPresent(m -> fi.min(m));
-		// max scan
-		definition.getMaxScan().ifPresent(m -> fi.maxScan(m));
-		// partial
-		if (definition.isPartial()) {
-			fi.partial(true);
-		}
-		// return key
-		if (definition.isReturnKey()) {
-			fi.returnKey(true);
-		}
-		// record id
-		if (definition.isShowRecordId()) {
-			fi.showRecordId(true);
-		}
-		// snapshot
-		if (definition.isSnapshot()) {
-			fi.snapshot(true);
-		}
-
-		// projection
-		Optional<Bson> projection = queryContext.getQuery().getProjection().filter(p -> !p.isEmpty())
-				.map(p -> Projections.fields(p.getFieldProjections()));
-		projection.ifPresent(p -> fi.projection(p));
+		// configure
+		Optional<Bson> projection = MongoOperations.configure(queryContext.getQuery(),
+				new AsyncFindOperationConfigurator(fi));
 
 		// trace
 		queryContext.getOperationContext().trace("FIND query", () -> MongoOperations
@@ -272,16 +226,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 
 		final DistinctIterable<Object> fi = queryContext.getCollection().distinct(fieldName, Object.class);
 
-		// definition
-		final BsonQueryDefinition definition = queryContext.getQuery().getDefinition();
-		// filter
-		definition.getFilter().ifPresent(f -> fi.filter(f));
-		// timeout
-		definition.getTimeout().ifPresent(t -> fi.maxTime(t, definition.getTimeoutUnit()));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> fi.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> fi.collation(c));
+		// configure
+		MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));
 
 		// trace
 		queryContext.getOperationContext().trace("DISTINCT query on [" + fieldName + "]",
@@ -320,52 +266,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				queryContext.getResultType());
 
 		// aggregation pipeline
-		List<Bson> pipeline = new LinkedList<>();
+		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(queryContext.getQuery());
 
-		// definition
-		final BsonQueryDefinition definition = queryContext.getQuery().getDefinition();
-
-		// ------ match
-		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
-
-		// ------ group
-		definition.getGroup().ifPresent(g -> {
-
-			final List<BsonField> fieldAccumulators = new LinkedList<>();
-
-			// check projection
-			queryContext.getQuery().getProjection().ifPresent(p -> {
-				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
-						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
-			});
-
-			if (!fieldAccumulators.isEmpty()) {
-				pipeline.add(Aggregates.group(g, fieldAccumulators));
-			} else {
-				pipeline.add(Aggregates.group(g));
-			}
-
-			definition.getGroupFilter().ifPresent(gf -> {
-				pipeline.add(Aggregates.match(gf));
-			});
-		});
-
-		// ------ sort
-		definition.getSort().ifPresent(s -> pipeline.add(Aggregates.sort(s)));
-
-		// ------ limit
-		definition.getLimit().ifPresent(l -> pipeline.add(Aggregates.limit(l)));
-
-		// ------ skip
-		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
-
-		// ------ project
-		if (!definition.getGroup().isPresent()) {
-			queryContext.getQuery().getProjection().filter(p -> !p.isEmpty())
-					.map(p -> Projections.fields(p.getFieldProjections())).ifPresent(prj -> {
-						pipeline.add(Aggregates.project(prj));
-					});
-		}
 		// trace
 		queryContext.getOperationContext().trace("Aggregation pipeline",
 				() -> MongoOperations.traceAggregationPipeline(queryContext.getOperationContext(), pipeline));
@@ -373,16 +275,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		// iterable
 		final AggregateIterable<Document> ai = queryContext.getCollection().aggregate(pipeline);
 
-		// timeout
-		definition.getTimeout().ifPresent(t -> ai.maxTime(t, definition.getTimeoutUnit()));
-		// batch size
-		definition.getBatchSize().ifPresent(b -> ai.batchSize(b));
-		// collation
-		definition.getCollation().ifPresent(c -> ai.collation(c));
-		// comment
-		definition.getComment().ifPresent(c -> ai.comment(c));
-		// hint
-		definition.getHint().ifPresent(h -> ai.hint(h));
+		// configure
+		MongoOperations.configure(queryContext.getQuery(), new AsyncAggregateOperationConfigurator(ai));
 
 		// documents
 		final List<Document> documents = new ArrayList<>();

@@ -29,7 +29,7 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
 import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
@@ -91,7 +91,7 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 					.resolveOrFail(context.getConfiguration().getTarget(), CollectionName.class).getName();
 			// get and configure collection
 			MongoCollection<Document> collection = context.getOperationContext().withDatabase(database -> {
-				return MongoOperationConfigurator.configureRead(database.getCollection(collectionName),
+				return AsyncMongoCollectionConfigurator.configureRead(database.getCollection(collectionName),
 						context.getDocumentContext(), context.getConfiguration().getParameters());
 			});
 			// build context

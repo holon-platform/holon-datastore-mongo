@@ -34,7 +34,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
@@ -96,7 +96,7 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 					.getName();
 			// get and configure collection
 			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName), context,
+				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
 						getConfiguration());
 			});
 			// build context

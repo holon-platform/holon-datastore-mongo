@@ -39,7 +39,7 @@ import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.sync.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -114,7 +114,7 @@ public class MongoSave extends AbstractSave {
 		return operationContext.withDatabase(database -> {
 
 			// get and configure collection
-			final MongoCollection<Document> collection = MongoOperationConfigurator
+			final MongoCollection<Document> collection = SyncMongoCollectionConfigurator
 					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
 			// encode Document

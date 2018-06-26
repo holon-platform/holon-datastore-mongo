@@ -29,7 +29,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.internal.MongoOperationConfigurator;
+import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
@@ -90,7 +90,7 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 					.getName();
 			// get and configure collection
 			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return MongoOperationConfigurator.configureWrite(database.getCollection(collectionName), context,
+				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
 						getConfiguration());
 			});
 			// build context

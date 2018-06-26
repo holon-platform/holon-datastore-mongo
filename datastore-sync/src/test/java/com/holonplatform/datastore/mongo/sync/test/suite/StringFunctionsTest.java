@@ -32,66 +32,45 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 
 	@Test
 	public void testLower() {
-		
+
 		final ObjectId oid = new ObjectId();
 
 		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
-		
-		System.err.println(getDatastore().query().target(TARGET).filter(ID.eq(oid)).count());
-		
+
 		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
-		
-		// TODO
 
-		System.err.println("---------------------");
-		
-		
 		ObjectId id = getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID).orElse(null);
 		assertNotNull(id);
 		assertEquals(oid, id);
 
-		/*
-		result = getDatastore().bulkUpdate(TARGET).set(STR, STR.lower()).filter(ID.eq(oid))
-					.execute();
-		assertEquals(1, result.getAffectedCount());
-
-		String v = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR).orElse(null);
-		assertNotNull(v);
-		assertEquals("one", v);
-		
 		result = getDatastore().delete(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
-		*/
+
 	}
 
-	// TODO
-	/*
 	@Test
 	public void testUpper() {
-		String str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(STR.upper()).orElse(null);
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).build();
+		OperationResult result = getDatastore().insert(TARGET, value1);
+		assertEquals(1, result.getAffectedCount());
+
+		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.upper()).orElse(null);
 		assertNotNull(str);
 		assertEquals("ONE", str);
 
-		Long key = getDatastore().query().target(NAMED_TARGET).filter(STR.upper().eq("ONE")).findOne(KEY).orElse(null);
-		assertNotNull(key);
-		assertEquals(Long.valueOf(1L), key);
+		ObjectId id = getDatastore().query().target(TARGET).filter(STR.upper().eq("ONE")).findOne(ID).orElse(null);
+		assertNotNull(id);
+		assertEquals(oid, id);
 
-		inTransaction(() -> {
-
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR, STR.upper()).filter(KEY.eq(1L))
-					.execute();
-			assertEquals(1, result.getAffectedCount());
-
-			String v = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(STR).orElse(null);
-			assertNotNull(v);
-			assertEquals("ONE", v);
-
-		});
+		result = getDatastore().delete(TARGET, value1);
+		assertEquals(1, result.getAffectedCount());
 	}
-	*/
 
 }

@@ -136,7 +136,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	private static <R> CompletionStage<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
-		final Bson filter = queryContext.getQuery().getDefinition().getFilter().orElse(null);
+		final Bson filter = queryContext.getQuery().getDefinition().getFilter().map(f -> f.getExpression()).orElse(null);
 
 		// trace
 		queryContext.getOperationContext().trace("COUNT query",

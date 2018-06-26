@@ -139,16 +139,12 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 			BsonQueryDefinition definition) {
 
 		// trace
-		context.trace("COUNT query",
-				"Filter: \n" + DocumentSerializer.getDefault().toJson(definition.getFilter().orElse(null)));
+		context.trace("COUNT query", "Filter: \n" + DocumentSerializer.getDefault()
+				.toJson(definition.getFilter().map(f -> f.getExpression()).orElse(null)));
 
 		// count
-		Long count;
-		if (definition.getFilter().isPresent()) {
-			count = collection.count(definition.getFilter().get());
-		} else {
-			count = collection.count();
-		}
+		Long count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
+				.orElse(collection.count());
 
 		return Stream.of((R) count);
 	}

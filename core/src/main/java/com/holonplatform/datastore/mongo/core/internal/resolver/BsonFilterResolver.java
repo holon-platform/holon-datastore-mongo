@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Axioma srl.
+ * Copyright 2016-2018 Axioma srl.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,33 +20,20 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
 import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
 
 /**
- * {@link QueryFilter} expression resolver.
+ * {@link BsonFilter} to {@link BsonExpression} resolver.
  *
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
+public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilter> {
 
-	/**
-	 * Singleton instance.
-	 */
 	INSTANCE;
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
-	 */
-	@Override
-	public Class<? extends QueryFilter> getExpressionType() {
-		return QueryFilter.class;
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -54,16 +41,23 @@ public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(QueryFilter expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(BsonFilter expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// resolve as BsonFilter
-		return context.resolve(expression, BsonFilter.class).map(bf -> bf.getExpression())
-				.map(bson -> BsonExpression.create(bson));
+		// return the filter expression
+		return Optional.of(BsonExpression.create(expression.getExpression()));
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
+	 */
+	@Override
+	public Class<? extends BsonFilter> getExpressionType() {
+		return BsonFilter.class;
 	}
 
 }

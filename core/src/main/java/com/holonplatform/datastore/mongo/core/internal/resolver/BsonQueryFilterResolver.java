@@ -22,17 +22,16 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
-import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
-import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
+import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * {@link QueryFilter} expression resolver.
+ * {@link QueryFilter} to {@link BsonFilter} expression resolver.
  *
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
+public enum BsonQueryFilterResolver implements MongoExpressionResolver<QueryFilter, BsonFilter> {
 
 	/**
 	 * Singleton instance.
@@ -50,19 +49,30 @@ public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
+	 */
+	@Override
+	public Class<? extends BsonFilter> getResolvedType() {
+		return BsonFilter.class;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(QueryFilter expression, MongoResolutionContext context)
+	public Optional<BsonFilter> resolve(QueryFilter expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// resolve as BsonFilter
-		return context.resolve(expression, BsonFilter.class).map(bf -> bf.getExpression())
-				.map(bson -> BsonExpression.create(bson));
+		// intermediate resolution
+		return context.resolve(expression, QueryFilter.class).flatMap(filter -> {
+			// resolve as BsonFilter
+			return context.resolve(filter, BsonFilter.class);
+		});
 
 	}
 

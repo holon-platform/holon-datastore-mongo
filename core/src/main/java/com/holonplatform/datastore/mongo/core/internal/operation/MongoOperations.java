@@ -46,6 +46,8 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilter.FilterAggregationPipeline;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
@@ -266,7 +268,7 @@ public class MongoOperations {
 		// definition
 		final BsonQueryDefinition definition = query.getDefinition();
 		// filter
-		definition.getFilter().ifPresent(f -> configurator.filter(f));
+		definition.getFilter().map(f -> f.getExpression()).ifPresent(f -> configurator.filter(f));
 		// sort
 		definition.getSort().ifPresent(s -> configurator.sort(s));
 		// limit-offset
@@ -327,7 +329,7 @@ public class MongoOperations {
 		// definition
 		final BsonQueryDefinition definition = query.getDefinition();
 		// filter
-		definition.getFilter().ifPresent(f -> configurator.filter(f));
+		definition.getFilter().map(f -> f.getExpression()).ifPresent(f -> configurator.filter(f));
 		// timeout
 		definition.getTimeout().ifPresent(t -> configurator.maxTime(t, definition.getTimeoutUnit()));
 		// batch size
@@ -374,7 +376,7 @@ public class MongoOperations {
 		final BsonQueryDefinition definition = query.getDefinition();
 
 		// ------ match
-		definition.getFilter().ifPresent(f -> pipeline.add(Aggregates.match(f)));
+		definition.getFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f)));
 
 		// ------ group
 		final List<BsonField> fieldAccumulators = new LinkedList<>();
@@ -393,9 +395,7 @@ public class MongoOperations {
 				pipeline.add(Aggregates.group(g));
 			}
 
-			definition.getGroupFilter().ifPresent(gf -> {
-				pipeline.add(Aggregates.match(gf));
-			});
+			definition.getGroupFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f)));
 		});
 
 		// ------ sort
@@ -421,6 +421,26 @@ public class MongoOperations {
 			});
 		}
 
+		return pipeline;
+	}
+
+	/**
+	 * Process given filter and returns the aggregation pipeline stages to add.
+	 * @param filter Filter
+	 * @return Aggregation pipeline stage
+	 */
+	private static List<Bson> buildAggregationFilter(BsonFilter filter) {
+		final List<Bson> pipeline = new LinkedList<>();
+		if (filter.getPipeline().isPresent()) {
+			final FilterAggregationPipeline fap = filter.getPipeline().get();
+			fap.getProjection().ifPresent(pj -> {
+				pipeline.add(Aggregates.project(pj));
+			});
+			pipeline.add(Aggregates.match(fap.getMatch()));
+
+		} else {
+			pipeline.add(Aggregates.match(filter.getExpression()));
+		}
 		return pipeline;
 	}
 
@@ -471,7 +491,7 @@ public class MongoOperations {
 		sb.append("Collection name: ");
 		sb.append(query.getDefinition().getCollectionName());
 
-		query.getDefinition().getFilter().ifPresent(f -> {
+		query.getDefinition().getFilter().map(f -> f.getExpression()).ifPresent(f -> {
 			sb.append("\nFilter: \n");
 			sb.append(context.toJson(f));
 		});

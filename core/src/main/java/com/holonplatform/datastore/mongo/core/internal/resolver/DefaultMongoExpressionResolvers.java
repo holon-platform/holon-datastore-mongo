@@ -48,10 +48,12 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(ValueResolver.INSTANCE);
 		expressionResolvers.add(DocumentPropertyBoxResolver.INSTANCE);
 		expressionResolvers.add(PropertyBoxDocumentResolver.INSTANCE);
+		expressionResolvers.add(BsonQueryFilterResolver.INSTANCE);
 		expressionResolvers.add(QueryFilterResolver.INSTANCE);
 		expressionResolvers.add(QuerySortResolver.INSTANCE);
 		expressionResolvers.add(VisitableQueryFilterResolver.INSTANCE);
 		expressionResolvers.add(VisitableQuerySortResolver.INSTANCE);
+		expressionResolvers.add(BsonFilterResolver.INSTANCE);
 		expressionResolvers.add(QueryProjectionResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionProjectionResolver.INSTANCE);
 		expressionResolvers.add(TypedExpressionProjectionResolver.INSTANCE);

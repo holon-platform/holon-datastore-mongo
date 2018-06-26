@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.bson.conversions.Bson;
 
+import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.mongodb.CursorType;
 import com.mongodb.client.model.Collation;
@@ -32,10 +33,10 @@ import com.mongodb.client.model.Collation;
 public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 
 	private String collectionName;
-	private Bson filter;
+	private BsonFilter filter;
 	private Bson sort;
 	private Bson group;
-	private Bson groupFilter;
+	private BsonFilter groupFilter;
 	private Integer limit;
 	private Integer offset;
 	private Long timeout;
@@ -71,7 +72,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition#getFilter()
 	 */
 	@Override
-	public Optional<Bson> getFilter() {
+	public Optional<BsonFilter> getFilter() {
 		return Optional.ofNullable(filter);
 	}
 
@@ -98,7 +99,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition#getGroupFilter()
 	 */
 	@Override
-	public Optional<Bson> getGroupFilter() {
+	public Optional<BsonFilter> getGroupFilter() {
 		return Optional.ofNullable(groupFilter);
 	}
 
@@ -248,7 +249,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		this.collectionName = collectionName;
 	}
 
-	public void setFilter(Bson filter) {
+	public void setFilter(BsonFilter filter) {
 		this.filter = filter;
 	}
 
@@ -260,7 +261,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		this.group = group;
 	}
 
-	public void setGroupFilter(Bson groupFilter) {
+	public void setGroupFilter(BsonFilter groupFilter) {
 		this.groupFilter = groupFilter;
 	}
 
@@ -361,7 +362,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		 * Bson)
 		 */
 		@Override
-		public Builder filter(Bson filter) {
+		public Builder filter(BsonFilter filter) {
 			instance.setFilter(filter);
 			return this;
 		}
@@ -396,7 +397,7 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		 * conversions.Bson)
 		 */
 		@Override
-		public Builder groupFilter(Bson groupFilter) {
+		public Builder groupFilter(BsonFilter groupFilter) {
 			instance.setGroupFilter(groupFilter);
 			return this;
 		}

@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.bson.conversions.Bson;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonFilter;
+import com.holonplatform.datastore.mongo.core.internal.expression.DefaultBsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.internal.expression.DefaultFilterAggregationPipeline;
 
 /**
@@ -28,7 +28,7 @@ import com.holonplatform.datastore.mongo.core.internal.expression.DefaultFilterA
  *
  * @since 5.2.0
  */
-public interface BsonFilter extends Expression {
+public interface BsonFilterExpression extends Expression {
 
 	/**
 	 * Get the filter expression.
@@ -43,22 +43,22 @@ public interface BsonFilter extends Expression {
 	Optional<FilterAggregationPipeline> getPipeline();
 
 	/**
-	 * Create a new {@link BsonFilter}.
+	 * Create a new {@link BsonFilterExpression}.
 	 * @param expression Filter expression
-	 * @return A new {@link BsonFilter}
+	 * @return A new {@link BsonFilterExpression}
 	 */
-	static BsonFilter create(Bson expression) {
-		return new DefaultBsonFilter(expression);
+	static BsonFilterExpression create(Bson expression) {
+		return new DefaultBsonFilterExpression(expression);
 	}
 
 	/**
-	 * Create a new {@link BsonFilter}.
+	 * Create a new {@link BsonFilterExpression}.
 	 * @param match Filter aggregation pipeline match stage
 	 * @param projection Optional filter aggregation pipeline projection stage
-	 * @return A new {@link BsonFilter}
+	 * @return A new {@link BsonFilterExpression}
 	 */
-	static BsonFilter create(Bson match, Bson projection) {
-		return new DefaultBsonFilter(new DefaultFilterAggregationPipeline(match, projection));
+	static BsonFilterExpression create(Bson match, Bson projection) {
+		return new DefaultBsonFilterExpression(new DefaultFilterAggregationPipeline(match, projection));
 	}
 
 	/**

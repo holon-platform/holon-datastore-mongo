@@ -19,27 +19,27 @@ import java.util.Optional;
 
 import org.bson.conversions.Bson;
 
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 
 /**
- * Default {@link BsonFilter} implementation.
+ * Default {@link BsonFilterExpression} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultBsonFilter implements BsonFilter {
+public class DefaultBsonFilterExpression implements BsonFilterExpression {
 
 	private final Bson expression;
 	private final FilterAggregationPipeline pipeline;
 
-	public DefaultBsonFilter(Bson expression) {
+	public DefaultBsonFilterExpression(Bson expression) {
 		this(expression, null);
 	}
 
-	public DefaultBsonFilter(FilterAggregationPipeline pipeline) {
+	public DefaultBsonFilterExpression(FilterAggregationPipeline pipeline) {
 		this((pipeline != null) ? pipeline.getMatch() : null, pipeline);
 	}
 
-	public DefaultBsonFilter(Bson expression, FilterAggregationPipeline pipeline) {
+	public DefaultBsonFilterExpression(Bson expression, FilterAggregationPipeline pipeline) {
 		super();
 		this.expression = expression;
 		this.pipeline = pipeline;

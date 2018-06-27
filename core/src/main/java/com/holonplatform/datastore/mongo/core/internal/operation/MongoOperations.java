@@ -47,8 +47,8 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter.FilterAggregationPipeline;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression.FilterAggregationPipeline;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
@@ -509,7 +509,7 @@ public class MongoOperations {
 	 * @param finalProjection Optional final projection
 	 * @return Aggregation pipeline stage
 	 */
-	private static List<Bson> buildAggregationFilter(BsonFilter filter, Optional<Bson> finalProjection) {
+	private static List<Bson> buildAggregationFilter(BsonFilterExpression filter, Optional<Bson> finalProjection) {
 		final List<Bson> pipeline = new LinkedList<>();
 		if (filter.getPipeline().isPresent()) {
 			final FilterAggregationPipeline fap = filter.getPipeline().get();

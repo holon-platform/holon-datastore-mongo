@@ -22,16 +22,16 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
 
 /**
- * {@link BsonFilter} to {@link BsonExpression} resolver.
+ * {@link BsonFilterExpression} to {@link BsonExpression} resolver.
  *
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilter> {
+public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilterExpression> {
 
 	INSTANCE;
 
@@ -41,7 +41,7 @@ public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilter> {
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(BsonFilter expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(BsonFilterExpression expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -56,8 +56,8 @@ public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilter> {
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BsonFilter> getExpressionType() {
-		return BsonFilter.class;
+	public Class<? extends BsonFilterExpression> getExpressionType() {
+		return BsonFilterExpression.class;
 	}
 
 }

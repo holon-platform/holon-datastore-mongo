@@ -51,7 +51,7 @@ import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -59,13 +59,13 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 
 /**
- * MongoDB {@link VisitableQueryFilter} to {@link BsonFilter} expression resolver.
+ * MongoDB {@link VisitableQueryFilter} to {@link BsonFilterExpression} expression resolver.
  *
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE - 10)
-public enum VisitableQueryFilterResolver implements MongoExpressionResolver<VisitableQueryFilter, BsonFilter>,
-		QueryFilterVisitor<BsonFilter, MongoResolutionContext> {
+public enum VisitableQueryFilterResolver implements MongoExpressionResolver<VisitableQueryFilter, BsonFilterExpression>,
+		QueryFilterVisitor<BsonFilterExpression, MongoResolutionContext> {
 
 	INSTANCE;
 
@@ -75,7 +75,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonFilter> resolve(VisitableQueryFilter expression, MongoResolutionContext context)
+	public Optional<BsonFilterExpression> resolve(VisitableQueryFilter expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -99,8 +99,8 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends BsonFilter> getResolvedType() {
-		return BsonFilter.class;
+	public Class<? extends BsonFilterExpression> getResolvedType() {
+		return BsonFilterExpression.class;
 	}
 
 	/*
@@ -109,11 +109,11 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * NullFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(NullFilter filter, MongoResolutionContext context) {
+	public BsonFilterExpression visit(NullFilter filter, MongoResolutionContext context) {
 		// not exists or it is not null
 		return resolveFieldName(filter.getLeftOperand(), context)
 				.map(fn -> Filters.or(Filters.not(Filters.exists(fn)), Filters.type(fn, BsonType.NULL)))
-				.map(bson -> BsonFilter.create(bson)).orElse(null);
+				.map(bson -> BsonFilterExpression.create(bson)).orElse(null);
 	}
 
 	/*
@@ -122,11 +122,11 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * NotNullFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(NotNullFilter filter, MongoResolutionContext context) {
+	public BsonFilterExpression visit(NotNullFilter filter, MongoResolutionContext context) {
 		// exists and it is not null
 		return resolveFieldName(filter.getLeftOperand(), context)
 				.map(fn -> Filters.and(Filters.exists(fn), Filters.not(Filters.type(fn, BsonType.NULL))))
-				.map(bson -> BsonFilter.create(bson)).orElse(null);
+				.map(bson -> BsonFilterExpression.create(bson)).orElse(null);
 	}
 
 	/*
@@ -135,7 +135,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * EqualFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(EqualFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(EqualFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> Filters.eq(fn, resolveRightOperand(filter, context)));
 	}
@@ -146,7 +146,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * NotEqualFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(NotEqualFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(NotEqualFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> Filters.ne(fn, resolveRightOperand(filter, context)));
 	}
@@ -157,7 +157,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * GreaterFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(GreaterFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(GreaterFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> filter.isIncludeEquals() ? Filters.gte(fn, resolveRightOperand(filter, context))
 						: Filters.gt(fn, resolveRightOperand(filter, context)));
@@ -169,7 +169,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * LessFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(LessFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(LessFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> filter.isIncludeEquals() ? Filters.lte(fn, resolveRightOperand(filter, context))
 						: Filters.lt(fn, resolveRightOperand(filter, context)));
@@ -181,7 +181,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * InFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(InFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(InFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> Filters.in(fn, resolveRightOperandAsIterable(filter, context)));
 	}
@@ -192,7 +192,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * NotInFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(NotInFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(NotInFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> Filters.nin(fn, resolveRightOperandAsIterable(filter, context)));
 	}
@@ -203,7 +203,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * BetweenFilter, java.lang.Object)
 	 */
 	@Override
-	public <T> BsonFilter visit(BetweenFilter<T> filter, MongoResolutionContext context) {
+	public <T> BsonFilterExpression visit(BetweenFilter<T> filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter,
 				(c, fn) -> Filters.and(Filters.gte(fn, filter.getFromValue()), Filters.lte(fn, filter.getToValue())));
 	}
@@ -214,7 +214,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * StringMatchFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(StringMatchFilter filter, MongoResolutionContext context) {
+	public BsonFilterExpression visit(StringMatchFilter filter, MongoResolutionContext context) {
 		return resolveOperationQueryFilter(context, filter, (c, fn) -> {
 			final String value = resolveRightOperandAsNotNullString(filter, context);
 			final String options = filter.isIgnoreCase() ? "i" : null;
@@ -242,7 +242,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * AndFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(AndFilter filter, MongoResolutionContext context) {
+	public BsonFilterExpression visit(AndFilter filter, MongoResolutionContext context) {
 		return combine(context, filter.getComposition(), expressions -> Filters.and(expressions));
 	}
 
@@ -252,7 +252,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * OrFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(OrFilter filter, MongoResolutionContext context) {
+	public BsonFilterExpression visit(OrFilter filter, MongoResolutionContext context) {
 		return combine(context, filter.getComposition(), expressions -> Filters.or(expressions));
 	}
 
@@ -262,11 +262,11 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * NotFilter, java.lang.Object)
 	 */
 	@Override
-	public BsonFilter visit(NotFilter filter, MongoResolutionContext context) {
-		final BsonFilter toNegate = context.resolveOrFail(filter.getComposition().get(0), BsonFilter.class);
+	public BsonFilterExpression visit(NotFilter filter, MongoResolutionContext context) {
+		final BsonFilterExpression toNegate = context.resolveOrFail(filter.getComposition().get(0), BsonFilterExpression.class);
 		return toNegate.getPipeline().map(
-				pipeline -> BsonFilter.create(Filters.not(pipeline.getMatch()), pipeline.getProjection().orElse(null)))
-				.orElse(BsonFilter.create(Filters.not(toNegate.getExpression())));
+				pipeline -> BsonFilterExpression.create(Filters.not(pipeline.getMatch()), pipeline.getProjection().orElse(null)))
+				.orElse(BsonFilterExpression.create(Filters.not(toNegate.getExpression())));
 	}
 
 	/**
@@ -276,13 +276,13 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * @param combiner Combiner function
 	 * @return Result filter
 	 */
-	private static BsonFilter combine(MongoResolutionContext context, List<QueryFilter> filters,
+	private static BsonFilterExpression combine(MongoResolutionContext context, List<QueryFilter> filters,
 			Function<List<Bson>, Bson> combiner) {
 		final List<Bson> expressions = new ArrayList<>();
 		final List<Bson> matches = new ArrayList<>();
 		final List<Bson> projections = new ArrayList<>();
 
-		filters.stream().map(f -> context.resolveOrFail(f, BsonFilter.class)).forEach(bf -> {
+		filters.stream().map(f -> context.resolveOrFail(f, BsonFilterExpression.class)).forEach(bf -> {
 			expressions.add(bf.getExpression());
 			bf.getPipeline().ifPresent(p -> {
 				matches.add(p.getMatch());
@@ -294,10 +294,10 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 
 		// check filter type
 		if (!matches.isEmpty()) {
-			return BsonFilter.create(combiner.apply(matches),
+			return BsonFilterExpression.create(combiner.apply(matches),
 					projections.isEmpty() ? null : Projections.fields(projections));
 		}
-		return BsonFilter.create(combiner.apply(expressions));
+		return BsonFilterExpression.create(combiner.apply(expressions));
 	}
 
 	/**
@@ -305,9 +305,9 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * @param context Resolution context
 	 * @param filter Filter to resolve
 	 * @param filterProvider {@link Bson} filter provider
-	 * @return Resolved {@link BsonFilter}
+	 * @return Resolved {@link BsonFilterExpression}
 	 */
-	private static BsonFilter resolveOperationQueryFilter(MongoResolutionContext context,
+	private static BsonFilterExpression resolveOperationQueryFilter(MongoResolutionContext context,
 			OperationQueryFilter<?> filter, BiFunction<MongoResolutionContext, String, Bson> filterProvider) {
 		return context.resolve(filter.getLeftOperand(), BsonExpression.class).map(e -> e.getValue()).map(expression -> {
 			// set AGGREGATE type
@@ -316,14 +316,14 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 			// check alias
 			Optional<String> alias = context.getAlias(filter.getLeftOperand());
 			if (alias.isPresent()) {
-				return BsonFilter.create(filterProvider.apply(context, alias.get()), null);
+				return BsonFilterExpression.create(filterProvider.apply(context, alias.get()), null);
 			}
 
 			final String filterAlias = context.getNextProjectionFieldName();
-			return BsonFilter.create(filterProvider.apply(context, filterAlias), new Document(filterAlias, expression));
+			return BsonFilterExpression.create(filterProvider.apply(context, filterAlias), new Document(filterAlias, expression));
 
 		}).orElse(resolveFieldName(filter.getLeftOperand(), context).map(fn -> filterProvider.apply(context, fn))
-				.map(bson -> BsonFilter.create(bson)).orElse(null));
+				.map(bson -> BsonFilterExpression.create(bson)).orElse(null));
 	}
 
 	/**

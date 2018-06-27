@@ -48,7 +48,7 @@ public interface BsonQueryDefinition extends Expression {
 	 * Get the query filters.
 	 * @return Optional filter
 	 */
-	Optional<BsonFilter> getFilter();
+	Optional<BsonFilterExpression> getFilter();
 
 	/**
 	 * Get the query sorts.
@@ -66,7 +66,7 @@ public interface BsonQueryDefinition extends Expression {
 	 * Get the filter to apply to the group stage in an aggregation type query.
 	 * @return Optional filter to apply to the group stage in an aggregation type query
 	 */
-	Optional<BsonFilter> getGroupFilter();
+	Optional<BsonFilterExpression> getGroupFilter();
 
 	/**
 	 * Get the query results limit.
@@ -201,7 +201,7 @@ public interface BsonQueryDefinition extends Expression {
 		 * @param filter Filter to set
 		 * @return this
 		 */
-		Builder filter(BsonFilter filter);
+		Builder filter(BsonFilterExpression filter);
 
 		/**
 		 * Set the query sort.
@@ -222,7 +222,7 @@ public interface BsonQueryDefinition extends Expression {
 		 * @param groupFilter Group filter to set
 		 * @return this
 		 */
-		Builder groupFilter(BsonFilter groupFilter);
+		Builder groupFilter(BsonFilterExpression groupFilter);
 
 		/**
 		 * Set the query results limit.

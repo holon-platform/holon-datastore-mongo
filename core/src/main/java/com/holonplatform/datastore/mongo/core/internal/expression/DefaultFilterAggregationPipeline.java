@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.bson.conversions.Bson;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter.FilterAggregationPipeline;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression.FilterAggregationPipeline;
 
 /**
  * Default {@link FilterAggregationPipeline} implementation.

@@ -29,7 +29,7 @@ import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
@@ -71,7 +71,7 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 
 		// filters
 		expression.getFilter().ifPresent(f -> {
-			builder.filter(context.resolveOrFail(f, BsonFilter.class));
+			builder.filter(context.resolveOrFail(f, BsonFilterExpression.class));
 		});
 
 		// sort
@@ -99,7 +99,7 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 
 				// filter
 				a.getAggregationFilter().ifPresent(f -> {
-					builder.groupFilter(context.resolveOrFail(f, BsonFilter.class));
+					builder.groupFilter(context.resolveOrFail(f, BsonFilterExpression.class));
 				});
 
 				// set AGGREGATE type

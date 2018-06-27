@@ -23,7 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
-import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
+import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
 
 /**
@@ -61,7 +61,7 @@ public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
 		expression.validate();
 
 		// resolve as BsonFilter
-		return context.resolve(expression, BsonFilter.class).map(bf -> bf.getExpression())
+		return context.resolve(expression, BsonFilterExpression.class).map(bf -> bf.getExpression())
 				.map(bson -> BsonExpression.create(bson));
 
 	}

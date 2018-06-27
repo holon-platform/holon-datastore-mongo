@@ -67,6 +67,20 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	Optional<DocumentConverter<R>> getConverter();
 
 	/**
+	 * Get whether this projection is a <em>count all </em> projection.
+	 * @return Whether this projection is a <em>count all </em> projection
+	 */
+	boolean isCountAllProjection();
+
+	/**
+	 * Create a new <em>count all</em> {@link BsonProjection}.
+	 * @return A new <em>count all</em> {@link BsonProjection}
+	 */
+	static BsonProjection<Long> countAll() {
+		return new DefaultBsonProjection<>(Long.class, true);
+	}
+
+	/**
 	 * Get a new {@link BsonProjection} builder.
 	 * @param <R> Projection result type
 	 * @param projectionType Projection result type
@@ -74,6 +88,17 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	 */
 	static <R> Builder<R> builder(Class<R> projectionType) {
 		return new DefaultBsonProjection.DefaultBuilder<>(projectionType);
+	}
+
+	/**
+	 * Get a new {@link BsonProjection} builder.
+	 * @param <R> Projection result type
+	 * @param projectionType Projection result type
+	 * @param countAllProjection Whether the projection is a <em>count all </em> projection
+	 * @return A new {@link BsonProjection} builder
+	 */
+	static <R> Builder<R> builder(Class<R> projectionType, boolean countAllProjection) {
+		return new DefaultBsonProjection.DefaultBuilder<>(projectionType, countAllProjection);
 	}
 
 	/**

@@ -232,7 +232,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// aggregation pipeline
 		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(query);
-
+		
 		// trace
 		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(context, pipeline));
 

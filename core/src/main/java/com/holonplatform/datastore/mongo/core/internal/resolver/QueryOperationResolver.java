@@ -23,6 +23,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
@@ -53,7 +54,7 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 		expression.validate();
 
 		// resolve projection
-		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
+		BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
 
 		// resolve query configuration
 		final BsonQueryDefinition definition = context.resolveOrFail(expression.getConfiguration(),
@@ -61,6 +62,14 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 
 		// build query
 		final BsonQuery.Builder builder = BsonQuery.builder(definition);
+
+		// check projection
+		if (projection.isCountAllProjection()
+				&& context.getQueryOperationType().orElse(QueryOperationType.FIND) != QueryOperationType.COUNT) {
+			projection = BsonProjection.builder(Long.class, true)
+					.converter(DocumentConverter.value(Long.class, "count")).build();
+		}
+
 		builder.projection(projection);
 
 		// check distinct

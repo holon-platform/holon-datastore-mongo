@@ -400,18 +400,20 @@ public class MongoOperations {
 		final List<BsonField> fieldAccumulators = new LinkedList<>();
 		definition.getGroup().ifPresent(g -> {
 			// check projection to configure accumulators
-			query.getProjection().ifPresent(p -> {
+			query.getProjection().filter(p -> !p.isCountAllProjection()).ifPresent(p -> {
 				for (Entry<String, Bson> field : p.getFields().entrySet()) {
 					if (field.getValue() != null) {
 						fieldAccumulators.add(new BsonField(field.getKey(), field.getValue()));
 					} else {
-						fieldAccumulators.add(new BsonField(field.getKey(), new Document("$first", "$" + field.getKey())));
+						fieldAccumulators
+								.add(new BsonField(field.getKey(), new Document("$first", "$" + field.getKey())));
 					}
 				}
 			});
 		});
 
 		// ------ final projection stage
+		final boolean countAllProjection = query.getProjection().map(p -> p.isCountAllProjection()).orElse(false);
 		final Optional<Bson> projection;
 		if (fieldAccumulators.isEmpty()) {
 			// projection with expressions
@@ -423,8 +425,10 @@ public class MongoOperations {
 					.map(fieldNames -> Projections.include(fieldNames));
 		}
 
+		final Optional<Bson> filterProjection = countAllProjection ? Optional.empty() : projection;
+
 		// ------ match
-		definition.getFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, projection)));
+		definition.getFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, filterProjection)));
 
 		// ------ group
 		definition.getGroup().ifPresent(g -> {
@@ -434,7 +438,7 @@ public class MongoOperations {
 				pipeline.add(Aggregates.group(g));
 			}
 			// group filter
-			definition.getGroupFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, projection)));
+			definition.getGroupFilter().ifPresent(f -> pipeline.addAll(buildAggregationFilter(f, filterProjection)));
 		});
 
 		// ------ sort
@@ -447,7 +451,11 @@ public class MongoOperations {
 		definition.getOffset().ifPresent(o -> pipeline.add(Aggregates.skip(o)));
 
 		// ------ project
-		projection.ifPresent(p -> pipeline.add(Aggregates.project(p)));
+		if (countAllProjection) {
+			pipeline.add(Aggregates.count());
+		} else {
+			projection.ifPresent(p -> pipeline.add(Aggregates.project(p)));
+		}
 
 		return pipeline;
 	}

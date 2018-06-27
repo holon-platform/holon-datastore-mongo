@@ -29,6 +29,7 @@ import com.holonplatform.datastore.mongo.core.internal.document.CallbackDocument
 import com.holonplatform.datastore.mongo.core.internal.document.converter.BeanDocumentConverter;
 import com.holonplatform.datastore.mongo.core.internal.document.converter.PropertyBoxDocumentConverter;
 import com.holonplatform.datastore.mongo.core.internal.document.converter.TypedExpressionDocumentConverter;
+import com.holonplatform.datastore.mongo.core.internal.document.converter.ValueDocumentConverter;
 
 /**
  * Converter to convert a {@link Document} instance into a different type.
@@ -117,6 +118,17 @@ public interface DocumentConverter<R> {
 	 */
 	static <T> DocumentConverter<T> expression(TypedExpression<T> expression, String selection) {
 		return new TypedExpressionDocumentConverter<>(expression, selection);
+	}
+
+	/**
+	 * Create a new {@link DocumentConverter} to return a document field without performing any conversion.
+	 * @param <T> Value type
+	 * @param valueType Value type
+	 * @param selection Field name
+	 * @return A new value {@link DocumentConverter}
+	 */
+	static <T> DocumentConverter<T> value(Class<T> valueType, String selection) {
+		return new ValueDocumentConverter<>(valueType, selection);
 	}
 
 	/**

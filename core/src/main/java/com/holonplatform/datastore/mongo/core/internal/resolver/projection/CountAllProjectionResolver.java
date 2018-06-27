@@ -73,7 +73,7 @@ public enum CountAllProjectionResolver implements MongoExpressionResolver<CountA
 		// set COUNT type
 		context.setQueryOperationType(QueryOperationType.COUNT);
 
-		return Optional.of(BsonProjection.builder(Long.class).build());
+		return Optional.of(BsonProjection.countAll());
 	}
 
 }

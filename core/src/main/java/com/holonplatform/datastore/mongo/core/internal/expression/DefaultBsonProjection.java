@@ -40,13 +40,20 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	private final Class<R> projectionType;
 
+	private final boolean countAllProjection;
+
 	private DocumentConverter<R> converter;
 
 	private final Map<String, Bson> fields = new LinkedHashMap<>();
 
 	public DefaultBsonProjection(Class<R> projectionType) {
+		this(projectionType, false);
+	}
+
+	public DefaultBsonProjection(Class<R> projectionType, boolean countAllProjection) {
 		super();
 		this.projectionType = projectionType;
+		this.countAllProjection = countAllProjection;
 	}
 
 	/*
@@ -56,6 +63,15 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	@Override
 	public Class<? extends R> getType() {
 		return projectionType;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#isCountAllProjection()
+	 */
+	@Override
+	public boolean isCountAllProjection() {
+		return countAllProjection;
 	}
 
 	/*
@@ -135,6 +151,11 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 		public DefaultBuilder(Class<T> projectionType) {
 			super();
 			this.instance = new DefaultBsonProjection<>(projectionType);
+		}
+
+		public DefaultBuilder(Class<T> projectionType, boolean countAllProjection) {
+			super();
+			this.instance = new DefaultBsonProjection<>(projectionType, countAllProjection);
 		}
 
 		/*

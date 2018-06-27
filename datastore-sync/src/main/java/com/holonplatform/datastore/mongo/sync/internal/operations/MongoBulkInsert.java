@@ -15,10 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 
@@ -30,14 +28,12 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -93,12 +89,8 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
 
 			// encode documents
-			final Map<Document, PropertyBox> documentValues = new LinkedHashMap<>(
-					getConfiguration().getValues().size());
-			getConfiguration().getValues().forEach(v -> {
-				documentValues.put(context.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue(),
-						v);
-			});
+			final List<ResolvedDocument> documentValues = MongoOperations.resolveDocumentValues(context,
+					getConfiguration().getValues());
 
 			// resolve collection
 			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
@@ -111,7 +103,8 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 						.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
 				// insert
-				final List<Document> documents = new ArrayList<>(documentValues.keySet());
+				final List<Document> documents = documentValues.stream().map(v -> v.getDocument())
+						.collect(Collectors.toList());
 
 				collection.insertMany(documents, MongoOperations.getInsertManyOptions(getConfiguration()));
 

@@ -28,7 +28,6 @@ import org.bson.BsonType;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.query.QueryFilterVisitor;
@@ -49,7 +48,9 @@ import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
 import com.holonplatform.core.internal.utils.FormatUtils;
 import com.holonplatform.core.query.QueryFilter;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
@@ -310,8 +311,18 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	private static BsonFilter resolveOperationQueryFilter(MongoResolutionContext context,
 			OperationQueryFilter<?> filter, BiFunction<MongoResolutionContext, String, Bson> filterProvider) {
 		return context.resolve(filter.getLeftOperand(), BsonExpression.class).map(e -> e.getValue()).map(expression -> {
-			final String alias = context.getNextProjectionFieldName();
-			return BsonFilter.create(filterProvider.apply(context, alias), new Document(alias, expression));
+			// set AGGREGATE type
+			MongoQueryContext.isQueryContext(context)
+			.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+			
+			// check alias
+			Optional<String> alias = MongoQueryContext.isQueryContext(context).flatMap(qc -> qc.getAlias(filter.getLeftOperand()));
+			if (alias.isPresent()) {
+				return BsonFilter.create(filterProvider.apply(context, alias.get()), null);
+			}
+			
+			final String filterAlias = context.getNextProjectionFieldName();
+			return BsonFilter.create(filterProvider.apply(context, filterAlias), new Document(filterAlias, expression));
 
 		}).orElse(resolveFieldName(filter.getLeftOperand(), context).map(fn -> filterProvider.apply(context, fn))
 				.map(bson -> BsonFilter.create(bson)).orElse(null));
@@ -323,7 +334,13 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 * @param context Resolution context
 	 * @return The resolved field name, of an empty Optional is no suitable resolver is available
 	 */
-	private static Optional<String> resolveFieldName(Expression expression, MongoResolutionContext context) {
+	private static Optional<String> resolveFieldName(TypedExpression<?> expression, MongoResolutionContext context) {
+		// check alias
+		Optional<String> alias = MongoQueryContext.isQueryContext(context).flatMap(qc -> qc.getAlias(expression));
+		if (alias.isPresent()) {
+			return alias;
+		}
+		// resolve field name
 		return context.resolve(expression, FieldName.class).map(fn -> fn.getFieldName());
 	}
 

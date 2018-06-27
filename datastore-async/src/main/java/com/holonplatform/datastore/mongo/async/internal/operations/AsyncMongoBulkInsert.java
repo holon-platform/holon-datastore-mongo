@@ -15,12 +15,10 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 
@@ -31,7 +29,6 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
@@ -39,9 +36,8 @@ import com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperat
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
-import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
-import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -104,15 +100,11 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 					propertySet);
 		}).thenCompose(context -> {
 			// encode documents
-			final Map<Document, PropertyBox> documentValues = new LinkedHashMap<>(
-					getConfiguration().getValues().size());
-			getConfiguration().getValues().forEach(v -> {
-				documentValues.put(context.getDocumentContext()
-						.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue(), v);
-			});
+			final List<ResolvedDocument> documentValues = MongoOperations
+					.resolveDocumentValues(context.getDocumentContext(), getConfiguration().getValues());
 			// insert
-			final List<Document> documents = new ArrayList<>(documentValues.keySet());
-
+			final List<Document> documents = documentValues.stream().map(v -> v.getDocument())
+					.collect(Collectors.toList());
 			// prepare
 			final CompletableFuture<BulkInsertOperationContext> operation = new CompletableFuture<>();
 			// insert
@@ -131,7 +123,8 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 		}).thenApply(context -> {
 
 			// trace
-			context.getOperationContext().trace("Inserted documents", new ArrayList<>(context.getDocuments().keySet()));
+			context.getOperationContext().trace("Inserted documents",
+					context.getDocuments().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(context.getDocuments().size());

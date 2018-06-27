@@ -18,6 +18,7 @@ package com.holonplatform.datastore.mongo.core.context;
 import java.util.Optional;
 
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoQueryContext;
 
@@ -39,6 +40,20 @@ public interface MongoQueryContext extends MongoResolutionContext {
 	 * @param queryOperationType The query operation type to set
 	 */
 	void setQueryOperationType(QueryOperationType queryOperationType);
+
+	/**
+	 * Get the alias associated to given expression, if any.
+	 * @param expression The expression to get the alias for (not null)
+	 * @return Optional expression alias
+	 */
+	Optional<String> getAlias(TypedExpression<?> expression);
+
+	/**
+	 * Get the alias for given expression or create one if does not exist.
+	 * @param expression The expression to get the alias for (not null)
+	 * @return The alias for given expression or a newly created one
+	 */
+	String getOrCreateAlias(TypedExpression<?> expression);
 
 	/**
 	 * Checks if given resolution context is a {@link MongoQueryContext} type.

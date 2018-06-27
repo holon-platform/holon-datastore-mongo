@@ -16,15 +16,15 @@
 package com.holonplatform.datastore.mongo.async.internal.support;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 import org.bson.Document;
 
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -39,7 +39,7 @@ public class DefaultBulkInsertOperationContext extends DefaultBulkOperationConte
 	private final MongoDocumentContext documentContext;
 	private final PropertySet<?> propertySet;
 
-	private Map<Document, PropertyBox> documents;
+	private List<ResolvedDocument> documents;
 
 	public DefaultBulkInsertOperationContext(MongoOperationContext<MongoDatabase> operationContext,
 			DatastoreOperationConfiguration configuration, MongoDocumentContext documentContext,
@@ -72,9 +72,9 @@ public class DefaultBulkInsertOperationContext extends DefaultBulkOperationConte
 	 * @see com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperationContext#getDocuments()
 	 */
 	@Override
-	public Map<Document, PropertyBox> getDocuments() {
+	public List<ResolvedDocument> getDocuments() {
 		if (documents == null) {
-			return Collections.emptyMap();
+			return Collections.emptyList();
 		}
 		return documents;
 	}
@@ -85,7 +85,7 @@ public class DefaultBulkInsertOperationContext extends DefaultBulkOperationConte
 	 * com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperationContext#setDocuments(java.util.Map)
 	 */
 	@Override
-	public void setDocuments(Map<Document, PropertyBox> documents) {
+	public void setDocuments(List<ResolvedDocument> documents) {
 		this.documents = documents;
 	}
 

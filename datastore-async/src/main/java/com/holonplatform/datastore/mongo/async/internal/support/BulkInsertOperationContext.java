@@ -15,15 +15,15 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.support;
 
-import java.util.Map;
+import java.util.List;
 
 import org.bson.Document;
 
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -50,13 +50,13 @@ public interface BulkInsertOperationContext extends BulkOperationContext {
 	 * Get the inserted documents.
 	 * @return Inserted documents
 	 */
-	Map<Document, PropertyBox> getDocuments();
+	List<ResolvedDocument> getDocuments();
 
 	/**
 	 * Set the inserted documents.
 	 * @param documents Inserted documents
 	 */
-	void setDocuments(Map<Document, PropertyBox> documents);
+	void setDocuments(List<ResolvedDocument> documents);
 
 	static BulkInsertOperationContext create(MongoOperationContext<MongoDatabase> operationContext,
 			DatastoreOperationConfiguration configuration, MongoDocumentContext documentContext,

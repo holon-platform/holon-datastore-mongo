@@ -53,16 +53,15 @@ public enum QueryOperationResolver implements MongoExpressionResolver<QueryOpera
 		// validate
 		expression.validate();
 
+		// resolve projection
+		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
+
 		// resolve query configuration
 		final BsonQueryDefinition definition = context.resolveOrFail(expression.getConfiguration(),
 				BsonQueryDefinition.class);
 
 		// build query
 		final BsonQuery.Builder builder = BsonQuery.builder(definition);
-
-		// resolve projection
-		final BsonProjection<?> projection = context.resolveOrFail(expression.getProjection(), BsonProjection.class);
-
 		builder.projection(projection);
 
 		// check distinct

@@ -81,7 +81,6 @@ public enum FieldNamePathResolver implements MongoExpressionResolver<FieldName, 
 				.filter(pp -> fieldName.equals(pp.getPath().getDataPath().orElse(
 						DataMappable.isDataMappable(pp.getProperty()).flatMap(dm -> dm.getDataPath()).orElse(null))))
 				.map(pp -> pp.getPath()).findFirst().orElse(null);
-
 	}
 
 	/*

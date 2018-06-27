@@ -20,8 +20,9 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -32,8 +33,8 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
-public enum QueryFunctionFieldNameResolver implements MongoExpressionResolver<QueryFunction, FieldName> {
+@Priority(Integer.MAX_VALUE - 10)
+public enum PropertyFieldNameResolver implements MongoExpressionResolver<Property, FieldName> {
 
 	INSTANCE;
 
@@ -43,20 +44,15 @@ public enum QueryFunctionFieldNameResolver implements MongoExpressionResolver<Qu
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<FieldName> resolve(QueryFunction expression, MongoResolutionContext context)
+	public Optional<FieldName> resolve(Property expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// check first argument
-		TypedExpression<?> firstArgument = ((QueryFunction<?, ?>) expression).getExpressionArguments().stream()
-				.findFirst().orElse(null);
-		if (firstArgument != null) {
-			return context.resolve(firstArgument, FieldName.class);
-		}
-
-		return Optional.empty();
+		return MongoQueryContext.isQueryContext(context).map(qc -> {
+			return FieldName.create(qc.getOrCreateAlias(expression));
+		});
 	}
 
 	/*
@@ -64,8 +60,8 @@ public enum QueryFunctionFieldNameResolver implements MongoExpressionResolver<Qu
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QueryFunction> getExpressionType() {
-		return QueryFunction.class;
+	public Class<? extends Property> getExpressionType() {
+		return Property.class;
 	}
 
 	/*

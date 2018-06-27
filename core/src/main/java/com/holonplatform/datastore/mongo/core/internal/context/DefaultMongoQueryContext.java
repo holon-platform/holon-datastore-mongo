@@ -15,8 +15,12 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.context;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
@@ -29,6 +33,8 @@ import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 public class DefaultMongoQueryContext extends DefaultMongoResolutionContext implements MongoQueryContext {
 
 	private QueryOperationType queryOperationType;
+
+	private final Map<TypedExpression<?>, String> expressionAlias = new ConcurrentHashMap<>();
 
 	/**
 	 * Default constructor.
@@ -55,6 +61,30 @@ public class DefaultMongoQueryContext extends DefaultMongoResolutionContext impl
 	@Override
 	public void setQueryOperationType(QueryOperationType queryOperationType) {
 		this.queryOperationType = queryOperationType;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.context.MongoQueryContext#getAlias(com.holonplatform.core.TypedExpression)
+	 */
+	@Override
+	public Optional<String> getAlias(TypedExpression<?> expression) {
+		if (expression != null) {
+			return Optional.ofNullable(expressionAlias.get(expression));
+		}
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoQueryContext#getOrCreateAlias(com.holonplatform.core.
+	 * TypedExpression)
+	 */
+	@Override
+	public String getOrCreateAlias(TypedExpression<?> expression) {
+		ObjectUtils.argumentNotNull(expression, "Expression must be not null");
+		return expressionAlias.computeIfAbsent(expression, e -> getNextProjectionFieldName());
 	}
 
 }

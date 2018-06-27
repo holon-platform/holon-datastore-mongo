@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.core.internal.operation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +50,11 @@ import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter.FilterAggregationPipeline;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
+import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.DeleteOptions;
@@ -165,6 +169,24 @@ public class MongoOperations {
 	}
 
 	/**
+	 * Resolve given {@link PropertyBox} values as Documents.
+	 * @param context Resolution context
+	 * @param values Values to resolve
+	 * @return Resolved {@link PropertyBox} ad {@link Document} pairs
+	 */
+	public static List<ResolvedDocument> resolveDocumentValues(MongoDocumentContext context, List<PropertyBox> values) {
+		if (values == null || values.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final List<ResolvedDocument> documentValues = new ArrayList<>(values.size());
+		values.forEach(v -> {
+			documentValues.add(ResolvedDocument.create(v,
+					context.resolveOrFail(PropertyBoxValue.create(v), DocumentValue.class).getValue()));
+		});
+		return documentValues;
+	}
+
+	/**
 	 * Check generated document id after an insert type operation, setting the inserted keys using given
 	 * {@link OperationResult} builder.
 	 * @param builder OperationResult builder
@@ -206,17 +228,17 @@ public class MongoOperations {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void checkInsertedKeys(MongoDocumentContext documentContext,
-			DatastoreOperationConfiguration configuration, Map<Document, PropertyBox> documentValues) {
+			DatastoreOperationConfiguration configuration, List<ResolvedDocument> documentValues) {
 		// check inserted keys
 		if (configuration.hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
 			documentContext.getDocumentIdProperty().ifPresent(idProperty -> {
-				for (Entry<Document, PropertyBox> document : documentValues.entrySet()) {
-					final ObjectId oid = document.getKey().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
+				for (ResolvedDocument rd : documentValues) {
+					final ObjectId oid = rd.getDocument().getObjectId(MongoDocumentContext.ID_FIELD_NAME);
 					if (oid != null) {
 						final Object idPropertyValue = documentContext.getDocumentIdResolver().decode(oid,
 								idProperty.getType());
-						if (document.getValue().contains(idProperty)) {
-							document.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
+						if (rd.getValue().contains(idProperty)) {
+							rd.getValue().setValue((Property<Object>) idProperty, idPropertyValue);
 						}
 					}
 				}

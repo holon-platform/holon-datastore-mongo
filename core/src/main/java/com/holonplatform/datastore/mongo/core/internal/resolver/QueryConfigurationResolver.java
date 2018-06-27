@@ -80,15 +80,16 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 			Path<?>[] paths = a.getAggregationPaths();
 			if (paths != null && paths.length > 0) {
 				if (paths.length == 1) {
+					// single path
 					final String fieldName = context.resolveOrFail(paths[0], FieldName.class).getFieldName();
 					builder.group(new Document(fieldName, "$" + fieldName));
 				} else {
+					// multiple paths
 					final Document groups = new Document();
 					for (Path<?> path : paths) {
 						final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
 						groups.append(fieldName, "$" + fieldName);
 					}
-					// TODO multiple fields group id
 					builder.group(new Document("_id", groups));
 				}
 

@@ -31,7 +31,7 @@ import com.holonplatform.datastore.mongo.core.resolver.BsonExpressionResolver;
  * @since 5.2.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum BsonFilterResolver implements BsonExpressionResolver<BsonFilterExpression> {
+public enum BsonFilterExpressionResolver implements BsonExpressionResolver<BsonFilterExpression> {
 
 	INSTANCE;
 

@@ -54,7 +54,7 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(QuerySortResolver.INSTANCE);
 		expressionResolvers.add(VisitableQueryFilterResolver.INSTANCE);
 		expressionResolvers.add(VisitableQuerySortResolver.INSTANCE);
-		expressionResolvers.add(BsonFilterResolver.INSTANCE);
+		expressionResolvers.add(BsonFilterExpressionResolver.INSTANCE);
 		expressionResolvers.add(QueryProjectionResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionProjectionResolver.INSTANCE);
 		expressionResolvers.add(AggregationFunctionProjectionResolver.INSTANCE);

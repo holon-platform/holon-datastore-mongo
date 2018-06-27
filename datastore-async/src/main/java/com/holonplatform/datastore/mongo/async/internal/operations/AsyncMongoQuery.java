@@ -225,7 +225,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
 				queryContext.getResultType());
 
-		final DistinctIterable<Object> fi = queryContext.getCollection().distinct(fieldName, Object.class);
+		@SuppressWarnings("unchecked")
+		final DistinctIterable<R> fi = queryContext.getCollection().distinct(fieldName,
+				(Class<R>) queryContext.getResultType());
 
 		// configure
 		MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));

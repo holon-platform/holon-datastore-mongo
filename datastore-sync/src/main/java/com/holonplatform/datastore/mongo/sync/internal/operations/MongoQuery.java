@@ -200,7 +200,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		// iterable
-		final DistinctIterable<Object> fi = collection.distinct(fieldName, Object.class);
+		@SuppressWarnings("unchecked")
+		final DistinctIterable<R> fi = collection.distinct(fieldName, (Class<R>) resultType);
 
 		// configure
 		MongoOperations.configure(query, new SyncDistinctOperationConfigurator(fi));
@@ -232,7 +233,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// aggregation pipeline
 		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(query);
-		
+
 		// trace
 		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(context, pipeline));
 

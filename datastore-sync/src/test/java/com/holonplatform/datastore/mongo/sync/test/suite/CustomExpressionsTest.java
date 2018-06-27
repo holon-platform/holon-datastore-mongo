@@ -28,6 +28,7 @@ import org.junit.Test;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.expression.IntIsFilter;
+import com.holonplatform.datastore.mongo.core.test.expression.StrIntSort;
 
 public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 
@@ -40,10 +41,19 @@ public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 3).build()).execute();
 		assertEquals(3, result.getAffectedCount());
 
-		List<String> vals = getDatastore().query().withExpressionResolver(IntIsFilter.RESOLVER).target(TARGET).filter(new IntIsFilter(2)).list(STR);
+		List<String> vals = getDatastore().query().withExpressionResolver(IntIsFilter.RESOLVER).target(TARGET)
+				.filter(new IntIsFilter(2)).list(STR);
 		assertNotNull(vals);
 		assertEquals(1, vals.size());
 		assertEquals("cext2", vals.get(0));
+
+		vals = getDatastore().query().withExpressionResolver(StrIntSort.RESOLVER).target(TARGET).sort(new StrIntSort())
+				.list(STR);
+		assertNotNull(vals);
+		assertEquals(3, vals.size());
+		assertEquals("cext2", vals.get(0));
+		assertEquals("cext1", vals.get(1));
+		assertEquals("cext1", vals.get(2));
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("cext1", "cext2")).execute();
 		assertEquals(3, result.getAffectedCount());

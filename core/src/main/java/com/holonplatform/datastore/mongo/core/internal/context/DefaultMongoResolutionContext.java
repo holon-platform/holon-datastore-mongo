@@ -157,7 +157,6 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 		// parent config
 		if (parent != null) {
 			expressionAliasProvider = parent.getExpressionAliasProvider();
-			parent.getQueryOperationType().ifPresent(t -> setQueryOperationType(t));
 		} else {
 			expressionAliasProvider = ExpressionAliasProvider.create();
 		}
@@ -180,7 +179,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 		return Optional.ofNullable(parent);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getExpressionAliasProvider()
 	 */
 	@Override
@@ -212,6 +212,9 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 */
 	@Override
 	public Optional<QueryOperationType> getQueryOperationType() {
+		if (parent != null) {
+			return parent.getQueryOperationType();
+		}
 		return Optional.ofNullable(queryOperationType);
 	}
 
@@ -222,6 +225,9 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 */
 	@Override
 	public void setQueryOperationType(QueryOperationType queryOperationType) {
+		if (parent != null) {
+			parent.setQueryOperationType(queryOperationType);
+		}
 		this.queryOperationType = queryOperationType;
 	}
 

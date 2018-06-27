@@ -15,10 +15,11 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -36,23 +37,22 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).set(STR2, "TEST").build();
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).set(STR2, "TEST")
+				.build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 
 		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
-		
-		/* TODO
-		System.err.println("---------------------------");
-		
-		PropertyBox pb = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower(), INT).orElse(null);
+
+		final Property<?> LSTR = STR.lower();
+
+		PropertyBox pb = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(LSTR, INT).orElse(null);
 		assertNotNull(pb);
-		assertEquals("one", pb.getValue(STR));
+		assertEquals("one", pb.getValue(LSTR));
 		assertEquals(Integer.valueOf(1), pb.getValue(INT));
-		*/
-		
+
 		ObjectId id = getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID).orElse(null);
 		assertNotNull(id);
 		assertEquals(oid, id);

@@ -72,6 +72,11 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		assertEquals(1, values.size());
 		assertTrue(values.contains(Integer.valueOf(10)));
 
+		values = getDatastore().query(TARGET)
+				.aggregate(QueryAggregation.builder().path(STR).filter(SUM.eq(3).or(SUM.loe(10))).build()).list(SUM);
+		assertNotNull(values);
+		assertEquals(2, values.size());
+
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute();
 		assertEquals(5, result.getAffectedCount());
 
@@ -94,21 +99,31 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		assertTrue(values.contains("mg1"));
 		assertTrue(values.contains("mg2"));
 		assertTrue(values.contains("mg3"));
-		
+
 		final Property<?> MSTR2 = STR2.max();
-		
-		List<PropertyBox> pbs = getDatastore().query(TARGET).aggregate(STR, INT)
-				.sort(STR.desc()).sort(INT.asc())
+
+		List<PropertyBox> pbs = getDatastore().query(TARGET).aggregate(STR, INT).sort(STR.desc()).sort(INT.asc())
 				.list(STR, INT, MSTR2);
 		assertNotNull(pbs);
 		assertEquals(3, pbs.size());
-		
+
 		PropertyBox pb = pbs.get(0);
 		assertEquals("mg2", pb.getValue(MSTR2));
 		pb = pbs.get(1);
 		assertEquals("mg3", pb.getValue(MSTR2));
 		pb = pbs.get(2);
 		assertEquals("mg1", pb.getValue(MSTR2));
+
+		pbs = getDatastore().query(TARGET).aggregate(STR, INT).sort(INT.asc(), STR.desc()).list(STR, INT, MSTR2);
+		assertNotNull(pbs);
+		assertEquals(3, pbs.size());
+
+		pb = pbs.get(0);
+		assertEquals("mg1", pb.getValue(MSTR2));
+		pb = pbs.get(1);
+		assertEquals("mg2", pb.getValue(MSTR2));
+		pb = pbs.get(2);
+		assertEquals("mg3", pb.getValue(MSTR2));
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute();
 		assertEquals(5, result.getAffectedCount());

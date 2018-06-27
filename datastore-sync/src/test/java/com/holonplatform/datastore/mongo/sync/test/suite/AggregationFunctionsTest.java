@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
@@ -33,9 +33,9 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testAggregationFunctions() {
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(DBL, 1d).build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DBL, 2d).build()).execute();
+				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
+				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v2").build())
+				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute();
 		assertEquals(3, result.getAffectedCount());
 
 		Integer mv = getDatastore().query().target(TARGET).findOne(INT.max()).orElse(null);
@@ -58,7 +58,11 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 		assertNotNull(ct);
 		assertEquals(Long.valueOf(2), ct);
 
-		ct = getDatastore().query().target(TARGET).distinct().findOne(INT.count()).orElse(null);
+		ct = getDatastore().query().target(TARGET).findOne(STR2.count()).orElse(null);
+		assertNotNull(ct);
+		assertEquals(Long.valueOf(3), ct);
+
+		ct = getDatastore().query().target(TARGET).distinct().findOne(STR2.count()).orElse(null);
 		assertNotNull(ct);
 		assertEquals(Long.valueOf(2), ct);
 

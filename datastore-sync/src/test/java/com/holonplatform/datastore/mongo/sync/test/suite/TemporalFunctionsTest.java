@@ -44,8 +44,40 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 						.set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS).set(LTM, TestValues.U_LTM).build())
 				.execute();
 		assertEquals(3, result.getAffectedCount());
-		
+
 		long count = getDatastore().query().target(TARGET).filter(LDAT.year().eq(2018)).count();
+		assertEquals(2, count);
+
+		count = getDatastore().query().target(TARGET).filter(LDAT.year().eq(2019)).count();
+		assertEquals(1, count);
+
+		count = getDatastore().query().target(TARGET).filter(LDAT.year().lt(2000)).count();
+		assertEquals(0, count);
+
+		count = getDatastore().query().target(TARGET)
+				.filter(LDAT.year().eq(2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count();
+		assertEquals(1, count);
+
+		count = getDatastore().query().target(TARGET).filter(LTMS.year().eq(2018).or(LTMS.year().eq(2019))).count();
+		assertEquals(3, count);
+
+		count = getDatastore().query().target(TARGET)
+				.filter(LDAT.year().in(2018, 2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count();
+		assertEquals(3, count);
+
+		count = getDatastore().query().target(TARGET).filter(LTMS.month().eq(2)).count();
+		assertEquals(2, count);
+
+		count = getDatastore().query().target(TARGET).filter(LDAT.day().eq(4)).count();
+		assertEquals(1, count);
+
+		count = getDatastore().query().target(TARGET).filter(LTMS.hour().eq(11).or(LTM.hour().eq(18))).count();
+		assertEquals(2, count);
+
+		count = getDatastore().query().target(TARGET).filter(DAT.year().eq(2018)).count();
+		assertEquals(1, count);
+
+		count = getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count();
 		assertEquals(2, count);
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute();

@@ -83,6 +83,7 @@ public class MongoRefresh extends AbstractRefresh {
 
 		// resolution context
 		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// check document id property
 		final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(() -> new DataAccessException(

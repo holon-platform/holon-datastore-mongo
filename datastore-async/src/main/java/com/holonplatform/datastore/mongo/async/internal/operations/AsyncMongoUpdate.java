@@ -83,8 +83,10 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 			// validate
 			getConfiguration().validate();
 			// build context (for update)
-			return PropertyBoxOperationContext.create(getConfiguration(), operationContext,
-					MongoDocumentContext.createForUpdate(operationContext, getConfiguration().getValue()));
+			final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext,
+					getConfiguration().getValue());
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+			return PropertyBoxOperationContext.create(getConfiguration(), operationContext, context);
 		}).thenApply(context -> {
 			// resolve collection name
 			final String collectionName = context.getDocumentContext()

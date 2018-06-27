@@ -95,6 +95,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// resolution context
 		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 		// resolve query
 		final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);

@@ -83,8 +83,10 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 			// validate
 			getConfiguration().validate();
 			// build context
-			return PropertyBoxOperationContext.create(getConfiguration(), operationContext,
-					MongoDocumentContext.create(operationContext, getConfiguration().getValue()));
+			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
+					getConfiguration().getValue());
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+			return PropertyBoxOperationContext.create(getConfiguration(), operationContext, context);
 		}).thenApply(context -> {
 			// resolve collection name
 			final String collectionName = context.getDocumentContext()

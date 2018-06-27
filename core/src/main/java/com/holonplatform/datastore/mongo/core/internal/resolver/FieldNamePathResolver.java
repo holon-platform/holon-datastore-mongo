@@ -55,8 +55,8 @@ public enum FieldNamePathResolver implements MongoExpressionResolver<FieldName, 
 		final String fieldName = expression.getFieldName();
 
 		// check document context
-		@SuppressWarnings("unchecked")
-		Path propertySetPath = MongoDocumentContext.isDocumentContext(context).map(dc -> {
+		@SuppressWarnings({ "cast", "unchecked" })
+		Path propertySetPath = (Path) MongoDocumentContext.isDocumentContext(context).map(dc -> {
 			PathPropertySetAdapter adapter = PathPropertySetAdapter.create(dc.getPropertySet());
 			return adapter.getProperty(fieldName).flatMap(p -> adapter.getPath(p))
 					.orElse(getPathUsingDataPath(adapter, fieldName));

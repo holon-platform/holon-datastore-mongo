@@ -87,6 +87,7 @@ public class MongoUpdate extends AbstractUpdate {
 
 		// resolution context
 		final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext, value);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// check document id property
 		final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(() -> new DataAccessException(

@@ -87,6 +87,7 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 			// resolution context
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 			// resolve collection name
 			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
 					.getName();

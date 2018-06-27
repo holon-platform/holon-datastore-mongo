@@ -93,6 +93,7 @@ public class MongoSave extends AbstractSave {
 
 		// resolution context
 		final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext, value);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// document id
 		final Optional<Property<?>> idProperty = context.getDocumentIdProperty();

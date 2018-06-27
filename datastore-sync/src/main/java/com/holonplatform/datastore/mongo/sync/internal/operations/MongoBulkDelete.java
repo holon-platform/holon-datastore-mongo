@@ -82,6 +82,7 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 			// resolve collection
 			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)

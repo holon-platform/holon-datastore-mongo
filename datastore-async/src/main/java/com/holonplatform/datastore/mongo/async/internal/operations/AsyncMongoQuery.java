@@ -96,6 +96,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			queryOperation.validate();
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 			// resolve query
 			final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
 			// resolve collection name

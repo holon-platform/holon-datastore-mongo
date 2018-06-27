@@ -87,6 +87,7 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 
 			// resolution context
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 			// encode documents
 			final List<ResolvedDocument> documentValues = MongoOperations.resolveDocumentValues(context,

@@ -85,6 +85,7 @@ public class MongoDelete extends AbstractDelete {
 
 		// resolution context
 		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// resolve collection
 		final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)

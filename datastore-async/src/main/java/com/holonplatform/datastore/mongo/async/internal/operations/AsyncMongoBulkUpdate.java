@@ -85,6 +85,7 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 			operationConfiguration.validate();
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 			// filter
 			Optional<Bson> filter = operationConfiguration.getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());

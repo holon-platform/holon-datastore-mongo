@@ -82,6 +82,7 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 			getConfiguration().validate();
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 			// filter
 			Optional<Bson> filter = getConfiguration().getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());

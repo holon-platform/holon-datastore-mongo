@@ -36,7 +36,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE - 1000)
+@Priority(Integer.MAX_VALUE - 500)
 public enum ConstantExpressionProjectionResolver
 		implements MongoExpressionResolver<ConstantExpression, BsonProjection> {
 

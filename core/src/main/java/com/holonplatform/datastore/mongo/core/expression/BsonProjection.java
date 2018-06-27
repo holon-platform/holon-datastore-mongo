@@ -73,6 +73,20 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 	boolean isCountAllProjection();
 
 	/**
+	 * Get whether this projection is a <em>count</em> projection on a specific field name.
+	 * @return If this projection is a <em>count</em> projection on a specific field name, return the field name,
+	 *         otherwise an empty Optional
+	 */
+	Optional<String> isCountFieldProjection();
+
+	/**
+	 * Get whether this projection include one or more <em>aggregation functions</em> (for example min, man, sum, avg,
+	 * count).
+	 * @return Whether this projection include one or more <em>aggregation functions</em>
+	 */
+	boolean hasAggregationFunctions();
+
+	/**
 	 * Create a new <em>count all</em> {@link BsonProjection}.
 	 * @return A new <em>count all</em> {@link BsonProjection}
 	 */
@@ -129,6 +143,20 @@ public interface BsonProjection<R> extends TypedExpression<R> {
 		 * @return this
 		 */
 		Builder<R> converter(DocumentConverter<R> converter);
+
+		/**
+		 * Set whether this projection include one or more <em>aggregation functions</em>.
+		 * @param hasAggregationFunctions whether this projection include one or more <em>aggregation functions</em>
+		 * @return this
+		 */
+		Builder<R> hasAggregationFunctions(boolean hasAggregationFunctions);
+
+		/**
+		 * Set that this projection is a count projection on given field name.
+		 * @param fieldName Field name
+		 * @return this
+		 */
+		Builder<R> countByField(String fieldName);
 
 		/**
 		 * Build the {@link BsonProjection}.

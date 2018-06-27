@@ -39,6 +39,12 @@ public interface BsonQueryDefinition extends Expression {
 	String getCollectionName();
 
 	/**
+	 * Get whether the query is configured to return distinct results.
+	 * @return Whether the query is configured to return distinct results
+	 */
+	boolean isDistinct();
+
+	/**
 	 * Get the query filters.
 	 * @return Optional filter
 	 */
@@ -182,6 +188,13 @@ public interface BsonQueryDefinition extends Expression {
 		 * @return this
 		 */
 		Builder collectionName(String collectionName);
+
+		/**
+		 * Set whether the query should return distinct results.
+		 * @param distinct Whether the query should return distinct results
+		 * @return this
+		 */
+		Builder distinct(boolean distinct);
 
 		/**
 		 * Set the query filter.

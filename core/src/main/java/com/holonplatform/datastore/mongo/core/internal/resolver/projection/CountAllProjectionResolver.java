@@ -32,7 +32,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE - 100)
+@Priority(Integer.MAX_VALUE - 700)
 public enum CountAllProjectionResolver implements MongoExpressionResolver<CountAllProjection, BsonProjection> {
 
 	/**

@@ -42,6 +42,10 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 
 	private final boolean countAllProjection;
 
+	private String countByField;
+
+	private boolean hasAggregationFunctions = false;
+
 	private DocumentConverter<R> converter;
 
 	private final Map<String, Bson> fields = new LinkedHashMap<>();
@@ -72,6 +76,24 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 	@Override
 	public boolean isCountAllProjection() {
 		return countAllProjection;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#isCountFieldProjection()
+	 */
+	@Override
+	public Optional<String> isCountFieldProjection() {
+		return Optional.ofNullable(countByField);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection#hasAggregationFunctions()
+	 */
+	@Override
+	public boolean hasAggregationFunctions() {
+		return hasAggregationFunctions;
 	}
 
 	/*
@@ -133,6 +155,22 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 		this.converter = converter;
 	}
 
+	/**
+	 * Set whether this projection include one or more <em>aggregation functions</em>.
+	 * @param hasAggregationFunctions whether this projection include one or more <em>aggregation functions</em>
+	 */
+	public void setHasAggregationFunctions(boolean hasAggregationFunctions) {
+		this.hasAggregationFunctions = hasAggregationFunctions;
+	}
+
+	/**
+	 * Set the field for which to count results
+	 * @param countByField the field to set
+	 */
+	public void setCountByField(String countByField) {
+		this.countByField = countByField;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.Expression#validate()
@@ -186,6 +224,27 @@ public class DefaultBsonProjection<R> implements BsonProjection<R> {
 		@Override
 		public Builder<T> converter(DocumentConverter<T> converter) {
 			instance.setConverter(converter);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#hasAggregationFunctions(boolean)
+		 */
+		@Override
+		public Builder<T> hasAggregationFunctions(boolean hasAggregationFunctions) {
+			instance.setHasAggregationFunctions(hasAggregationFunctions);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonProjection.Builder#countByField(java.lang.String)
+		 */
+		@Override
+		public Builder<T> countByField(String fieldName) {
+			instance.setCountByField(fieldName);
 			return this;
 		}
 

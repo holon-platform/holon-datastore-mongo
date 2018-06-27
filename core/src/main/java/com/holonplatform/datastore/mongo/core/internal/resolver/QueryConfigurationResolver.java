@@ -64,6 +64,11 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 			builder.collectionName(context.resolveOrFail(t, CollectionName.class).getName());
 		});
 
+		// distinct
+		if (expression.isDistinct()) {
+			builder.distinct(true);
+		}
+
 		// filters
 		expression.getFilter().ifPresent(f -> {
 			builder.filter(context.resolveOrFail(f, BsonFilter.class));
@@ -89,7 +94,7 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 						final String fieldName = context.resolveOrFail(path, FieldName.class).getFieldName();
 						groups.append(fieldName, "$" + fieldName);
 					}
-					builder.group(new Document("_id", groups));
+					builder.group(groups);
 				}
 
 				// filter

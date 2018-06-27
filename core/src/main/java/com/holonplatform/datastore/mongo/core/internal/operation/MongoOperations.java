@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import org.bson.BsonType;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -48,6 +49,7 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilter.FilterAggregationPipeline;
+import com.holonplatform.datastore.mongo.core.expression.BsonProjection;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
@@ -58,6 +60,7 @@ import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.DeleteOptions;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.Projections;
@@ -396,26 +399,46 @@ public class MongoOperations {
 		// definition
 		final BsonQueryDefinition definition = query.getDefinition();
 
-		// accumulators
-		final List<BsonField> fieldAccumulators = new LinkedList<>();
-		definition.getGroup().ifPresent(g -> {
-			// check projection to configure accumulators
-			query.getProjection().filter(p -> !p.isCountAllProjection()).ifPresent(p -> {
-				for (Entry<String, Bson> field : p.getFields().entrySet()) {
-					if (field.getValue() != null) {
-						fieldAccumulators.add(new BsonField(field.getKey(), field.getValue()));
-					} else {
-						fieldAccumulators
-								.add(new BsonField(field.getKey(), new Document("$first", "$" + field.getKey())));
-					}
-				}
-			});
-		});
+		// group
+		boolean hasGroupStage = definition.getGroup().isPresent();
 
 		// ------ final projection stage
+
+		// check count all
 		final boolean countAllProjection = query.getProjection().map(p -> p.isCountAllProjection()).orElse(false);
+
+		if (!hasGroupStage) {
+			// check count by field projection
+			String countByField = query.getProjection().flatMap(p -> p.isCountFieldProjection()).orElse(null);
+			if (countByField != null) {
+				// exclude nulls
+				pipeline.add(Aggregates.match(Filters.and(Filters.exists(countByField),
+						Filters.not(Filters.type(countByField, BsonType.NULL)))));
+				if (!query.getDefinition().isDistinct()) {
+					// all
+					pipeline.add(Aggregates.group(1, new BsonField("count", new Document("$sum", 1))));
+				} else {
+					// distinct
+					pipeline.add(Aggregates.group("$" + countByField));
+					pipeline.add(Aggregates.group(1, new BsonField("count", new Document("$sum", 1))));
+				}
+				pipeline.add(Aggregates.project(Projections.include("count")));
+				hasGroupStage = true;
+			}
+			// check aggregation projection
+			else if (query.getProjection().map(p -> p.hasAggregationFunctions()).orElse(false)) {
+				// add a group stage
+				List<BsonField> accumulators = getGroupAccumulators(query.getProjection().orElse(null));
+				if (!accumulators.isEmpty()) {
+					pipeline.add(Aggregates.group(null, accumulators));
+					hasGroupStage = true;
+				}
+			}
+
+		}
+
 		final Optional<Bson> projection;
-		if (fieldAccumulators.isEmpty()) {
+		if (!hasGroupStage) {
 			// projection with expressions
 			projection = query.getProjection().filter(f -> !f.isEmpty())
 					.map(p -> Projections.fields(p.getFieldProjections()));
@@ -432,8 +455,9 @@ public class MongoOperations {
 
 		// ------ group
 		definition.getGroup().ifPresent(g -> {
-			if (!fieldAccumulators.isEmpty()) {
-				pipeline.add(Aggregates.group(g, fieldAccumulators));
+			List<BsonField> accumulators = getGroupAccumulators(query.getProjection().orElse(null));
+			if (!accumulators.isEmpty()) {
+				pipeline.add(Aggregates.group(g, accumulators));
 			} else {
 				pipeline.add(Aggregates.group(g));
 			}
@@ -458,6 +482,25 @@ public class MongoOperations {
 		}
 
 		return pipeline;
+	}
+
+	/**
+	 * Get the group stage accumulator fields and expressions.
+	 * @param projection Projection
+	 * @return Accumulator fields and expression
+	 */
+	private static List<BsonField> getGroupAccumulators(BsonProjection<?> projection) {
+		final List<BsonField> fieldAccumulators = new LinkedList<>();
+		if (projection != null) {
+			for (Entry<String, Bson> field : projection.getFields().entrySet()) {
+				if (field.getValue() != null) {
+					fieldAccumulators.add(new BsonField(field.getKey(), field.getValue()));
+				} else {
+					fieldAccumulators.add(new BsonField(field.getKey(), new Document("$first", "$" + field.getKey())));
+				}
+			}
+		}
+		return fieldAccumulators;
 	}
 
 	/**

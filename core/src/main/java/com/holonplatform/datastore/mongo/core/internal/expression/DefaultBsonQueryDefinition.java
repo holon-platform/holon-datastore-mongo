@@ -33,6 +33,7 @@ import com.mongodb.client.model.Collation;
 public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 
 	private String collectionName;
+	private boolean distinct = false;
 	private BsonFilter filter;
 	private Bson sort;
 	private Bson group;
@@ -65,6 +66,15 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	@Override
 	public String getCollectionName() {
 		return collectionName;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition#isDistinct()
+	 */
+	@Override
+	public boolean isDistinct() {
+		return distinct;
 	}
 
 	/*
@@ -249,6 +259,10 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		this.collectionName = collectionName;
 	}
 
+	public void setDistinct(boolean distinct) {
+		this.distinct = distinct;
+	}
+
 	public void setFilter(BsonFilter filter) {
 		this.filter = filter;
 	}
@@ -352,6 +366,16 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		@Override
 		public Builder collectionName(String collectionName) {
 			instance.setCollectionName(collectionName);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition.Builder#distinct(boolean)
+		 */
+		@Override
+		public Builder distinct(boolean distinct) {
+			instance.setDistinct(distinct);
 			return this;
 		}
 

@@ -21,6 +21,7 @@ import org.junit.runners.Suite;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
+import com.holonplatform.datastore.mongo.sync.test.suite.AggregationFunctionsTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.BulkDeleteTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.BulkInsertTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.BulkUpdateTest;
@@ -42,7 +43,7 @@ import com.holonplatform.datastore.mongo.sync.test.suite.UpdateTest;
 @Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,
 		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
 		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
-		StringFunctionsTest.class, TemporalFunctionsTest.class, DistinctTest.class })
+		StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops";

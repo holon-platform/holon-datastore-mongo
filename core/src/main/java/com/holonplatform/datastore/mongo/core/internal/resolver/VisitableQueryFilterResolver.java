@@ -48,7 +48,6 @@ import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
 import com.holonplatform.core.internal.utils.FormatUtils;
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -312,15 +311,14 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 			OperationQueryFilter<?> filter, BiFunction<MongoResolutionContext, String, Bson> filterProvider) {
 		return context.resolve(filter.getLeftOperand(), BsonExpression.class).map(e -> e.getValue()).map(expression -> {
 			// set AGGREGATE type
-			MongoQueryContext.isQueryContext(context)
-			.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
-			
+			context.setQueryOperationType(QueryOperationType.AGGREGATE);
+
 			// check alias
-			Optional<String> alias = MongoQueryContext.isQueryContext(context).flatMap(qc -> qc.getAlias(filter.getLeftOperand()));
+			Optional<String> alias = context.getAlias(filter.getLeftOperand());
 			if (alias.isPresent()) {
 				return BsonFilter.create(filterProvider.apply(context, alias.get()), null);
 			}
-			
+
 			final String filterAlias = context.getNextProjectionFieldName();
 			return BsonFilter.create(filterProvider.apply(context, filterAlias), new Document(filterAlias, expression));
 
@@ -336,7 +334,7 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 	 */
 	private static Optional<String> resolveFieldName(TypedExpression<?> expression, MongoResolutionContext context) {
 		// check alias
-		Optional<String> alias = MongoQueryContext.isQueryContext(context).flatMap(qc -> qc.getAlias(expression));
+		Optional<String> alias = context.getAlias(expression);
 		if (alias.isPresent()) {
 			return alias;
 		}

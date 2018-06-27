@@ -19,7 +19,7 @@ import org.bson.Document;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -33,13 +33,13 @@ import com.mongodb.async.client.MongoDatabase;
  */
 public class DefaultQueryOperationContext<R> extends AbstractAsyncOperationContext implements QueryOperationContext<R> {
 
-	private final MongoQueryContext resolutionContext;
+	private final MongoResolutionContext resolutionContext;
 	private final MongoCollection<Document> collection;
 	private final BsonQuery query;
 	private final Class<? extends R> resultType;
 
 	public DefaultQueryOperationContext(MongoOperationContext<MongoDatabase> operationContext,
-			MongoQueryContext resolutionContext, MongoCollection<Document> collection, BsonQuery query,
+			MongoResolutionContext resolutionContext, MongoCollection<Document> collection, BsonQuery query,
 			Class<? extends R> resultType) {
 		super(operationContext);
 		ObjectUtils.argumentNotNull(resolutionContext, "Resolution context must be not null");
@@ -57,7 +57,7 @@ public class DefaultQueryOperationContext<R> extends AbstractAsyncOperationConte
 	 * @see com.holonplatform.datastore.mongo.async.internal.support.QueryOperationContext#getResolutionContext()
 	 */
 	@Override
-	public MongoQueryContext getResolutionContext() {
+	public MongoResolutionContext getResolutionContext() {
 		return resolutionContext;
 	}
 

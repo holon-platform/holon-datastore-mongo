@@ -20,9 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -34,7 +32,7 @@ import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 10)
-public enum PropertyFieldNameResolver implements MongoExpressionResolver<Property, FieldName> {
+public enum QueryFunctionNameResolver implements MongoExpressionResolver<QueryFunction, FieldName> {
 
 	INSTANCE;
 
@@ -44,15 +42,14 @@ public enum PropertyFieldNameResolver implements MongoExpressionResolver<Propert
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<FieldName> resolve(Property expression, MongoResolutionContext context)
+	public Optional<FieldName> resolve(QueryFunction expression, MongoResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		return MongoQueryContext.isQueryContext(context).map(qc -> {
-			return FieldName.create(qc.getOrCreateAlias(expression));
-		});
+		// create and use an alias
+		return Optional.of(FieldName.create(context.getOrCreateAlias(expression)));
 	}
 
 	/*
@@ -60,8 +57,8 @@ public enum PropertyFieldNameResolver implements MongoExpressionResolver<Propert
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends Property> getExpressionType() {
-		return Property.class;
+	public Class<? extends QueryFunction> getExpressionType() {
+		return QueryFunction.class;
 	}
 
 	/*

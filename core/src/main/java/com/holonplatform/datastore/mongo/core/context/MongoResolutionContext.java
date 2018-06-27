@@ -23,8 +23,11 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResolutionContext;
+import com.holonplatform.datastore.mongo.core.internal.context.ExpressionAliasProvider;
 
 /**
  * MongoDB Datastore expresion resolution context.
@@ -32,8 +35,6 @@ import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResol
  * @since 5.2.0
  */
 public interface MongoResolutionContext extends MongoContext, ResolutionContext, ExpressionResolverSupport {
-
-	public static final String DEFAULT_PROJECTION_FIELD_PREFIX = "_!";
 
 	/**
 	 * Get the parent context, if available.
@@ -56,17 +57,66 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	Optional<Path<?>> getUpdatePath();
 
 	/**
-	 * For generated projection field names, get the next sequence number.
-	 * @return The next projection field sequence number
+	 * Get the {@link QueryOperationType}.
+	 * @return Optional query operation type
 	 */
-	int getNextProjectionFieldSequence();
+	Optional<QueryOperationType> getQueryOperationType();
+
+	/**
+	 * Set the {@link QueryOperationType}.
+	 * @param queryOperationType The query operation type to set
+	 */
+	void setQueryOperationType(QueryOperationType queryOperationType);
+
+	/**
+	 * Get the {@link ExpressionAliasProvider}.
+	 * @return Expresion alias provider
+	 */
+	ExpressionAliasProvider getExpressionAliasProvider();
+
+	/**
+	 * Get the alias associated to given expression, if any.
+	 * @param expression The expression to get the alias for (not null)
+	 * @return Optional expression alias
+	 */
+	default Optional<String> getAlias(TypedExpression<?> expression) {
+		return getExpressionAliasProvider().getAlias(expression);
+	}
+
+	/**
+	 * Get the alias for given expression or create one if does not exist.
+	 * @param expression The expression to get the alias for (not null)
+	 * @return The alias for given expression or a newly created one
+	 */
+	default String getOrCreateAlias(TypedExpression<?> expression) {
+		return getExpressionAliasProvider().getOrCreateAlias(expression);
+	}
+
+	/**
+	 * Get the expression bound to given alias, if any.
+	 * @param <E> Expression type
+	 * @param alias Expression alias
+	 * @return Optional expression bound to given alias
+	 */
+	default <E> Optional<TypedExpression<E>> getExpression(String alias) {
+		return getExpressionAliasProvider().getExpression(alias);
+	}
 
 	/**
 	 * For generated projection field names, get the next name.
 	 * @return The next projection field name
 	 */
 	default String getNextProjectionFieldName() {
-		return MongoResolutionContext.DEFAULT_PROJECTION_FIELD_PREFIX + getNextProjectionFieldSequence();
+		return getExpressionAliasProvider().getNextProjectionFieldName();
+	}
+
+	/**
+	 * Check if given field name could be an alias name.
+	 * @param fieldName Field name
+	 * @return <code>true</code> if if given field name could be an alias name, <code>false</code> otherwise
+	 */
+	default boolean maybeAliasName(String fieldName) {
+		return fieldName != null && fieldName.startsWith(ExpressionAliasProvider.DEFAULT_PROJECTION_FIELD_PREFIX);
 	}
 
 	/**

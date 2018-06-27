@@ -41,7 +41,7 @@ import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncFindOp
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.QueryOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
+import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
@@ -95,7 +95,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			// validate
 			queryOperation.validate();
 			// context
-			final MongoQueryContext context = MongoQueryContext.create(operationContext);
+			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 			// resolve query
 			final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
 			// resolve collection name
@@ -136,7 +136,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	private static <R> CompletionStage<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
-		final Bson filter = queryContext.getQuery().getDefinition().getFilter().map(f -> f.getExpression()).orElse(null);
+		final Bson filter = queryContext.getQuery().getDefinition().getFilter().map(f -> f.getExpression())
+				.orElse(null);
 
 		// trace
 		queryContext.getOperationContext().trace("COUNT query",

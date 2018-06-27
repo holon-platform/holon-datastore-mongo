@@ -401,8 +401,13 @@ public class MongoOperations {
 		definition.getGroup().ifPresent(g -> {
 			// check projection to configure accumulators
 			query.getProjection().ifPresent(p -> {
-				p.getFields().entrySet().stream().filter(e -> e.getValue() != null)
-						.map(e -> new BsonField(e.getKey(), e.getValue())).forEach(bf -> fieldAccumulators.add(bf));
+				for (Entry<String, Bson> field : p.getFields().entrySet()) {
+					if (field.getValue() != null) {
+						fieldAccumulators.add(new BsonField(field.getKey(), field.getValue()));
+					} else {
+						fieldAccumulators.add(new BsonField(field.getKey(), new Document("$first", "$" + field.getKey())));
+					}
+				}
 			});
 		});
 

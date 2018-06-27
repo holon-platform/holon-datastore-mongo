@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.core.internal.context;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.bson.codecs.configuration.CodecRegistry;
@@ -35,6 +34,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
@@ -65,6 +65,11 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	private final MongoResolutionContext parent;
 
 	/**
+	 * Alias provder
+	 */
+	private final ExpressionAliasProvider expressionAliasProvider;
+
+	/**
 	 * Update mode
 	 */
 	private final boolean forUpdate;
@@ -75,9 +80,9 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	private final Path<?> updatePath;
 
 	/**
-	 * Projection sequence
+	 * Query operation type
 	 */
-	private final AtomicInteger projectionSequence = new AtomicInteger(0);
+	private QueryOperationType queryOperationType;
 
 	/**
 	 * Default constructor.
@@ -149,6 +154,13 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 		this.updatePath = updatePath;
 		// inherit resolvers
 		addExpressionResolvers(context.getExpressionResolvers());
+		// parent config
+		if (parent != null) {
+			expressionAliasProvider = parent.getExpressionAliasProvider();
+			parent.getQueryOperationType().ifPresent(t -> setQueryOperationType(t));
+		} else {
+			expressionAliasProvider = ExpressionAliasProvider.create();
+		}
 	}
 
 	/**
@@ -166,6 +178,14 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	@Override
 	public Optional<MongoResolutionContext> getParent() {
 		return Optional.ofNullable(parent);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getExpressionAliasProvider()
+	 */
+	@Override
+	public ExpressionAliasProvider getExpressionAliasProvider() {
+		return expressionAliasProvider;
 	}
 
 	/*
@@ -188,11 +208,21 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getNextProjectionFieldSequence()
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoQueryContext#getQueryOperationType()
 	 */
 	@Override
-	public int getNextProjectionFieldSequence() {
-		return projectionSequence.incrementAndGet();
+	public Optional<QueryOperationType> getQueryOperationType() {
+		return Optional.ofNullable(queryOperationType);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoQueryContext#setQueryOperationType(com.holonplatform.
+	 * datastore.mongo.core.document.QueryOperationType)
+	 */
+	@Override
+	public void setQueryOperationType(QueryOperationType queryOperationType) {
+		this.queryOperationType = queryOperationType;
 	}
 
 	/*

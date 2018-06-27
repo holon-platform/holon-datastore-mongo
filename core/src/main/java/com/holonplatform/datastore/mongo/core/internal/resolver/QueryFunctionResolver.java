@@ -38,7 +38,6 @@ import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -99,8 +98,7 @@ public enum QueryFunctionResolver implements BsonExpressionResolver<QueryFunctio
 			}
 
 			// set AGGREGATE type
-			MongoQueryContext.isQueryContext(context)
-					.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+			context.setQueryOperationType(QueryOperationType.AGGREGATE);
 
 			// add $ prefix
 			List<String> names = arguments.stream().map(a -> "$" + a).collect(Collectors.toList());

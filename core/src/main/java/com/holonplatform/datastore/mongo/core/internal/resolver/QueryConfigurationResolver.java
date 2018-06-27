@@ -26,7 +26,6 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.datastore.mongo.core.ReadOperationConfiguration;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -99,8 +98,7 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 				});
 
 				// set AGGREGATE type
-				MongoQueryContext.isQueryContext(context)
-						.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+				context.setQueryOperationType(QueryOperationType.AGGREGATE);
 			}
 		});
 

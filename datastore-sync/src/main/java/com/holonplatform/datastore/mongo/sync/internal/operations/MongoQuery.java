@@ -35,7 +35,6 @@ import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
@@ -95,7 +94,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		queryOperation.validate();
 
 		// resolution context
-		final MongoQueryContext context = MongoQueryContext.create(operationContext);
+		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 
 		// resolve query
 		final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);

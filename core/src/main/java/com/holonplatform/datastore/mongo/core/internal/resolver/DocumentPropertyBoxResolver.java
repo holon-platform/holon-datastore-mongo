@@ -26,6 +26,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.property.CollectionProperty;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.Property;
@@ -219,6 +220,24 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 					propertyBox.setValue(collectionProperty, propertyValues);
 					return Optional.of(collectionProperty);
 				}
+			}
+		}
+
+		// check alias
+		if (context.maybeAliasName(name)) {
+			Optional<TypedExpression<Object>> aliasExpression = context.getExpression(name);
+			if (aliasExpression.isPresent()) {
+				final TypedExpression<?> exp = aliasExpression.get();
+				Object resolvedValue = context.resolveOrFail(FieldValue.create(value, exp), Value.class).getValue();
+				// check property
+				if (Property.class.isAssignableFrom(exp.getClass())) {
+					final Property<Object> property = (Property) exp;
+					if (propertyBox.contains(property)) {
+						propertyBox.setValue(property, resolvedValue);
+					}
+					return Optional.of(property);
+				}
+				return Optional.empty();
 			}
 		}
 

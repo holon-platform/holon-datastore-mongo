@@ -23,7 +23,6 @@ import org.bson.Document;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.datastore.mongo.core.context.MongoQueryContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
@@ -82,11 +81,9 @@ public enum ConstantExpressionProjectionResolver
 		// literal value
 		return context.resolve(ce, FieldValue.class).map(fv -> fv.getValue()).map(value -> {
 			// projection field name
-			final String name = MongoResolutionContext.DEFAULT_PROJECTION_FIELD_PREFIX
-					+ context.getNextProjectionFieldSequence();
+			final String name = context.getNextProjectionFieldName();
 			// set AGGREGATE type
-			MongoQueryContext.isQueryContext(context)
-					.ifPresent(qc -> qc.setQueryOperationType(QueryOperationType.AGGREGATE));
+			context.setQueryOperationType(QueryOperationType.AGGREGATE);
 			// literal projection
 			return BsonProjection.builder(value.getClass())
 					.field(name, new Document(name, new Document("$literal", value)))

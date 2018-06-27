@@ -27,6 +27,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFunction.Sum;
@@ -87,14 +88,27 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 10).set(STR2, "mg2").build()).execute();
 		assertEquals(5, result.getAffectedCount());
 
-		List<String> values = getDatastore().query(TARGET).aggregate(STR, INT).list(STR2);
+		List<String> values = getDatastore().query(TARGET).aggregate(STR, INT).list(STR2.max());
 		assertNotNull(values);
 		assertEquals(3, values.size());
-
-		List<PropertyBox> pbs = getDatastore().query(TARGET).aggregate(STR, INT).sort(STR.desc()).sort(INT.asc())
-				.list(SET1);
+		assertTrue(values.contains("mg1"));
+		assertTrue(values.contains("mg2"));
+		assertTrue(values.contains("mg3"));
+		
+		final Property<?> MSTR2 = STR2.max();
+		
+		List<PropertyBox> pbs = getDatastore().query(TARGET).aggregate(STR, INT)
+				.sort(STR.desc()).sort(INT.asc())
+				.list(STR, INT, MSTR2);
 		assertNotNull(pbs);
 		assertEquals(3, pbs.size());
+		
+		PropertyBox pb = pbs.get(0);
+		assertEquals("mg2", pb.getValue(MSTR2));
+		pb = pbs.get(1);
+		assertEquals("mg3", pb.getValue(MSTR2));
+		pb = pbs.get(2);
+		assertEquals("mg1", pb.getValue(MSTR2));
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute();
 		assertEquals(5, result.getAffectedCount());

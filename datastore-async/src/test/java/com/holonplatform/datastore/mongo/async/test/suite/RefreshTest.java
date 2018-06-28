@@ -53,7 +53,6 @@ import java.util.concurrent.CompletionException;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
@@ -64,72 +63,81 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testRefresh() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
-				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
-				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
-				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT)
-				.set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT).set(C_ENM, TestValues.C_ENM)
-				.set(C_LNG, TestValues.C_LNG).set(NBL, true).build();
+		long count = getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR)
+				.set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
+				.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD)
+				.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT)
+				.set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR)
+				.set(A_INT, TestValues.A_INT).set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR)
+				.set(A_BYT, TestValues.A_BYT).set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT)
+				.set(C_ENM, TestValues.C_ENM).set(C_LNG, TestValues.C_LNG).set(NBL, true).build(),
+				DefaultWriteOption.BRING_BACK_GENERATED_IDS).thenApply(r -> {
+					assertEquals(1, r.getAffectedCount());
+					assertEquals(1, r.getAffectedCount());
+					assertEquals(1, r.getInsertedKeys().size());
+					assertTrue(r.getFirstInsertedKey().isPresent());
 
-		OperationResult result = getDatastore().insert(TARGET, value, DefaultWriteOption.BRING_BACK_GENERATED_IDS).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
+					ObjectId oid = r.getFirstInsertedKey(ObjectId.class).orElse(null);
+					assertNotNull(oid);
 
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(1, result.getInsertedKeys().size());
-		assertTrue(result.getFirstInsertedKey().isPresent());
+					return oid;
+				}).thenApply(oid -> {
 
-		ObjectId oid = result.getFirstInsertedKey(ObjectId.class).orElse(null);
-		assertNotNull(oid);
+					PropertyBox v2 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "modified")
+							.set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG)
+							.set(DBL, TestValues.DBL).set(FLT, TestValues.FLT).set(SHR, TestValues.SHR)
+							.set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, EnumValue.THIRD)
+							.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT)
+							.set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR)
+							.set(A_INT, TestValues.A_INT).set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR)
+							.set(A_BYT, TestValues.A_BYT).set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT)
+							.set(C_ENM, TestValues.C_ENM).set(C_LNG, TestValues.C_LNG).set(NBL, false).build();
 
-		value.setValue(STR, "modified");
-		value.setValue(ENM, EnumValue.THIRD);
-		value.setValue(NBL, false);
+					assertEquals(oid, v2.getValue(ID));
+					assertEquals("modified", v2.getValue(STR));
+					assertEquals(EnumValue.THIRD, v2.getValue(ENM));
+					assertFalse(v2.getValue(NBL));
 
-		assertEquals(oid, value.getValue(ID));
-		assertEquals("modified", value.getValue(STR));
-		assertEquals(EnumValue.THIRD, value.getValue(ENM));
-		assertFalse(value.getValue(NBL));
+					return v2;
+				}).thenCompose(value -> getDatastore().refresh(TARGET, value)).thenApply(value -> {
 
-		value = getDatastore().refresh(TARGET, value).toCompletableFuture().join();
+					assertNotNull(value);
 
-		assertNotNull(value);
+					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.BOOL, value.getValue(BOOL));
+					assertEquals(TestValues.INT, value.getValue(INT));
+					assertEquals(TestValues.LNG, value.getValue(LNG));
+					assertEquals(TestValues.DBL, value.getValue(DBL));
+					assertEquals(TestValues.FLT, value.getValue(FLT));
+					assertEquals(TestValues.SHR, value.getValue(SHR));
+					assertEquals(TestValues.BYT, value.getValue(BYT));
+					assertEquals(TestValues.BGD, value.getValue(BGD));
+					assertEquals(TestValues.ENM, value.getValue(ENM));
+					assertEquals(TestValues.DAT, value.getValue(DAT));
+					assertEquals(TestValues.TMS, value.getValue(TMS));
+					assertEquals(TestValues.LDAT, value.getValue(LDAT));
+					assertEquals(TestValues.LTMS, value.getValue(LTMS));
+					assertEquals(TestValues.LTM, value.getValue(LTM));
+					assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
+					assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
+					assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
+					assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
+					assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
+					assertTrue(value.getValue(NBL));
 
-		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
-		assertEquals(TestValues.BOOL, value.getValue(BOOL));
-		assertEquals(TestValues.INT, value.getValue(INT));
-		assertEquals(TestValues.LNG, value.getValue(LNG));
-		assertEquals(TestValues.DBL, value.getValue(DBL));
-		assertEquals(TestValues.FLT, value.getValue(FLT));
-		assertEquals(TestValues.SHR, value.getValue(SHR));
-		assertEquals(TestValues.BYT, value.getValue(BYT));
-		assertEquals(TestValues.BGD, value.getValue(BGD));
-		assertEquals(TestValues.ENM, value.getValue(ENM));
-		assertEquals(TestValues.DAT, value.getValue(DAT));
-		assertEquals(TestValues.TMS, value.getValue(TMS));
-		assertEquals(TestValues.LDAT, value.getValue(LDAT));
-		assertEquals(TestValues.LTMS, value.getValue(LTMS));
-		assertEquals(TestValues.LTM, value.getValue(LTM));
-		assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
-		assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
-		assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
-		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
-		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
-		assertTrue(value.getValue(NBL));
+					return value;
+				}).thenCompose(value -> getDatastore().delete(TARGET, value)).thenApply(r -> r.getAffectedCount())
+				.toCompletableFuture().join();
 
-		result = getDatastore().delete(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
+		assertEquals(1, count);
 	}
 
 	@Test(expected = CompletionException.class)
 	public void testRefreshMissingId() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
+		getDatastore().refresh(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR).build()).toCompletableFuture()
+				.join();
 
-		getDatastore().refresh(TARGET, value).toCompletableFuture().join();
-		
 	}
 
 }

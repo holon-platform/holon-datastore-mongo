@@ -26,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
 
@@ -35,53 +34,45 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testTemporalFunctionFilters() {
 
-		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
+		long count = getDatastore().bulkInsert(TARGET, SET1)
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
 						.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).build())
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
 						.build())
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
 						.set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS).set(LTM, TestValues.U_LTM).build())
-				.execute().toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
+				.execute().thenAccept(r -> assertEquals(3, r.getAffectedCount()))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LDAT.year().eq(2018)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LDAT.year().eq(2019)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LDAT.year().lt(2000)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(0), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET)
+						.filter(LDAT.year().eq(2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET)
+						.filter(LTMS.year().eq(2018).or(LTMS.year().eq(2019))).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(3), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET)
+						.filter(LDAT.year().in(2018, 2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(3), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LTMS.month().eq(2)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LDAT.day().eq(4)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LTMS.hour().eq(11).or(LTM.hour().eq(18)))
+						.count())
+				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(DAT.year().eq(2018)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
+				.thenCompose(
+						x -> getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
-		long count = getDatastore().query().target(TARGET).filter(LDAT.year().eq(2018)).count().toCompletableFuture().join();
-		assertEquals(2, count);
-
-		count = getDatastore().query().target(TARGET).filter(LDAT.year().eq(2019)).count().toCompletableFuture().join();
-		assertEquals(1, count);
-
-		count = getDatastore().query().target(TARGET).filter(LDAT.year().lt(2000)).count().toCompletableFuture().join();
-		assertEquals(0, count);
-
-		count = getDatastore().query().target(TARGET)
-				.filter(LDAT.year().eq(2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count().toCompletableFuture().join();
-		assertEquals(1, count);
-
-		count = getDatastore().query().target(TARGET).filter(LTMS.year().eq(2018).or(LTMS.year().eq(2019))).count().toCompletableFuture().join();
 		assertEquals(3, count);
-
-		count = getDatastore().query().target(TARGET)
-				.filter(LDAT.year().in(2018, 2019).and(LTMS.year().eq(2018).or(LTMS.year().eq(2019)))).count().toCompletableFuture().join();
-		assertEquals(3, count);
-
-		count = getDatastore().query().target(TARGET).filter(LTMS.month().eq(2)).count().toCompletableFuture().join();
-		assertEquals(2, count);
-
-		count = getDatastore().query().target(TARGET).filter(LDAT.day().eq(4)).count().toCompletableFuture().join();
-		assertEquals(1, count);
-
-		count = getDatastore().query().target(TARGET).filter(LTMS.hour().eq(11).or(LTM.hour().eq(18))).count().toCompletableFuture().join();
-		assertEquals(2, count);
-
-		count = getDatastore().query().target(TARGET).filter(DAT.year().eq(2018)).count().toCompletableFuture().join();
-		assertEquals(1, count);
-
-		count = getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count().toCompletableFuture().join();
-		assertEquals(2, count);
-
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute().toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
 
 	}
 

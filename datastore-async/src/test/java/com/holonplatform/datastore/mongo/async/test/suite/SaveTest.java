@@ -47,7 +47,6 @@ import java.util.Arrays;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
@@ -57,56 +56,56 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testSaveNoId() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
-				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
-				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
-				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
-				.build();
+		long count = getDatastore().save(TARGET,
+				PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL).set(INT, TestValues.INT)
+						.set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
+						.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD)
+						.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
+						.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM)
+						.set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT).set(A_ENM, TestValues.A_ENM)
+						.set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true).build())
+				.thenApply(r -> {
+					assertEquals(1, r.getAffectedCount());
+					assertEquals(OperationType.INSERT, r.getOperationType().orElse(null));
 
-		OperationResult result = getDatastore().save(TARGET, value).toCompletableFuture().join();
+					assertEquals(1, r.getInsertedKeys().size());
+					assertTrue(r.getFirstInsertedKey().isPresent());
 
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+					ObjectId oid = r.getFirstInsertedKey(ObjectId.class).orElse(null);
+					assertNotNull(oid);
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertTrue(result.getFirstInsertedKey().isPresent());
+					return oid;
+				}).thenCompose(oid -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1))
+				.thenApply(value -> {
+					assertTrue(value.isPresent());
+					return value.get();
+				}).thenApply(value -> {
+					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.BOOL, value.getValue(BOOL));
+					assertEquals(TestValues.INT, value.getValue(INT));
+					assertEquals(TestValues.LNG, value.getValue(LNG));
+					assertEquals(TestValues.DBL, value.getValue(DBL));
+					assertEquals(TestValues.FLT, value.getValue(FLT));
+					assertEquals(TestValues.SHR, value.getValue(SHR));
+					assertEquals(TestValues.BYT, value.getValue(BYT));
+					assertEquals(TestValues.BGD, value.getValue(BGD));
+					assertEquals(TestValues.ENM, value.getValue(ENM));
+					assertEquals(TestValues.DAT, value.getValue(DAT));
+					assertEquals(TestValues.TMS, value.getValue(TMS));
+					assertEquals(TestValues.LDAT, value.getValue(LDAT));
+					assertEquals(TestValues.LTMS, value.getValue(LTMS));
+					assertEquals(TestValues.LTM, value.getValue(LTM));
+					assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
+					assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
+					assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
+					assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
+					assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
+					assertTrue(value.getValue(NBL));
+					return value;
+				}).thenCompose(value -> getDatastore().delete(TARGET, value)).thenApply(r -> r.getAffectedCount())
+				.toCompletableFuture().join();
 
-		ObjectId oid = result.getFirstInsertedKey(ObjectId.class).orElse(null);
-		assertNotNull(oid);
-
-		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count().toCompletableFuture().join();
 		assertEquals(1, count);
-
-		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1).toCompletableFuture().join().orElse(null);
-		assertNotNull(value);
-
-		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
-		assertEquals(TestValues.BOOL, value.getValue(BOOL));
-		assertEquals(TestValues.INT, value.getValue(INT));
-		assertEquals(TestValues.LNG, value.getValue(LNG));
-		assertEquals(TestValues.DBL, value.getValue(DBL));
-		assertEquals(TestValues.FLT, value.getValue(FLT));
-		assertEquals(TestValues.SHR, value.getValue(SHR));
-		assertEquals(TestValues.BYT, value.getValue(BYT));
-		assertEquals(TestValues.BGD, value.getValue(BGD));
-		assertEquals(TestValues.ENM, value.getValue(ENM));
-		assertEquals(TestValues.DAT, value.getValue(DAT));
-		assertEquals(TestValues.TMS, value.getValue(TMS));
-		assertEquals(TestValues.LDAT, value.getValue(LDAT));
-		assertEquals(TestValues.LTMS, value.getValue(LTMS));
-		assertEquals(TestValues.LTM, value.getValue(LTM));
-		assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
-		assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
-		assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
-		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
-		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
-		assertTrue(value.getValue(NBL));
-
-		result = getDatastore().delete(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
 
 	}
 
@@ -115,57 +114,56 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 
 		ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
-				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
-				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
-				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
-				.build();
+		long count = getDatastore().save(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR)
+				.set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
+				.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD)
+				.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT)
+				.set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR)
+				.set(A_INT, TestValues.A_INT).set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR)
+				.set(A_BYT, TestValues.A_BYT).set(NBL, true).build()).thenApply(r -> {
+					assertEquals(1, r.getAffectedCount());
+					assertEquals(OperationType.INSERT, r.getOperationType().orElse(null));
 
-		OperationResult result = getDatastore().save(TARGET, value).toCompletableFuture().join();
+					assertEquals(1, r.getInsertedKeys().size());
+					assertTrue(r.getFirstInsertedKey().isPresent());
 
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+					ObjectId oidx = r.getFirstInsertedKey(ObjectId.class).orElse(null);
+					assertNotNull(oidx);
+					assertEquals(oid, oidx);
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertTrue(result.getFirstInsertedKey().isPresent());
+					return oidx;
+				}).thenCompose(oidx -> getDatastore().query(TARGET).filter(ID.eq(oidx)).findOne(SET1))
+				.thenApply(value -> {
+					assertTrue(value.isPresent());
+					return value.get();
+				}).thenApply(value -> {
+					assertEquals(oid, value.getValue(ID));
+					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.BOOL, value.getValue(BOOL));
+					assertEquals(TestValues.INT, value.getValue(INT));
+					assertEquals(TestValues.LNG, value.getValue(LNG));
+					assertEquals(TestValues.DBL, value.getValue(DBL));
+					assertEquals(TestValues.FLT, value.getValue(FLT));
+					assertEquals(TestValues.SHR, value.getValue(SHR));
+					assertEquals(TestValues.BYT, value.getValue(BYT));
+					assertEquals(TestValues.BGD, value.getValue(BGD));
+					assertEquals(TestValues.ENM, value.getValue(ENM));
+					assertEquals(TestValues.DAT, value.getValue(DAT));
+					assertEquals(TestValues.TMS, value.getValue(TMS));
+					assertEquals(TestValues.LDAT, value.getValue(LDAT));
+					assertEquals(TestValues.LTMS, value.getValue(LTMS));
+					assertEquals(TestValues.LTM, value.getValue(LTM));
+					assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
+					assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
+					assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
+					assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
+					assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
+					assertTrue(value.getValue(NBL));
+					return value;
+				}).thenCompose(value -> getDatastore().delete(TARGET, value)).thenApply(r -> r.getAffectedCount())
+				.toCompletableFuture().join();
 
-		ObjectId oidx = result.getFirstInsertedKey(ObjectId.class).orElse(null);
-		assertNotNull(oidx);
-		assertEquals(oid, oidx);
-
-		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count().toCompletableFuture().join();
 		assertEquals(1, count);
-
-		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1).toCompletableFuture().join().orElse(null);
-		assertNotNull(value);
-
-		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
-		assertEquals(TestValues.BOOL, value.getValue(BOOL));
-		assertEquals(TestValues.INT, value.getValue(INT));
-		assertEquals(TestValues.LNG, value.getValue(LNG));
-		assertEquals(TestValues.DBL, value.getValue(DBL));
-		assertEquals(TestValues.FLT, value.getValue(FLT));
-		assertEquals(TestValues.SHR, value.getValue(SHR));
-		assertEquals(TestValues.BYT, value.getValue(BYT));
-		assertEquals(TestValues.BGD, value.getValue(BGD));
-		assertEquals(TestValues.ENM, value.getValue(ENM));
-		assertEquals(TestValues.DAT, value.getValue(DAT));
-		assertEquals(TestValues.TMS, value.getValue(TMS));
-		assertEquals(TestValues.LDAT, value.getValue(LDAT));
-		assertEquals(TestValues.LTMS, value.getValue(LTMS));
-		assertEquals(TestValues.LTM, value.getValue(LTM));
-		assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
-		assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
-		assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
-		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
-		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
-		assertTrue(value.getValue(NBL));
-
-		result = getDatastore().delete(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
 
 	}
 
@@ -174,62 +172,60 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 
 		ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
-				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
-				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
-				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
-				.build();
+		long count = getDatastore()
+				.insert(TARGET,
+						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
+								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
+								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
+								.set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+								.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
+								.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT)
+								.set(NBL, true).build())
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount())).thenCompose(x -> {
+					return getDatastore().save(TARGET,
+							PropertyBox.builder(SET1).set(ID, oid).set(STR, "upd").set(BOOL, TestValues.BOOL)
+									.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
+									.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
+									.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
+									.set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+									.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
+									.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR)
+									.set(A_BYT, TestValues.A_BYT).set(NBL, true).build());
+				}).thenAccept(result -> {
+					assertEquals(OperationType.UPDATE, result.getOperationType().orElse(null));
+					assertEquals(0, result.getInsertedKeys().size());
+				}).thenCompose(x -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1)).thenApply(value -> {
+					assertTrue(value.isPresent());
+					return value.get();
+				}).thenApply(value -> {
+					assertEquals(oid, value.getValue(ID));
+					assertEquals("upd", value.getValue(STR));
+					assertEquals(TestValues.BOOL, value.getValue(BOOL));
+					assertEquals(TestValues.INT, value.getValue(INT));
+					assertEquals(TestValues.LNG, value.getValue(LNG));
+					assertEquals(TestValues.DBL, value.getValue(DBL));
+					assertEquals(TestValues.FLT, value.getValue(FLT));
+					assertEquals(TestValues.SHR, value.getValue(SHR));
+					assertEquals(TestValues.BYT, value.getValue(BYT));
+					assertEquals(TestValues.BGD, value.getValue(BGD));
+					assertEquals(TestValues.ENM, value.getValue(ENM));
+					assertEquals(TestValues.DAT, value.getValue(DAT));
+					assertEquals(TestValues.TMS, value.getValue(TMS));
+					assertEquals(TestValues.LDAT, value.getValue(LDAT));
+					assertEquals(TestValues.LTMS, value.getValue(LTMS));
+					assertEquals(TestValues.LTM, value.getValue(LTM));
+					assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
+					assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
+					assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
+					assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
+					assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
+					assertTrue(value.getValue(NBL));
+					return value;
+				}).thenCompose(value -> getDatastore().delete(TARGET, value)).thenApply(r -> r.getAffectedCount())
+				.toCompletableFuture().join();
 
-		OperationResult result = getDatastore().insert(TARGET, value).toCompletableFuture().join();
-
-		assertEquals(1, result.getAffectedCount());
-
-		value = PropertyBox.builder(SET1).set(ID, oid).set(STR, "upd").set(BOOL, TestValues.BOOL)
-				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
-				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
-				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
-				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
-				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT).set(NBL, true)
-				.build();
-
-		result = getDatastore().save(TARGET, value).toCompletableFuture().join();
-
-		assertEquals(OperationType.UPDATE, result.getOperationType().orElse(null));
-		assertEquals(0, result.getInsertedKeys().size());
-
-		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count().toCompletableFuture().join();
 		assertEquals(1, count);
-
-		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1).toCompletableFuture().join().orElse(null);
-		assertNotNull(value);
-
-		assertEquals(oid, value.getValue(ID));
-		assertEquals("upd", value.getValue(STR));
-		assertEquals(TestValues.BOOL, value.getValue(BOOL));
-		assertEquals(TestValues.INT, value.getValue(INT));
-		assertEquals(TestValues.LNG, value.getValue(LNG));
-		assertEquals(TestValues.DBL, value.getValue(DBL));
-		assertEquals(TestValues.FLT, value.getValue(FLT));
-		assertEquals(TestValues.SHR, value.getValue(SHR));
-		assertEquals(TestValues.BYT, value.getValue(BYT));
-		assertEquals(TestValues.BGD, value.getValue(BGD));
-		assertEquals(TestValues.ENM, value.getValue(ENM));
-		assertEquals(TestValues.DAT, value.getValue(DAT));
-		assertEquals(TestValues.TMS, value.getValue(TMS));
-		assertEquals(TestValues.LDAT, value.getValue(LDAT));
-		assertEquals(TestValues.LTMS, value.getValue(LTMS));
-		assertEquals(TestValues.LTM, value.getValue(LTM));
-		assertTrue(Arrays.equals(TestValues.A_STR, value.getValue(A_STR)));
-		assertTrue(Arrays.equals(TestValues.A_INT, value.getValue(A_INT)));
-		assertTrue(Arrays.equals(TestValues.A_ENM, value.getValue(A_ENM)));
-		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
-		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
-		assertTrue(value.getValue(NBL));
-
-		result = getDatastore().delete(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
 
 	}
 

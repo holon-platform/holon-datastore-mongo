@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 
 public class BulkDeleteTest extends AbstractDatastoreOperationTest {
@@ -34,24 +33,22 @@ public class BulkDeleteTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid1 = new ObjectId();
 		final ObjectId oid2 = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "v1").build();
-		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "v2").build();
+		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "v1").build();
+		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "v2").build();
 
-		OperationResult result = getDatastore().insert(TARGET, value1).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-		result = getDatastore().insert(TARGET, value2).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-
-		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("v1")).execute().toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-
-		result = getDatastore().bulkDelete(TARGET).filter(ID.eq(oid2)).execute().toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-
-		long count = getDatastore().query(TARGET).filter(ID.eq(oid1)).count().toCompletableFuture().join();
-		assertEquals(0, count);
-		count = getDatastore().query(TARGET).filter(ID.eq(oid2)).count().toCompletableFuture().join();
-		assertEquals(0, count);
+		getDatastore().insert(TARGET, value1).thenAccept(r -> {
+			assertEquals(1, r.getAffectedCount());
+		}).thenCompose(v -> getDatastore().insert(TARGET, value2)).thenAccept(r -> {
+			assertEquals(1, r.getAffectedCount());
+		}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR.eq("v1")).execute()).thenAccept(r -> {
+			assertEquals(1, r.getAffectedCount());
+		}).thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid1)).count()).thenAccept(count -> {
+			assertEquals(Long.valueOf(0), count);
+		}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(ID.eq(oid2)).execute()).thenAccept(r -> {
+			assertEquals(1, r.getAffectedCount());
+		}).thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid2)).count()).thenAccept(count -> {
+			assertEquals(Long.valueOf(0), count);
+		}).toCompletableFuture().join();
 
 	}
 

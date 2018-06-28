@@ -16,9 +16,10 @@
 package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -36,40 +37,45 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v2").build())
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute()
-				.toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
+				.thenAccept(r -> assertEquals(3, r.getAffectedCount())).thenAccept(v -> {
+					Integer mv = getDatastore().query().target(TARGET).findOne(INT.max()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(mv);
+					assertEquals(Integer.valueOf(2), mv);
+				}).thenAccept(v -> {
+					Integer mv = getDatastore().query().target(TARGET).findOne(INT.min()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(mv);
+					assertEquals(Integer.valueOf(1), mv);
+				}).thenAccept(v -> {
+					Integer mv = getDatastore().query().target(TARGET).findOne(INT.sum()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(mv);
+					assertEquals(Integer.valueOf(3), mv);
+				}).thenAccept(v -> {
+					Double dv = getDatastore().query().target(TARGET).findOne(DBL.avg()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(dv);
+					assertEquals(Double.valueOf(1.5), dv);
+				}).thenAccept(v -> {
+					Long ct = getDatastore().query().target(TARGET).findOne(INT.count()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(ct);
+					assertEquals(Long.valueOf(2), ct);
+				}).thenAccept(v -> {
+					Long ct = getDatastore().query().target(TARGET).findOne(STR2.count()).toCompletableFuture().join()
+							.orElse(null);
+					assertNotNull(ct);
+					assertEquals(Long.valueOf(3), ct);
+				}).thenAccept(v -> {
+					Long ct = getDatastore().query().target(TARGET).distinct().findOne(STR2.count())
+							.toCompletableFuture().join().orElse(null);
+					assertNotNull(ct);
+					assertEquals(Long.valueOf(2), ct);
+				}).thenCompose(v -> {
+					return getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute();
+				}).toCompletableFuture().join();
 
-		Integer mv = getDatastore().query().target(TARGET).findOne(INT.max()).toCompletableFuture().join().orElse(null);
-		assertNotNull(mv);
-		assertEquals(Integer.valueOf(2), mv);
-
-		mv = getDatastore().query().target(TARGET).findOne(INT.min()).toCompletableFuture().join().orElse(null);
-		assertNotNull(mv);
-		assertEquals(Integer.valueOf(1), mv);
-
-		mv = getDatastore().query().target(TARGET).findOne(INT.sum()).toCompletableFuture().join().orElse(null);
-		assertNotNull(mv);
-		assertEquals(Integer.valueOf(3), mv);
-
-		Double dv = getDatastore().query().target(TARGET).findOne(DBL.avg()).toCompletableFuture().join().orElse(null);
-		assertNotNull(dv);
-		assertEquals(Double.valueOf(1.5), dv);
-
-		Long ct = getDatastore().query().target(TARGET).findOne(INT.count()).toCompletableFuture().join().orElse(null);
-		assertNotNull(ct);
-		assertEquals(Long.valueOf(2), ct);
-
-		ct = getDatastore().query().target(TARGET).findOne(STR2.count()).toCompletableFuture().join().orElse(null);
-		assertNotNull(ct);
-		assertEquals(Long.valueOf(3), ct);
-
-		ct = getDatastore().query().target(TARGET).distinct().findOne(STR2.count()).toCompletableFuture().join()
-				.orElse(null);
-		assertNotNull(ct);
-		assertEquals(Long.valueOf(2), ct);
-
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute()
-				.toCompletableFuture().join();
 		assertEquals(3, result.getAffectedCount());
 
 	}

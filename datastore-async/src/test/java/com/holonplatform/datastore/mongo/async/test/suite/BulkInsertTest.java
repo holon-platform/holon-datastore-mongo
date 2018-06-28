@@ -25,7 +25,6 @@ import java.util.concurrent.CompletionException;
 
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
@@ -35,20 +34,15 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testBulkInsert() {
 
-		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv1").build())
+		long result = getDatastore().bulkInsert(TARGET, SET1).add(PropertyBox.builder(SET1).set(STR, "bkiv1").build())
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv3").build()).execute().toCompletableFuture().join();
-
-		assertEquals(3, result.getAffectedCount());
-
-		long count = getDatastore().query(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).count()
-				.toCompletableFuture().join();
-		assertEquals(3, count);
-
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).execute()
-				.toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
+				.add(PropertyBox.builder(SET1).set(STR, "bkiv3").build()).execute()
+				.thenAccept(r -> assertEquals(3, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().query(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).count())
+				.thenAccept(count -> assertEquals(Long.valueOf(3), count))
+				.thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
+		assertEquals(3, result);
 
 	}
 
@@ -59,35 +53,33 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 		final PropertyBox v2 = PropertyBox.builder(SET1).set(STR, "bkiv11").build();
 		final PropertyBox v3 = PropertyBox.builder(SET1).set(STR, "bkiv12").build();
 
-		OperationResult result = getDatastore().bulkInsert(TARGET, SET1, DefaultWriteOption.BRING_BACK_GENERATED_IDS)
-				.add(v1).add(v2).add(v3).execute().toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
-
-		assertTrue(v1.containsValue(ID));
-		assertTrue(v2.containsValue(ID));
-		assertTrue(v3.containsValue(ID));
-
-		result = getDatastore().delete(TARGET, v1).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-		result = getDatastore().delete(TARGET, v2).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-		result = getDatastore().delete(TARGET, v3).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
+		getDatastore().bulkInsert(TARGET, SET1, DefaultWriteOption.BRING_BACK_GENERATED_IDS).add(v1).add(v2).add(v3)
+				.execute().thenAccept(r -> assertEquals(3, r.getAffectedCount())).thenAccept(v -> {
+					assertTrue(v1.containsValue(ID));
+					assertTrue(v2.containsValue(ID));
+					assertTrue(v3.containsValue(ID));
+				}).thenCompose(v -> getDatastore().delete(TARGET, v1))
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().delete(TARGET, v2))
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().delete(TARGET, v3))
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount())).toCompletableFuture().join();
 
 	}
 
 	@Test
 	public void testBulkInsertOptions() {
 
-		OperationResult result = getDatastore()
+		long result = getDatastore()
 				.bulkInsert(TARGET, SET1, DocumentWriteOption.BYPASS_VALIDATION, DocumentWriteOption.UNORDERED)
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv20").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv21").build()).execute().toCompletableFuture().join();
-		assertEquals(2, result.getAffectedCount());
+				.add(PropertyBox.builder(SET1).set(STR, "bkiv21").build()).execute()
+				.thenAccept(r -> assertEquals(2, r.getAffectedCount()))
+				.thenCompose(
+						v -> getDatastore().bulkDelete(TARGET).filter(STR.eq("bkiv20").or(STR.eq("bkiv21"))).execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("bkiv20").or(STR.eq("bkiv21"))).execute()
-				.toCompletableFuture().join();
-		assertEquals(2, result.getAffectedCount());
+		assertEquals(2, result);
 
 	}
 

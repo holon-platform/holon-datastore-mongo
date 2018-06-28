@@ -21,10 +21,31 @@ import org.junit.runners.Suite;
 
 import com.holonplatform.async.datastore.AsyncDatastore;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
+import com.holonplatform.datastore.mongo.async.test.suite.AggregationFunctionsTest;
+import com.holonplatform.datastore.mongo.async.test.suite.BulkDeleteTest;
+import com.holonplatform.datastore.mongo.async.test.suite.BulkInsertTest;
+import com.holonplatform.datastore.mongo.async.test.suite.BulkUpdateTest;
+import com.holonplatform.datastore.mongo.async.test.suite.CustomExpressionsTest;
+import com.holonplatform.datastore.mongo.async.test.suite.DeleteTest;
+import com.holonplatform.datastore.mongo.async.test.suite.DistinctTest;
 import com.holonplatform.datastore.mongo.async.test.suite.InsertTest;
+import com.holonplatform.datastore.mongo.async.test.suite.QueryAggregationTest;
+import com.holonplatform.datastore.mongo.async.test.suite.QueryFilterTest;
+import com.holonplatform.datastore.mongo.async.test.suite.QueryProjectionTest;
+import com.holonplatform.datastore.mongo.async.test.suite.QueryRestrictionTest;
+import com.holonplatform.datastore.mongo.async.test.suite.QuerySortTest;
+import com.holonplatform.datastore.mongo.async.test.suite.RefreshTest;
+import com.holonplatform.datastore.mongo.async.test.suite.SaveTest;
+import com.holonplatform.datastore.mongo.async.test.suite.StringFunctionsTest;
+import com.holonplatform.datastore.mongo.async.test.suite.TemporalFunctionsTest;
+import com.holonplatform.datastore.mongo.async.test.suite.UpdateTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ InsertTest.class })
+@Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,
+	BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
+	QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
+	StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class,
+	CustomExpressionsTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops_async";

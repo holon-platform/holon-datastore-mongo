@@ -26,13 +26,15 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
-import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.AsyncPropertyBoxOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
+import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
+import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -76,47 +78,54 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
+
+			// configuration
+			final PropertyBoxOperationConfiguration configuration = getConfiguration();
 			// validate
-			getConfiguration().validate();
+			configuration.validate();
+
 			// build context
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
-					getConfiguration().getValue());
-			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
-			return PropertyBoxOperationContext.create(getConfiguration(), operationContext, context);
-		}).thenApply(context -> {
+					configuration.getValue());
+			context.addExpressionResolvers(configuration.getExpressionResolvers());
+
 			// resolve collection name
-			final String collectionName = context.getDocumentContext()
-					.resolveOrFail(context.getConfiguration().getTarget(), CollectionName.class).getName();
+			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
+					.getName();
 			// get and configure collection
-			MongoCollection<Document> collection = context.getOperationContext().withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName),
-						context.getDocumentContext(), context.getConfiguration());
+			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+						configuration);
 			});
-			// build context
-			return DocumentOperationContext.create(context, collection);
-		}).thenCompose(context -> {
+
 			// prepare
-			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
+			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
+
+			// document to insert
+			final Document document = context
+					.resolveOrFail(PropertyBoxValue.create(configuration.getValue()), DocumentValue.class).getValue();
+
 			// insert
-			context.getCollection().insertOne(context.requireDocument(),
-					MongoOperations.getInsertOneOptions(context.getConfiguration()), (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(context);
-						}
-					});
-			// return the future
-			return operation;
+			collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
+				if (error != null) {
+					operation.completeExceptionally(error);
+				} else {
+					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration, 1,
+							OperationType.INSERT, configuration.getValue(), document));
+				}
+			});
+			// join the future
+			return operation.join();
 		}).thenApply(context -> {
+
 			// trace
-			context.getOperationContext().trace("Inserted document", context.requireDocument());
+			context.trace("Inserted document", context.requireDocument());
 			// build operation result
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
 			// check inserted keys
-			MongoOperations.checkInsertedKeys(builder, context.getDocumentContext(), context.getConfiguration(),
-					context.requireDocument(), context.getConfiguration().getValue());
+			MongoOperations.checkInsertedKeys(builder, context.getContext(), context.getConfiguration(),
+					context.requireDocument(), context.getValue());
 			return builder.build();
 		});
 	}

@@ -92,13 +92,17 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	@Override
 	public <R> CompletionStage<Stream<R>> stream(final QueryOperation<QueryConfiguration, R> queryOperation) {
 		return CompletableFuture.supplyAsync(() -> {
+
 			// validate
 			queryOperation.validate();
+
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
+
 			// resolve query
 			final BsonQuery query = context.resolveOrFail(queryOperation, BsonQuery.class);
+
 			// resolve collection name
 			final String collectionName = query.getDefinition().getCollectionName();
 			// get and configure collection
@@ -106,10 +110,13 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				return AsyncMongoCollectionConfigurator.configureRead(database.getCollection(collectionName), context,
 						queryOperation.getConfiguration());
 			});
+
 			// build context
-			return (QueryOperationContext<R>) QueryOperationContext.create(operationContext, context, collection, query,
+			return (QueryOperationContext<R>) QueryOperationContext.create(context, collection, query,
 					queryOperation.getProjection().getType());
+			
 		}).thenCompose(context -> {
+
 			// query operation type
 			final QueryOperationType queryOperationType = context.getResolutionContext().getQueryOperationType()
 					.orElse(QueryOperationType.FIND);
@@ -124,6 +131,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			default:
 				return find(context);
 			}
+
 		});
 	}
 
@@ -134,15 +142,14 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @return The operation result
 	 */
 	@SuppressWarnings("unchecked")
-	private static <R> CompletionStage<Stream<R>> count(QueryOperationContext<R> queryContext) {
+	private static <R> CompletableFuture<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
 		final Bson filter = queryContext.getQuery().getDefinition().getFilter().map(f -> f.getExpression())
 				.orElse(null);
 
 		// trace
-		queryContext.getOperationContext().trace("COUNT query",
-				"Filter: \n" + DocumentSerializer.getDefault().toJson(filter));
+		queryContext.trace("COUNT query", "Filter: \n" + DocumentSerializer.getDefault().toJson(filter));
 
 		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
 
@@ -174,7 +181,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	private static <R> CompletionStage<Stream<R>> find(QueryOperationContext<R> queryContext) {
+	private static <R> CompletableFuture<Stream<R>> find(QueryOperationContext<R> queryContext) {
 
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
@@ -187,8 +194,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				new AsyncFindOperationConfigurator(fi));
 
 		// trace
-		queryContext.getOperationContext().trace("FIND query", () -> MongoOperations
-				.traceQuery(queryContext.getOperationContext(), queryContext.getQuery(), projection.orElse(null)));
+		queryContext.trace("FIND query", () -> MongoOperations.traceQuery(queryContext.getResolutionContext(),
+				queryContext.getQuery(), projection.orElse(null)));
 
 		// documents
 		final List<Document> documents = new ArrayList<>();
@@ -213,7 +220,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	private static <R> CompletionStage<Stream<R>> distinct(QueryOperationContext<R> queryContext) {
+	private static <R> CompletableFuture<Stream<R>> distinct(QueryOperationContext<R> queryContext) {
 
 		// check distinct field name
 		if (!queryContext.getQuery().getDistinctFieldName().isPresent()) {
@@ -234,8 +241,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));
 
 		// trace
-		queryContext.getOperationContext().trace("DISTINCT query on [" + fieldName + "]",
-				() -> MongoOperations.traceQuery(queryContext.getOperationContext(), queryContext.getQuery(), null));
+		queryContext.trace("DISTINCT query on [" + fieldName + "]",
+				() -> MongoOperations.traceQuery(queryContext.getResolutionContext(), queryContext.getQuery(), null));
 
 		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
 
@@ -263,7 +270,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	private static <R> CompletionStage<Stream<R>> aggregate(QueryOperationContext<R> queryContext) {
+	private static <R> CompletableFuture<Stream<R>> aggregate(QueryOperationContext<R> queryContext) {
 
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
@@ -273,8 +280,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(queryContext.getQuery());
 
 		// trace
-		queryContext.getOperationContext().trace("Aggregation pipeline",
-				() -> MongoOperations.traceAggregationPipeline(queryContext.getOperationContext(), pipeline));
+		queryContext.trace("Aggregation pipeline",
+				() -> MongoOperations.traceAggregationPipeline(queryContext.getResolutionContext(), pipeline));
 
 		// iterable
 		final AggregateIterable<Document> ai = queryContext.getCollection().aggregate(pipeline);

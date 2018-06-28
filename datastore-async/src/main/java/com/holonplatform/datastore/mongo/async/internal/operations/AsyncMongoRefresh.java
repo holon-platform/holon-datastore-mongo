@@ -23,15 +23,16 @@ import org.bson.types.ObjectId;
 
 import com.holonplatform.async.datastore.operation.AsyncRefresh;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncRefresh;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.DocumentOperationContext;
-import com.holonplatform.datastore.mongo.async.internal.support.PropertyBoxOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.AsyncPropertyBoxOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
@@ -80,58 +81,63 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 	@Override
 	public CompletionStage<PropertyBox> execute() {
 		return CompletableFuture.supplyAsync(() -> {
+
+			// configuration
+			final PropertyBoxOperationConfiguration configuration = getConfiguration();
 			// validate
-			getConfiguration().validate();
+			configuration.validate();
+
 			// build context
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
-					getConfiguration().getValue());
-			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
-			return PropertyBoxOperationContext.create(getConfiguration(), operationContext, context);
-		}).thenApply(context -> {
+					configuration.getValue());
+			context.addExpressionResolvers(configuration.getExpressionResolvers());
+
 			// resolve collection name
-			final String collectionName = context.getDocumentContext()
-					.resolveOrFail(context.getConfiguration().getTarget(), CollectionName.class).getName();
+			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
+					.getName();
 			// get and configure collection
-			MongoCollection<Document> collection = context.getOperationContext().withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureRead(database.getCollection(collectionName),
-						context.getDocumentContext(), context.getConfiguration().getParameters());
+			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+				return AsyncMongoCollectionConfigurator.configureRead(database.getCollection(collectionName), context,
+						configuration.getParameters());
 			});
-			// build context
-			return DocumentOperationContext.create(context, collection);
-		}).thenCompose(context -> {
+
 			// id property
-			final Property<?> idProperty = context.getDocumentContext().getDocumentIdProperty().orElseThrow(
+			final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(
 					() -> new DataAccessException("Cannot perform a REFRESH operation: missing document id property"
-							+ " for value [" + context.getConfiguration().getValue() + "]"));
+							+ " for value [" + configuration.getValue() + "]"));
 			// document id
-			final ObjectId id = context.getDocumentContext().getDocumentIdResolver()
-					.encode(context.getConfiguration().getValue().getValue(idProperty));
+			final ObjectId id = context.getDocumentIdResolver().encode(configuration.getValue().getValue(idProperty));
 			if (id == null) {
 				throw new DataAccessException(
 						"Cannot perform a REFRESH operation: missing document id value for property [" + idProperty
 								+ "]");
 			}
 			// prepare
-			final CompletableFuture<DocumentOperationContext> operation = new CompletableFuture<>();
-			// insert
-			context.getCollection().find(Filters.eq(id)).first((result, error) -> {
+			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
+
+			// find
+			collection.find(Filters.eq(id)).first((result, error) -> {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(DocumentOperationContext.create(context, context.getCollection(), result));
+					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration, 1L,
+							OperationType.UPDATE, configuration.getValue(), result));
 				}
 			});
-			// return the future
-			return operation;
+
+			// join the future
+			return operation.join();
 		}).thenApply(context -> {
+
 			// check document
 			final Document document = context.getDocument()
 					.orElseThrow(() -> new DataAccessException("No document found using id property ["
-							+ context.getDocumentContext().getDocumentIdProperty().orElse(null) + "]"));
+							+ context.getContext().getDocumentIdProperty().orElse(null) + "]"));
 			// trace
-			context.getOperationContext().trace("Refreshed document", document);
+			context.trace("Refreshed document", document);
+
 			// build operation result
-			return context.getDocumentContext().resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class)
+			return context.getContext().resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class)
 					.getValue();
 		});
 	}

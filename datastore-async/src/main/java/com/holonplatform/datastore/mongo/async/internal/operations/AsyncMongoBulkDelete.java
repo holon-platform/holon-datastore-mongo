@@ -28,9 +28,10 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.commons.BulkDeleteOperationConfiguration;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -78,46 +79,54 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
+
+			// configuration
+			final BulkDeleteOperationConfiguration configuration = getConfiguration();
 			// validate
-			getConfiguration().validate();
+			configuration.validate();
+
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
-			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+			context.addExpressionResolvers(configuration.getExpressionResolvers());
+
 			// filter
-			Optional<Bson> filter = getConfiguration().getFilter()
+			final Optional<Bson> filter = configuration.getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+
 			// resolve collection name
-			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
 					.getName();
 			// get and configure collection
-			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
 				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						getConfiguration());
+						configuration);
 			});
-			// build context
-			return BulkOperationContext.create(operationContext, getConfiguration(), context, collection,
-					filter.orElse(null));
-		}).thenCompose(context -> {
+
 			// trace
-			context.getOperationContext().trace("Delete documents - filter",
-					context.getFilter().map(f -> context.getOperationContext().toJson(f)).orElse("[NONE]"));
+			context.trace("Delete documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+
 			// prepare
-			final CompletableFuture<BulkOperationContext> operation = new CompletableFuture<>();
+			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
+
 			// delete
-			context.getCollection().deleteMany(context.getFilter().orElse(null),
-					MongoOperations.getDeleteOptions(context.getConfiguration()), (result, error) -> {
+			collection.deleteMany(filter.orElse(null), MongoOperations.getDeleteOptions(configuration),
+					(result, error) -> {
 						if (error != null) {
 							operation.completeExceptionally(error);
 						} else {
-							context.setAffectedCount(result.getDeletedCount());
-							operation.complete(context);
+							operation.complete(AsyncOperationResultContext.create(context, configuration,
+									result.getDeletedCount(), OperationType.DELETE));
 						}
 					});
-			// return the future
-			return operation;
+
+			// join the future
+			return operation.join();
 		}).thenApply(context -> {
+
+			// return result
 			return OperationResult.builder().type(OperationType.DELETE).affectedCount(context.getAffectedCount())
 					.build();
+
 		});
 	}
 

@@ -31,8 +31,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.BulkOperationContext;
-import com.holonplatform.datastore.mongo.async.internal.support.BulkUpdateOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -80,49 +79,55 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
-			final BulkUpdateOperationConfiguration operationConfiguration = getConfiguration();
+
+			// configuration
+			final BulkUpdateOperationConfiguration configuration = getConfiguration();
 			// validate
-			operationConfiguration.validate();
+			configuration.validate();
+
 			// context
 			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
-			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+			context.addExpressionResolvers(configuration.getExpressionResolvers());
+
 			// filter
-			Optional<Bson> filter = operationConfiguration.getFilter()
+			final Optional<Bson> filter = configuration.getFilter()
 					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+
 			// resolve collection name
-			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
 					.getName();
 			// get and configure collection
-			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
 				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						operationConfiguration);
+						configuration);
 			});
-			// build context
-			return BulkUpdateOperationContext.create(operationContext, getConfiguration(), context, collection,
-					filter.orElse(null), operationConfiguration);
-		}).thenCompose(context -> {
+
 			// update expression
-			final Bson update = MongoOperations.getUpdateExpression(context.getResolutionContext(),
-					context.getOperationConfiguration());
+			final Bson update = MongoOperations.getUpdateExpression(context, configuration);
+
 			// trace
-			context.getOperationContext().trace("Update documents",
-					MongoOperations.traceUpdate(context.getOperationContext(), context.getFilter(), update));
+			context.trace("Update documents", MongoOperations.traceUpdate(context, filter, update));
+
 			// prepare
-			final CompletableFuture<BulkOperationContext> operation = new CompletableFuture<>();
+			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
+
 			// update
-			context.getCollection().updateMany(context.getFilter().orElse(null), update,
-					MongoOperations.getUpdateOptions(context.getConfiguration(), false), (result, error) -> {
+			collection.updateMany(filter.orElse(null), update, MongoOperations.getUpdateOptions(configuration, false),
+					(result, error) -> {
 						if (error != null) {
 							operation.completeExceptionally(error);
 						} else {
-							context.setAffectedCount(result.getModifiedCount());
-							operation.complete(context);
+							operation.complete(AsyncOperationResultContext.create(context, configuration,
+									result.getModifiedCount(), OperationType.UPDATE));
 						}
 					});
-			return operation;
+			return operation.join();
 		}).thenApply(context -> {
+
+			// result
 			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(context.getAffectedCount())
 					.build();
+
 		});
 	}
 

@@ -15,13 +15,13 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.support;
 
+import java.util.function.Supplier;
+
 import org.bson.Document;
 
-import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 
 /**
  * Query operation context.
@@ -30,7 +30,7 @@ import com.mongodb.async.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public interface QueryOperationContext<R> extends AsyncOperationContext {
+public interface QueryOperationContext<R> {
 
 	/**
 	 * Get the resolution context.
@@ -56,10 +56,31 @@ public interface QueryOperationContext<R> extends AsyncOperationContext {
 	 */
 	Class<? extends R> getResultType();
 
-	static <R> QueryOperationContext<R> create(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext resolutionContext, MongoCollection<Document> collection, BsonQuery query,
-			Class<? extends R> resultType) {
-		return new DefaultQueryOperationContext<>(operationContext, resolutionContext, collection, query, resultType);
+	/**
+	 * Trace given JSON expression.
+	 * <p>
+	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
+	 * using the <code>DEBUG</code> level.
+	 * </p>
+	 * @param title Optional title
+	 * @param json JSON to trace
+	 */
+	default void trace(String title, Supplier<String> json) {
+		getResolutionContext().trace(title, json);
+	}
+
+	/**
+	 * Trace given JSON expression.
+	 * @param title Optional title
+	 * @param json JSON to trace
+	 */
+	default void trace(String title, String json) {
+		getResolutionContext().trace(title, json);
+	}
+
+	static <R> QueryOperationContext<R> create(MongoResolutionContext resolutionContext,
+			MongoCollection<Document> collection, BsonQuery query, Class<? extends R> resultType) {
+		return new DefaultQueryOperationContext<>(resolutionContext, collection, query, resultType);
 	}
 
 }

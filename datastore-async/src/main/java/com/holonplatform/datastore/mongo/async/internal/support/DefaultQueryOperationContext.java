@@ -18,11 +18,9 @@ package com.holonplatform.datastore.mongo.async.internal.support;
 import org.bson.Document;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 
 /**
  * Default {@link QueryOperationContext} implementation.
@@ -31,17 +29,16 @@ import com.mongodb.async.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public class DefaultQueryOperationContext<R> extends AbstractAsyncOperationContext implements QueryOperationContext<R> {
+public class DefaultQueryOperationContext<R> implements QueryOperationContext<R> {
 
 	private final MongoResolutionContext resolutionContext;
 	private final MongoCollection<Document> collection;
 	private final BsonQuery query;
 	private final Class<? extends R> resultType;
 
-	public DefaultQueryOperationContext(MongoOperationContext<MongoDatabase> operationContext,
-			MongoResolutionContext resolutionContext, MongoCollection<Document> collection, BsonQuery query,
-			Class<? extends R> resultType) {
-		super(operationContext);
+	public DefaultQueryOperationContext(MongoResolutionContext resolutionContext, MongoCollection<Document> collection,
+			BsonQuery query, Class<? extends R> resultType) {
+		super();
 		ObjectUtils.argumentNotNull(resolutionContext, "Resolution context must be not null");
 		ObjectUtils.argumentNotNull(collection, "MongoCollection must be not null");
 		ObjectUtils.argumentNotNull(query, "Query must be not null");

@@ -29,10 +29,11 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.operation.commons.BulkInsertOperationConfiguration;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.BulkInsertOperationContext;
+import com.holonplatform.datastore.mongo.async.internal.support.AsyncMultiPropertyBoxOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
@@ -80,59 +81,64 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 	@Override
 	public CompletionStage<OperationResult> execute() {
 		return CompletableFuture.supplyAsync(() -> {
+
+			// configuration
+			final BulkInsertOperationConfiguration configuration = getConfiguration();
 			// validate
-			getConfiguration().validate();
+			configuration.validate();
+
 			// property set
-			final PropertySet<?> propertySet = getConfiguration().getPropertySet()
+			final PropertySet<?> propertySet = configuration.getPropertySet()
 					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
+
 			// resolution context
 			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
-			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
+			context.addExpressionResolvers(configuration.getExpressionResolvers());
+
 			// resolve collection name
-			final String collectionName = context.resolveOrFail(getConfiguration().getTarget(), CollectionName.class)
+			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
 					.getName();
 			// get and configure collection
-			MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
 				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						getConfiguration());
+						configuration);
 			});
-			// build context
-			return BulkInsertOperationContext.create(operationContext, getConfiguration(), context, collection,
-					propertySet);
-		}).thenCompose(context -> {
+
 			// encode documents
-			final List<ResolvedDocument> documentValues = MongoOperations
-					.resolveDocumentValues(context.getDocumentContext(), getConfiguration().getValues());
-			// insert
+			final List<ResolvedDocument> documentValues = MongoOperations.resolveDocumentValues(context,
+					configuration.getValues());
+
+			// documents to insert
 			final List<Document> documents = documentValues.stream().map(v -> v.getDocument())
 					.collect(Collectors.toList());
+
 			// prepare
-			final CompletableFuture<BulkInsertOperationContext> operation = new CompletableFuture<>();
+			final CompletableFuture<AsyncMultiPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
+
 			// insert
-			context.getCollection().insertMany(documents,
-					MongoOperations.getInsertManyOptions(context.getConfiguration()), (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							context.setAffectedCount(documents.size());
-							context.setDocuments(documentValues);
-							operation.complete(context);
-						}
-					});
-			// return the future
-			return operation;
+			collection.insertMany(documents, MongoOperations.getInsertManyOptions(configuration), (result, error) -> {
+				if (error != null) {
+					operation.completeExceptionally(error);
+				} else {
+					operation.complete(AsyncMultiPropertyBoxOperationResultContext.create(context, configuration,
+							documents.size(), OperationType.INSERT, documentValues));
+				}
+			});
+			// join the future
+			return operation.join();
 		}).thenApply(context -> {
 
 			// trace
-			context.getOperationContext().trace("Inserted documents",
-					context.getDocuments().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
+			context.trace("Inserted documents",
+					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
-					.affectedCount(context.getDocuments().size());
+					.affectedCount(context.getAffectedCount());
 
 			// check inserted keys
-			MongoOperations.checkInsertedKeys(context.getDocumentContext(), context.getConfiguration(),
-					context.getDocuments());
+			MongoOperations.checkInsertedKeys(context.getContext(), context.getConfiguration(), context.getValues());
+
+			// result
 			return builder.build();
 		});
 	}

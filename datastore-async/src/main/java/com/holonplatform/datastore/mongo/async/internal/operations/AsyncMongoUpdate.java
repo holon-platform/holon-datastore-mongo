@@ -127,8 +127,8 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 						if (error != null) {
 							operation.completeExceptionally(error);
 						} else {
-							operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration,
-									MongoOperations.getAffectedCount(result), OperationType.UPDATE,
+							operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+									configuration, MongoOperations.getAffectedCount(result), OperationType.UPDATE,
 									configuration.getValue(), document));
 						}
 					});

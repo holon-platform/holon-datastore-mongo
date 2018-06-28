@@ -120,8 +120,8 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(AsyncMultiPropertyBoxOperationResultContext.create(context, configuration,
-							documents.size(), OperationType.INSERT, documentValues));
+					operation.complete(AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
+							configuration, documents.size(), OperationType.INSERT, documentValues));
 				}
 			});
 			// join the future

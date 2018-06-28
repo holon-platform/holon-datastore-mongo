@@ -117,7 +117,7 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 						if (error != null) {
 							operation.completeExceptionally(error);
 						} else {
-							operation.complete(AsyncOperationResultContext.create(context, configuration,
+							operation.complete(AsyncOperationResultContext.create(context, collection, configuration,
 									result.getModifiedCount(), OperationType.UPDATE));
 						}
 					});

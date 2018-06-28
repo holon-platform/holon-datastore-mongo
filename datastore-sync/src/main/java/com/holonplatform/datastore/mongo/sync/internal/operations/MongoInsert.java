@@ -15,7 +15,10 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal.operations;
 
+import java.util.Optional;
+
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
@@ -34,6 +37,7 @@ import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodity
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 /**
  * MongoDB {@link Insert}.
@@ -105,9 +109,22 @@ public class MongoInsert extends AbstractInsert {
 
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
+
 			// check inserted keys
-			MongoOperations.checkInsertedKeys(builder, context, getConfiguration(), document, value);
-			return builder.build();
+			Optional<ObjectId> insertedId = MongoOperations.checkInsertedKeys(builder, context, getConfiguration(),
+					document, value);
+
+			final OperationResult result = builder.build();
+
+			// check if the identifier property has to be updated with the document id value
+			final Document toUpdate = (!insertedId.isPresent()) ? null
+					: MongoOperations.getIdUpdateDocument(context, insertedId.get()).orElse(null);
+			if (insertedId.isPresent() && toUpdate != null) {
+				collection.updateOne(Filters.eq(insertedId.get()), toUpdate);
+				context.trace("Updated identifier property value", toUpdate);
+			}
+
+			return result;
 
 		});
 	}

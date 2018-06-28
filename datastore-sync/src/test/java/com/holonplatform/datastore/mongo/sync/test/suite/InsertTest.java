@@ -261,7 +261,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(oid);
 
 		value.setValue(ID4, oid);
-		result = getDatastore().delete(TARGET, value);
+		result = getDatastore().bulkDelete(TARGET).filter(ID4.eq(oid)).execute();
 		assertEquals(1, result.getAffectedCount());
 
 		value = PropertyBox.builder(SET4).set(STR, TestValues.STR).build();

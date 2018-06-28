@@ -17,10 +17,13 @@ package com.holonplatform.datastore.mongo.async.internal.support;
 
 import java.util.List;
 
+import org.bson.Document;
+
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * Default {@link AsyncMultiPropertyBoxOperationResultContext} implementation.
@@ -34,9 +37,9 @@ public class DefaultAsyncMultiPropertyBoxOperationResultContext
 	private final List<ResolvedDocument> values;
 
 	public DefaultAsyncMultiPropertyBoxOperationResultContext(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			List<ResolvedDocument> values) {
-		super(mongoContext, configuration, affectedCount, operationType);
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, List<ResolvedDocument> values) {
+		super(mongoContext, collection, configuration, affectedCount, operationType);
 		this.values = values;
 	}
 

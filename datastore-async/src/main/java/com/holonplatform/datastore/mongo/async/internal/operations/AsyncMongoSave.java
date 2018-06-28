@@ -132,8 +132,8 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 					if (error != null) {
 						operation.completeExceptionally(error);
 					} else {
-						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration, 1,
-								OperationType.INSERT, configuration.getValue(), document));
+						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+								configuration, 1, OperationType.INSERT, configuration.getValue(), document));
 					}
 				});
 
@@ -158,8 +158,9 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 								final BsonValue upsertedId = result.getUpsertedId();
 								final long affected = (upsertedId != null) ? 1
 										: MongoOperations.getAffectedCount(result);
-								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration,
-										affected, (upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, affected,
+										(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
 										configuration.getValue(), document, upsertedId));
 							}
 						});

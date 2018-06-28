@@ -23,6 +23,7 @@ import org.bson.Document;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * Async operation result context.
@@ -38,6 +39,12 @@ public interface AsyncOperationResultContext<C extends MongoContext> {
 	 * @return The Mongo context
 	 */
 	C getContext();
+
+	/**
+	 * Get the collection.
+	 * @return The collection
+	 */
+	MongoCollection<Document> getCollection();
 
 	/**
 	 * Get the operation configuration.
@@ -97,18 +104,11 @@ public interface AsyncOperationResultContext<C extends MongoContext> {
 		getContext().trace(title, documents);
 	}
 
-	/**
-	 * Create a new {@link AsyncOperationResultContext}.
-	 * @param <C> Context type
-	 * @param mongoContext Mongo context (not null)
-	 * @param configuration Operation configuration (not null)
-	 * @param affectedCount Affected count
-	 * @param operationType Operation type (not null)
-	 * @return A new {@link AsyncOperationResultContext}
-	 */
 	static <C extends MongoContext> AsyncOperationResultContext<C> create(C mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType) {
-		return new DefaultAsyncOperationResultContext<>(mongoContext, configuration, affectedCount, operationType);
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType) {
+		return new DefaultAsyncOperationResultContext<>(mongoContext, collection, configuration, affectedCount,
+				operationType);
 	}
 
 }

@@ -56,6 +56,7 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.holonplatform.datastore.mongo.core.expression.Value;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
@@ -190,6 +191,38 @@ public class MongoOperations {
 	}
 
 	/**
+	 * Get the document which can be used to uodate the id property field.
+	 * @param context Document context
+	 * @param insertedId Inserted document id
+	 * @return Optional document which can be used to uodate the id property field
+	 */
+	public static Optional<Document> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId) {
+		Optional<String> fieldName = getPropertyDocumentIdFieldName(context);
+		if (fieldName.isPresent()) {
+			Class<?> type = context.getDocumentIdProperty().map(p -> p.getType()).orElse(null);
+			if (type != null) {
+				return Optional.of(new Document("$set",
+						new Document(fieldName.get(),
+								context.resolveOrFail(
+										Value.create(context.getDocumentIdResolver().decode(insertedId, type)),
+										FieldValue.class).getValue())));
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Get the field name which corresponds to the id property, only if the field name is not equal to the default
+	 * document id field name.
+	 * @param context Document context
+	 * @return Optional id field name
+	 */
+	private static Optional<String> getPropertyDocumentIdFieldName(MongoDocumentContext context) {
+		return context.getDocumentIdPath().flatMap(path -> context.resolve(path, FieldName.class))
+				.map(fn -> fn.getFieldName()).filter(name -> !MongoDocumentContext.ID_FIELD_NAME.equals(name));
+	}
+
+	/**
 	 * Check generated document id after an insert type operation, setting the inserted keys using given
 	 * {@link OperationResult} builder.
 	 * @param builder OperationResult builder
@@ -197,15 +230,21 @@ public class MongoOperations {
 	 * @param configuration Operation configuration
 	 * @param document Document result of the insert operation
 	 * @param value Original {@link PropertyBox} value
+	 * @return The document id to use to update the id property value, if applicable
 	 */
 	@SuppressWarnings("unchecked")
-	public static void checkInsertedKeys(OperationResult.Builder builder, MongoDocumentContext documentContext,
-			DatastoreOperationConfiguration configuration, Document document, PropertyBox value) {
+	public static Optional<ObjectId> checkInsertedKeys(OperationResult.Builder builder,
+			MongoDocumentContext documentContext, DatastoreOperationConfiguration configuration, Document document,
+			PropertyBox value) {
 		// check inserted keys
 		if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
 			// get document id value
 			final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
 			if (oid != null) {
+
+				boolean idPropertyHasValue = documentContext.getDocumentIdProperty().map(p -> value.containsValue(p))
+						.orElse(false);
+
 				documentContext.getDocumentIdPath().ifPresent(idp -> {
 					final Object idPropertyValue = documentContext.getDocumentIdResolver().decode(oid, idp.getType());
 					builder.withInsertedKey(idp, idPropertyValue);
@@ -219,8 +258,13 @@ public class MongoOperations {
 						});
 					}
 				});
+
+				if (!idPropertyHasValue) {
+					return Optional.of(oid);
+				}
 			}
 		}
+		return Optional.empty();
 	}
 
 	/**

@@ -120,14 +120,14 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration,
+					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
 							result.getDeletedCount(), OperationType.DELETE, configuration.getValue(), null, id));
 				}
 			});
 			// join the future
 			return operation.join();
 		}).thenApply(context -> {
-			
+
 			// trace
 			context.trace("Deleted document", "Deleted document id: " + context.getDocumentId().orElse(null));
 

@@ -15,10 +15,12 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.async.datastore.operation.AsyncInsert;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncInsert;
@@ -38,6 +40,7 @@ import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 /**
  * MongoDB {@link AsyncInsert}.
@@ -110,8 +113,8 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration, 1,
-							OperationType.INSERT, configuration.getValue(), document));
+					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
+							1, OperationType.INSERT, configuration.getValue(), document));
 				}
 			});
 			// join the future
@@ -123,11 +126,33 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			// build operation result
 			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
 					.affectedCount(1);
+
+			final CompletableFuture<OperationResult> operation = new CompletableFuture<>();
+
 			// check inserted keys
-			MongoOperations.checkInsertedKeys(builder, context.getContext(), context.getConfiguration(),
-					context.requireDocument(), context.getValue());
-			return builder.build();
-		});
+			Optional<ObjectId> insertedId = MongoOperations.checkInsertedKeys(builder, context.getContext(),
+					context.getConfiguration(), context.requireDocument(), context.getValue());
+
+			final OperationResult result = builder.build();
+
+			// check if the identifier property has to be updated with the document id value
+			final Document toUpdate = (!insertedId.isPresent()) ? null
+					: MongoOperations.getIdUpdateDocument(context.getContext(), insertedId.get()).orElse(null);
+			if (insertedId.isPresent() && toUpdate != null) {
+				context.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate, (ur, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						context.trace("Updated identifier property value", toUpdate);
+						operation.complete(result);
+					}
+				});
+			} else {
+				operation.complete(result);
+			}
+
+			return operation.join();
+		}).thenApply(result -> result);
 	}
 
 }

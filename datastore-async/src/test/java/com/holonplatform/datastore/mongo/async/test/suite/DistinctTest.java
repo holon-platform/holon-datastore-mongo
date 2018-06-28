@@ -23,11 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 
 public class DistinctTest extends AbstractDatastoreOperationTest {
@@ -35,26 +32,27 @@ public class DistinctTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testDistinct() {
 
-		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
+		long count = getDatastore().bulkInsert(TARGET, SET1)
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(STR2, "v2").build())
 				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(STR2, "v2").build()).execute().toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
+				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(STR2, "v2").build()).execute()
+				.thenAccept(r -> assertEquals(3, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().query().target(TARGET).distinct().list(INT)).thenAccept(vals -> {
+					assertNotNull(vals);
+					assertEquals(2, vals.size());
+					assertTrue(vals.contains(Integer.valueOf(1)));
+					assertTrue(vals.contains(Integer.valueOf(2)));
+				}).thenCompose(v -> getDatastore().query().target(TARGET).distinct().list(STR2)).thenAccept(svals -> {
+					assertNotNull(svals);
+					assertEquals(2, svals.size());
+					assertTrue(svals.contains("v1"));
+					assertTrue(svals.contains("v2"));
+				})
+				.thenCompose(
+						v -> getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
-		List<Integer> vals = getDatastore().query().target(TARGET).distinct().list(INT).toCompletableFuture().join();
-		assertNotNull(vals);
-		assertEquals(2, vals.size());
-		assertTrue(vals.contains(Integer.valueOf(1)));
-		assertTrue(vals.contains(Integer.valueOf(2)));
-
-		List<String> svals = getDatastore().query().target(TARGET).distinct().list(STR2).toCompletableFuture().join();
-		assertNotNull(svals);
-		assertEquals(2, svals.size());
-		assertTrue(svals.contains("v1"));
-		assertTrue(svals.contains("v2"));
-
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute().toCompletableFuture().join();
-		assertEquals(3, result.getAffectedCount());
+		assertEquals(3, count);
 
 	}
 

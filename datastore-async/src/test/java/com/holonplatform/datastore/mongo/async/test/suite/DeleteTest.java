@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
 
@@ -33,19 +32,15 @@ public class DeleteTest extends AbstractDatastoreOperationTest {
 	public void testDelete() {
 
 		final ObjectId oid = new ObjectId();
+		final PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
 
-		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+		long count = getDatastore().insert(TARGET, value).thenAccept(r -> assertEquals(1, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid)).count())
+				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
+				.thenCompose(v -> getDatastore().delete(TARGET, value))
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
+				.thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid)).count()).toCompletableFuture().join();
 
-		OperationResult result = getDatastore().insert(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-
-		long count = getDatastore().query(TARGET).filter(ID.eq(oid)).count().toCompletableFuture().join();
-		assertEquals(1, count);
-
-		result = getDatastore().delete(TARGET, value).toCompletableFuture().join();
-		assertEquals(1, result.getAffectedCount());
-
-		count = getDatastore().query(TARGET).filter(ID.eq(oid)).count().toCompletableFuture().join();
 		assertEquals(0, count);
 
 	}

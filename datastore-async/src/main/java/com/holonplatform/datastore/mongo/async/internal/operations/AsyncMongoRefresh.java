@@ -120,8 +120,8 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 				if (error != null) {
 					operation.completeExceptionally(error);
 				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, configuration, 1L,
-							OperationType.UPDATE, configuration.getValue(), result));
+					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
+							1L, OperationType.UPDATE, configuration.getValue(), result));
 				}
 			});
 

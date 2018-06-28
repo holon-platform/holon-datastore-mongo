@@ -26,6 +26,7 @@ import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConf
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * Default {@link AsyncPropertyBoxOperationResultContext} implementation.
@@ -41,9 +42,10 @@ public class DefaultAsyncPropertyBoxOperationResultContext extends
 	private final BsonValue upsertedId;
 
 	public DefaultAsyncPropertyBoxOperationResultContext(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			PropertyBox value, Document document, ObjectId documentId, BsonValue upsertedId) {
-		super(mongoContext, configuration, affectedCount, operationType);
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, PropertyBox value, Document document, ObjectId documentId,
+			BsonValue upsertedId) {
+		super(mongoContext, collection, configuration, affectedCount, operationType);
 		ObjectUtils.argumentNotNull(value, "PropertyBox value must be not null");
 		this.value = value;
 		this.document = document;

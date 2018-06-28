@@ -25,6 +25,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * {@link AsyncOperationResultContext} for operations which involve a {@link PropertyBox} value.
@@ -66,23 +67,23 @@ public interface AsyncPropertyBoxOperationResultContext extends AsyncOperationRe
 	}
 
 	static AsyncPropertyBoxOperationResultContext create(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			PropertyBox value, Document document) {
-		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, configuration, affectedCount,
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, PropertyBox value, Document document) {
+		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, collection, configuration, affectedCount,
 				operationType, value, document, null, null);
 	}
 
 	static AsyncPropertyBoxOperationResultContext create(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			PropertyBox value, Document document, ObjectId documentId) {
-		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, configuration, affectedCount,
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, PropertyBox value, Document document, ObjectId documentId) {
+		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, collection, configuration, affectedCount,
 				operationType, value, document, documentId, null);
 	}
 
 	static AsyncPropertyBoxOperationResultContext create(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			PropertyBox value, Document document, BsonValue upsertedId) {
-		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, configuration, affectedCount,
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, PropertyBox value, Document document, BsonValue upsertedId) {
+		return new DefaultAsyncPropertyBoxOperationResultContext(mongoContext, collection, configuration, affectedCount,
 				operationType, value, document, null, upsertedId);
 	}
 

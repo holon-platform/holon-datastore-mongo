@@ -24,6 +24,7 @@ import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConf
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
+import com.mongodb.async.client.MongoCollection;
 
 /**
  * {@link AsyncOperationResultContext} for operations which involve multiple {@link PropertyBox} value.
@@ -39,10 +40,10 @@ public interface AsyncMultiPropertyBoxOperationResultContext extends AsyncOperat
 	List<ResolvedDocument> getValues();
 
 	static AsyncMultiPropertyBoxOperationResultContext create(MongoDocumentContext mongoContext,
-			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType,
-			List<ResolvedDocument> values) {
-		return new DefaultAsyncMultiPropertyBoxOperationResultContext(mongoContext, configuration, affectedCount,
-				operationType, values);
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
+			OperationType operationType, List<ResolvedDocument> values) {
+		return new DefaultAsyncMultiPropertyBoxOperationResultContext(mongoContext, collection, configuration,
+				affectedCount, operationType, values);
 	}
 
 }

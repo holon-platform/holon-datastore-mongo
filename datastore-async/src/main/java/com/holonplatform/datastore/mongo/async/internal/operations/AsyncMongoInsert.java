@@ -38,6 +38,7 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -136,17 +137,19 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			final OperationResult result = builder.build();
 
 			// check if the identifier property has to be updated with the document id value
-			final Document toUpdate = (!insertedId.isPresent()) ? null
+			final IdUpdateDocument toUpdate = (!insertedId.isPresent()) ? null
 					: MongoOperations.getIdUpdateDocument(context.getContext(), insertedId.get()).orElse(null);
 			if (insertedId.isPresent() && toUpdate != null) {
-				context.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate, (ur, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						context.trace("Updated identifier property value", toUpdate);
-						operation.complete(result);
-					}
-				});
+				context.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument(),
+						(ur, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								// TODO ensure unique index
+								context.trace("Updated identifier property value", toUpdate.getUpdateDocument());
+								operation.complete(result);
+							}
+						});
 			} else {
 				operation.complete(result);
 			}

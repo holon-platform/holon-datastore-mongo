@@ -57,6 +57,7 @@ import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.expression.Value;
+import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
@@ -191,21 +192,22 @@ public class MongoOperations {
 	}
 
 	/**
-	 * Get the document which can be used to uodate the id property field.
+	 * Get the document which can be used to update the id property field.
 	 * @param context Document context
 	 * @param insertedId Inserted document id
 	 * @return Optional document which can be used to uodate the id property field
 	 */
-	public static Optional<Document> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId) {
+	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId) {
 		Optional<String> fieldName = getPropertyDocumentIdFieldName(context);
 		if (fieldName.isPresent()) {
 			Class<?> type = context.getDocumentIdProperty().map(p -> p.getType()).orElse(null);
 			if (type != null) {
-				return Optional.of(new Document("$set",
+				Document document = new Document("$set",
 						new Document(fieldName.get(),
 								context.resolveOrFail(
 										Value.create(context.getDocumentIdResolver().decode(insertedId, type)),
-										FieldValue.class).getValue())));
+										FieldValue.class).getValue()));
+				return Optional.of(IdUpdateDocument.create(fieldName.get(), type, document));
 			}
 		}
 		return Optional.empty();

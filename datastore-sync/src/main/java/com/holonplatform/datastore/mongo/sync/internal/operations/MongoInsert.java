@@ -33,6 +33,7 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.MongoCollection;
@@ -117,11 +118,12 @@ public class MongoInsert extends AbstractInsert {
 			final OperationResult result = builder.build();
 
 			// check if the identifier property has to be updated with the document id value
-			final Document toUpdate = (!insertedId.isPresent()) ? null
+			final IdUpdateDocument toUpdate = (!insertedId.isPresent()) ? null
 					: MongoOperations.getIdUpdateDocument(context, insertedId.get()).orElse(null);
 			if (insertedId.isPresent() && toUpdate != null) {
-				collection.updateOne(Filters.eq(insertedId.get()), toUpdate);
-				context.trace("Updated identifier property value", toUpdate);
+				collection.updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument());
+				// TODO ensure unique index
+				context.trace("Updated identifier property value", toUpdate.getUpdateDocument());
 			}
 
 			return result;

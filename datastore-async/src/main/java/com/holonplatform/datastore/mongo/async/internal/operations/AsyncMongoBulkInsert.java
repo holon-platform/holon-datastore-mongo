@@ -15,12 +15,14 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.async.datastore.operation.AsyncBulkInsert;
 import com.holonplatform.async.internal.datastore.operation.AbstractAsyncBulkInsert;
@@ -41,6 +43,7 @@ import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 /**
  * Mongo {@link AsyncBulkInsert} implementation.
@@ -132,14 +135,42 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 			context.trace("Inserted documents",
 					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
 
-			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
-					.affectedCount(context.getAffectedCount());
+			final OperationResult result = OperationResult.builder().type(OperationType.INSERT)
+					.affectedCount(context.getAffectedCount()).build();
 
 			// check inserted keys
-			MongoOperations.checkInsertedKeys(context.getContext(), context.getConfiguration(), context.getValues());
+			List<ObjectId> insertedIds = MongoOperations.checkInsertedKeys(context.getContext(),
+					context.getConfiguration(), context.getValues());
+
+			// check if the identifier property has to be updated with the document ids values
+			List<CompletableFuture<OperationResult>> operations = new ArrayList<>(insertedIds.size());
+			if (!insertedIds.isEmpty()) {
+				MongoOperations.getPropertyDocumentIdFieldName(context.getContext()).ifPresent(fieldName -> {
+					for (ObjectId insertedId : insertedIds) {
+						MongoOperations.getIdUpdateDocument(context.getContext(), insertedId, fieldName)
+								.ifPresent(toUpdate -> {
+									final CompletableFuture<OperationResult> updateOperation = new CompletableFuture<>();
+									context.getCollection().updateOne(Filters.eq(insertedId),
+											toUpdate.getUpdateDocument(), (ur, error) -> {
+												if (error != null) {
+													updateOperation.completeExceptionally(error);
+												} else {
+													context.trace("Updated identifier property value",
+															toUpdate.getUpdateDocument());
+													updateOperation.complete(result);
+												}
+											});
+								});
+					}
+				});
+			}
+
+			if (!operations.isEmpty()) {
+				CompletableFuture.allOf(operations.toArray(new CompletableFuture[operations.size()])).join();
+			}
 
 			// result
-			return builder.build();
+			return result;
 		});
 	}
 

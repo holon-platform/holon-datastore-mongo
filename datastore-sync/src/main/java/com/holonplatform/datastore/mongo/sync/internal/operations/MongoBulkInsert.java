@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -38,6 +39,7 @@ import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodity
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 /**
  * Mongo {@link BulkInsert} implementation.
@@ -116,7 +118,22 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 						.affectedCount(documents.size());
 
 				// check inserted keys
-				MongoOperations.checkInsertedKeys(context, getConfiguration(), documentValues);
+				List<ObjectId> insertedIds = MongoOperations.checkInsertedKeys(context, getConfiguration(),
+						documentValues);
+
+				// check if the identifier property has to be updated with the document ids values
+				if (!insertedIds.isEmpty()) {
+					MongoOperations.getPropertyDocumentIdFieldName(context).ifPresent(fieldName -> {
+						for (ObjectId insertedId : insertedIds) {
+							MongoOperations.getIdUpdateDocument(context, insertedId, fieldName).ifPresent(toUpdate -> {
+								collection.updateOne(Filters.eq(insertedId), toUpdate.getUpdateDocument());
+								// TODO ensure unique index
+								context.trace("Updated identifier property value", toUpdate.getUpdateDocument());
+							});
+						}
+					});
+				}
+
 				return builder.build();
 
 			});

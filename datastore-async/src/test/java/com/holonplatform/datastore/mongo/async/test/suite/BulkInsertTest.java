@@ -16,9 +16,12 @@
 package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CompletionException;
@@ -81,6 +84,23 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 
 		assertEquals(2, result);
 
+	}
+
+	@Test
+	public void testUpdateIdPropertyValue() {
+
+		long count = getDatastore().bulkInsert(TARGET, SET4).add(PropertyBox.builder(SET4).set(STR, "ubkiv200").build())
+				.add(PropertyBox.builder(SET4).set(STR, "ubkiv201").build()).execute()
+				.thenAccept(r -> assertEquals(2, r.getAffectedCount()))
+				.thenCompose(x -> getDatastore().query(TARGET).filter(STR.in("ubkiv200", "ubkiv201")).list(ID4))
+				.thenAccept(codes -> {
+					assertNotNull(codes);
+					assertEquals(2, codes.size());
+				}).thenCompose(r -> getDatastore().bulkDelete(TARGET).filter(STR.eq("ubkiv200").or(STR.eq("ubkiv201")))
+						.execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
+
+		assertEquals(2, count);
 	}
 
 	@Test(expected = CompletionException.class)

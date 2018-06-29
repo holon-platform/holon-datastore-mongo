@@ -15,11 +15,14 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.Test;
 
@@ -85,6 +88,21 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("bkiv20").or(STR.eq("bkiv21"))).execute();
 		assertEquals(2, result.getAffectedCount());
 
+	}
+
+	@Test
+	public void testUpdateIdPropertyValue() {
+		OperationResult result = getDatastore().bulkInsert(TARGET, SET4)
+				.add(PropertyBox.builder(SET4).set(STR, "ubkiv200").build())
+				.add(PropertyBox.builder(SET4).set(STR, "ubkiv201").build()).execute();
+		assertEquals(2, result.getAffectedCount());
+
+		List<String> codes = getDatastore().query(TARGET).filter(STR.in("ubkiv200", "ubkiv201")).list(ID4);
+		assertNotNull(codes);
+		assertEquals(2, codes.size());
+
+		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("ubkiv200").or(STR.eq("ubkiv201"))).execute();
+		assertEquals(2, result.getAffectedCount());
 	}
 
 	@Test(expected = DataAccessException.class)

@@ -198,16 +198,27 @@ public class MongoOperations {
 	 * @return Optional document which can be used to uodate the id property field
 	 */
 	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId) {
-		Optional<String> fieldName = getPropertyDocumentIdFieldName(context);
-		if (fieldName.isPresent()) {
+		return getIdUpdateDocument(context, insertedId, getPropertyDocumentIdFieldName(context).orElse(null));
+	}
+
+	/**
+	 * Get the document which can be used to update the id property field.
+	 * @param context Document context
+	 * @param insertedId Inserted document id
+	 * @param fieldName The id property field name
+	 * @return Optional document which can be used to uodate the id property field
+	 */
+	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId,
+			String fieldName) {
+		if (fieldName != null) {
 			Class<?> type = context.getDocumentIdProperty().map(p -> p.getType()).orElse(null);
 			if (type != null) {
 				Document document = new Document("$set",
-						new Document(fieldName.get(),
+						new Document(fieldName,
 								context.resolveOrFail(
 										Value.create(context.getDocumentIdResolver().decode(insertedId, type)),
 										FieldValue.class).getValue()));
-				return Optional.of(IdUpdateDocument.create(fieldName.get(), type, document));
+				return Optional.of(IdUpdateDocument.create(fieldName, type, document));
 			}
 		}
 		return Optional.empty();
@@ -219,7 +230,7 @@ public class MongoOperations {
 	 * @param context Document context
 	 * @return Optional id field name
 	 */
-	private static Optional<String> getPropertyDocumentIdFieldName(MongoDocumentContext context) {
+	public static Optional<String> getPropertyDocumentIdFieldName(MongoDocumentContext context) {
 		return context.getDocumentIdPath().flatMap(path -> context.resolve(path, FieldName.class))
 				.map(fn -> fn.getFieldName()).filter(name -> !MongoDocumentContext.ID_FIELD_NAME.equals(name));
 	}
@@ -274,10 +285,24 @@ public class MongoOperations {
 	 * @param documentContext Document context
 	 * @param configuration Operation configuration
 	 * @param documentValues Inserted documents and corresponding {@link PropertyBox} values
+	 * @return The document ids to use to update the id property value, if applicable
 	 */
 	@SuppressWarnings("unchecked")
-	public static void checkInsertedKeys(MongoDocumentContext documentContext,
+	public static List<ObjectId> checkInsertedKeys(MongoDocumentContext documentContext,
 			DatastoreOperationConfiguration configuration, List<ResolvedDocument> documentValues) {
+		final List<ObjectId> ids = new LinkedList<>();
+
+		for (ResolvedDocument rd : documentValues) {
+			final Document document = rd.getDocument();
+			if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
+				// get document id value
+				final ObjectId oid = document.getObjectId(MongoDocumentContext.ID_FIELD_NAME);
+				if (oid != null) {
+					ids.add(oid);
+				}
+			}
+		}
+
 		// check inserted keys
 		if (configuration.hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS)) {
 			documentContext.getDocumentIdProperty().ifPresent(idProperty -> {
@@ -293,6 +318,7 @@ public class MongoOperations {
 				}
 			});
 		}
+		return ids;
 	}
 
 	/**

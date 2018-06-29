@@ -59,6 +59,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
@@ -68,6 +69,7 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.query.SelectAllProjection;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean2;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
@@ -271,7 +273,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 						.set(LTMS, LocalDateTime.of(2016, Month.JANUARY, 3, 18, 30)).build())
 				.execute();
 		assertEquals(3, result.getAffectedCount());
-		
+
 		List<Integer> years = getDatastore().query(TARGET).stream(LDAT.year()).collect(Collectors.toList());
 		assertEquals(3, years.size());
 		assertTrue(years.contains(2016));
@@ -422,6 +424,36 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		assertEquals(1, result.getAffectedCount());
 		result = getDatastore().delete(TARGET, value2);
 		assertEquals(1, result.getAffectedCount());
+	}
+
+	@Test
+	public void testSelectAll() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
+				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
+				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+				.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
+				.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT)
+				.set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT).set(C_ENM, TestValues.C_ENM)
+				.set(C_LNG, TestValues.C_LNG).set(NBL, true).build();
+
+		OperationResult result = getDatastore().insert(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+		Map<String, Object> values = getDatastore().query(TARGET).filter(ID.eq(oid))
+				.findOne(SelectAllProjection.create()).orElse(null);
+		assertNotNull(values);
+		assertTrue(values.containsKey("_id"));
+		assertEquals(oid, values.get("_id"));
+		assertTrue(values.containsKey("str"));
+		assertEquals(TestValues.STR, values.get("str"));
+
+		result = getDatastore().bulkDelete(TARGET).filter(ID.eq(oid)).execute();
+		assertEquals(1, result.getAffectedCount());
+
 	}
 
 }

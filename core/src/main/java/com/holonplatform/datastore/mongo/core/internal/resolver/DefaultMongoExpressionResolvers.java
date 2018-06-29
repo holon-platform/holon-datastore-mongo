@@ -24,6 +24,7 @@ import com.holonplatform.datastore.mongo.core.internal.resolver.projection.Const
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.CountAllProjectionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.PropertySetProjectionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.QueryProjectionResolver;
+import com.holonplatform.datastore.mongo.core.internal.resolver.projection.SelectAllProjectionResolver;
 import com.holonplatform.datastore.mongo.core.internal.resolver.projection.TypedExpressionProjectionResolver;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
@@ -62,6 +63,7 @@ public final class DefaultMongoExpressionResolvers {
 		expressionResolvers.add(AggregationFunctionProjectionResolver.INSTANCE);
 		expressionResolvers.add(TypedExpressionProjectionResolver.INSTANCE);
 		expressionResolvers.add(CountAllProjectionResolver.INSTANCE);
+		expressionResolvers.add(SelectAllProjectionResolver.INSTANCE);
 		expressionResolvers.add(PropertySetProjectionResolver.INSTANCE);
 		expressionResolvers.add(BeanProjectionResolver.INSTANCE);
 		expressionResolvers.add(QueryConfigurationResolver.INSTANCE);

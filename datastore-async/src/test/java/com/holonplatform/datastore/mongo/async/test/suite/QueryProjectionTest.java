@@ -66,6 +66,7 @@ import org.junit.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.query.SelectAllProjection;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean2;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
@@ -410,6 +411,37 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(2, count);
+	}
+
+	@Test
+	public void testSelectAll() {
+
+		final ObjectId oid = new ObjectId();
+
+		long count = getDatastore()
+				.insert(TARGET,
+						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
+								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
+								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
+								.set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+								.set(LTM, TestValues.LTM).set(A_STR, TestValues.A_STR).set(A_INT, TestValues.A_INT)
+								.set(A_ENM, TestValues.A_ENM).set(A_CHR, TestValues.A_CHR).set(A_BYT, TestValues.A_BYT)
+								.set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT).set(C_ENM, TestValues.C_ENM)
+								.set(C_LNG, TestValues.C_LNG).set(NBL, true).build())
+				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
+				.thenCompose(x -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SelectAllProjection.create()))
+				.thenApply(r -> r.orElse(null)).thenAccept(values -> {
+					assertNotNull(values);
+					assertTrue(values.containsKey("_id"));
+					assertEquals(oid, values.get("_id"));
+					assertTrue(values.containsKey("str"));
+					assertEquals(TestValues.STR, values.get("str"));
+				}).thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(ID.eq(oid)).execute())
+				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
+
+		assertEquals(1, count);
+
 	}
 
 }

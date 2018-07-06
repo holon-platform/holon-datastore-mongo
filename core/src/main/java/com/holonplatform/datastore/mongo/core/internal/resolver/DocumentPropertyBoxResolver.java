@@ -44,8 +44,9 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentPathMatc
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
- * @author BODSI08
+ * Resolver to resolve a {@link DocumentValue} into a {@link PropertyBoxValue}.
  *
+ * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)

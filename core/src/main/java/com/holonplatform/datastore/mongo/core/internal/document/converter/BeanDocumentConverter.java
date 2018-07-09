@@ -105,8 +105,7 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 
 		if (value != null && Map.class.isAssignableFrom(value.getClass())) {
 			// nested value
-			Map<String, Object> nested = (Map<String, Object>) value;
-			// TODO
+			final Map<String, Object> nested = (Map<String, Object>) value;
 			for (Entry<String, Object> entry : nested.entrySet()) {
 				decodeDocumentField(context, beanPropertySet, instance, fieldName, entry.getKey(), entry.getValue());
 			}

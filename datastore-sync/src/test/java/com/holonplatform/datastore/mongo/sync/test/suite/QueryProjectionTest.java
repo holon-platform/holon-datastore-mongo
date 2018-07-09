@@ -40,11 +40,19 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V2;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N1_V3;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N2_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N2_V2;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N3_V1;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.N3_V2;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET3;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET5;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
@@ -70,8 +78,10 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.SelectAllProjection;
+import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean;
 import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean2;
+import com.holonplatform.datastore.mongo.core.test.data.TestProjectionBean3;
 import com.holonplatform.datastore.mongo.core.test.data.TestValues;
 
 public class QueryProjectionTest extends AbstractDatastoreOperationTest {
@@ -423,6 +433,56 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		result = getDatastore().delete(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 		result = getDatastore().delete(TARGET, value2);
+		assertEquals(1, result.getAffectedCount());
+	}
+
+	@Test
+	public void testNestedProjectionBean() {
+
+		final ObjectId oid = new ObjectId();
+
+		PropertyBox value = PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+				.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, true).set(N2_V1, 52).set(N2_V2, "n2v2")
+				.set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
+
+		OperationResult result = getDatastore().insert(TARGET, value);
+		assertEquals(1, result.getAffectedCount());
+
+		value = getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET6).orElse(null);
+		assertNotNull(value);
+
+		assertEquals(oid, value.getValue(ID));
+		assertEquals("testn", value.getValue(STR));
+		assertEquals(EnumValue.FIRST, value.getValue(ENM));
+		assertEquals("n1v1", value.getValue(N1_V1));
+		assertEquals("n1v2", value.getValue(N1_V2));
+		assertEquals(Boolean.TRUE, value.getValue(N1_V3));
+		assertEquals(Integer.valueOf(52), value.getValue(N2_V1));
+		assertEquals("n2v2", value.getValue(N2_V2));
+		assertEquals("n3v1", value.getValue(N3_V1));
+		assertEquals(Double.valueOf(12.97d), value.getValue(N3_V2));
+
+		// bean
+
+		TestProjectionBean3 bean = getDatastore().query(TARGET).filter(ID.eq(oid))
+				.findOne(BeanProjection.of(TestProjectionBean3.class)).orElse(null);
+		assertNotNull(bean);
+
+		assertEquals(oid.toHexString(), bean.getId());
+		assertEquals("testn", bean.getStr());
+		assertEquals(EnumValue.FIRST, bean.getEnm());
+		assertNotNull(bean.getN1());
+		assertNotNull(bean.getN2());
+		assertEquals("n1v1", bean.getN1().getV1());
+		assertEquals("n1v2", bean.getN1().getValue2());
+		assertTrue(bean.getN1().isV3());
+		assertEquals(Integer.valueOf(52), bean.getN2().getV1());
+		assertEquals("n2v2", bean.getN2().getV2());
+		assertNotNull(bean.getN2().getNested());
+		assertEquals("n3v1", bean.getN2().getNested().getV1());
+		assertEquals(Double.valueOf(12.97d), bean.getN2().getNested().getV2());
+
+		result = getDatastore().delete(TARGET, value);
 		assertEquals(1, result.getAffectedCount());
 	}
 

@@ -57,9 +57,8 @@ public class DefaultAsyncMongoDatastore
 
 	/**
 	 * Constructor.
-	 * @param initialize Whether to initialize the Datastore
 	 */
-	public DefaultAsyncMongoDatastore(boolean initialize) {
+	public DefaultAsyncMongoDatastore() {
 		super(AsyncMongoDatastoreCommodityFactory.class);
 
 		// default resolvers
@@ -75,11 +74,6 @@ public class DefaultAsyncMongoDatastore
 		registerCommodity(AsyncMongoBulkInsert.FACTORY);
 		registerCommodity(AsyncMongoBulkUpdate.FACTORY);
 		registerCommodity(AsyncMongoQuery.FACTORY);
-
-		// check initialize
-		if (initialize) {
-			initialize(getClass().getClassLoader());
-		}
 	}
 
 	/*
@@ -176,6 +170,17 @@ public class DefaultAsyncMongoDatastore
 
 	/*
 	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
+	 * .ClassLoader)
+	 */
+	@Override
+	protected void onDatastoreInitialized(ClassLoader classLoader) {
+		LOGGER.info("MongoDB ASYNC Datastore initialized");
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -191,7 +196,7 @@ public class DefaultAsyncMongoDatastore
 			implements AsyncMongoDatastore.Builder {
 
 		public DefaultBuilder() {
-			super(new DefaultAsyncMongoDatastore(false));
+			super(new DefaultAsyncMongoDatastore());
 		}
 
 		@Override

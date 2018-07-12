@@ -32,8 +32,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.core.internal.Logger;
-import com.holonplatform.core.internal.datastore.AbstractDatastore;
-import com.holonplatform.core.internal.utils.ClassUtils;
+import com.holonplatform.core.internal.datastore.AbstractInitializableDatastore;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityContext;
@@ -51,7 +50,7 @@ import com.mongodb.WriteConcern;
  * @since 5.2.0
  */
 public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext, MongoDatabase>
-		extends AbstractDatastore<X> implements MongoDatastoreCommodityContext<MongoDatabase> {
+		extends AbstractInitializableDatastore<X> implements MongoDatastoreCommodityContext<MongoDatabase> {
 
 	private static final long serialVersionUID = -378734658521151958L;
 
@@ -96,11 +95,6 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 	protected CodecRegistry additionalCodecRegistry;
 
 	/**
-	 * Whether the datastore was initialized
-	 */
-	protected boolean initialized = false;
-
-	/**
 	 * Constructor
 	 * @param commodityFactoryType Commodity factory actual type
 	 */
@@ -109,17 +103,24 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 		super(commodityFactoryType, MongoDatastoreExpressionResolver.class);
 	}
 
-	/**
-	 * Initialize the datastore if it is not already initialized.
-	 * @param classLoader ClassLoader to use to load default factories and resolvers
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.internal.datastore.AbstractInitializableDatastore#initialize(java.lang.ClassLoader)
 	 */
-	public void initialize(ClassLoader classLoader) {
-		if (!initialized) {
-			loadExpressionResolvers(classLoader);
-			loadCommodityFactories(classLoader);
-			initialized = true;
-		}
+	@Override
+	protected boolean initialize(ClassLoader classLoader) {
+		loadExpressionResolvers(classLoader);
+		loadCommodityFactories(classLoader);
+
+		onDatastoreInitialized(classLoader);
+		return true;
 	}
+
+	/**
+	 * Invoked when the Datastore is initialized.
+	 * @param classLoader Initialization ClassLoader
+	 */
+	protected abstract void onDatastoreInitialized(ClassLoader classLoader);
 
 	/**
 	 * Set the database name.
@@ -426,7 +427,7 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 				datastore.setAdditionalCodecRegistry(CodecRegistries.fromRegistries(registries));
 			}
 			// init
-			datastore.initialize(ClassUtils.getDefaultClassLoader());
+			datastore.initialize();
 			return datastore;
 		}
 

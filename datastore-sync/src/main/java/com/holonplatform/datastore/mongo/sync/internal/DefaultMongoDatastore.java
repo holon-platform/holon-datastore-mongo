@@ -56,9 +56,8 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 
 	/**
 	 * Constructor.
-	 * @param initialize Whether to initialize the Datastore
 	 */
-	public DefaultMongoDatastore(boolean initialize) {
+	public DefaultMongoDatastore() {
 		super(SyncMongoDatastoreCommodityFactory.class);
 
 		// default resolvers
@@ -74,11 +73,6 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 		registerCommodity(MongoBulkUpdate.FACTORY);
 		registerCommodity(MongoBulkDelete.FACTORY);
 		registerCommodity(MongoQuery.FACTORY);
-
-		// check initialize
-		if (initialize) {
-			initialize(getClass().getClassLoader());
-		}
 	}
 
 	/*
@@ -131,7 +125,8 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 		return false;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
 	 */
 	@Override
@@ -174,6 +169,17 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 
 	/*
 	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
+	 * .ClassLoader)
+	 */
+	@Override
+	protected void onDatastoreInitialized(ClassLoader classLoader) {
+		LOGGER.info("MongoDB SYNC Datastore initialized");
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -188,7 +194,7 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 			implements MongoDatastore.Builder {
 
 		public DefaultBuilder() {
-			super(new DefaultMongoDatastore(false));
+			super(new DefaultMongoDatastore());
 		}
 
 		@Override

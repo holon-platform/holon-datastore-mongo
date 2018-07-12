@@ -74,6 +74,7 @@
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
 			<version>${mongo.driver.sync.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Test -->

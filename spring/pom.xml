@@ -47,6 +47,20 @@
 			<artifactId>holon-datastore-mongo-sync</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- Async Datastore -->
+		<dependency>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-async</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- MongoDB core Java driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-core</artifactId>
+			<version>${mongo.driver.core.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- Spring -->
 		<dependency>

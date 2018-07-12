@@ -81,6 +81,7 @@
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-async</artifactId>
 			<version>${mongo.driver.async.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Test -->

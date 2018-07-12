@@ -60,9 +60,11 @@
 
 		<!-- Holon Core -->
 		<holon.core.version>5.2.0-SNAPSHOT</holon.core.version>
-		<!-- Holon Core -->
+		<!-- Holon JSON -->
 		<holon.json.version>5.2.0-SNAPSHOT</holon.json.version>
-
+		
+		<!-- MongoDB Java driver (core) -->
+		<mongo.driver.core.version>3.7.0</mongo.driver.core.version>
 		<!-- MongoDB Java driver (synchronous) -->
 		<mongo.driver.sync.version>3.7.0</mongo.driver.sync.version>
 		<!-- MongoDB Java driver (asynchronous) -->

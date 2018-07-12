@@ -175,7 +175,8 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 	 */
 	@Override
 	protected void onDatastoreInitialized(ClassLoader classLoader) {
-		LOGGER.info("MongoDB SYNC Datastore initialized");
+		LOGGER.info("MongoDB SYNC Datastore initialized [Database name: " + getDatabaseName()
+				+ getDataContextId().map(id -> ", Data context id: " + id).orElse("") + "]");
 	}
 
 	/*

@@ -176,7 +176,8 @@ public class DefaultAsyncMongoDatastore
 	 */
 	@Override
 	protected void onDatastoreInitialized(ClassLoader classLoader) {
-		LOGGER.info("MongoDB ASYNC Datastore initialized");
+		LOGGER.info("MongoDB ASYNC Datastore initialized [Database name: " + getDatabaseName()
+				+ getDataContextId().map(id -> ", Data context id: " + id).orElse("") + "]");
 	}
 
 	/*

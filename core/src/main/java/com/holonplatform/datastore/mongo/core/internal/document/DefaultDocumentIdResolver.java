@@ -70,7 +70,8 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 	@Override
 	public Optional<Property<?>> resolveDocumentIdProperty(PropertySet<?> propertySet)
 			throws InvalidDocumentIdentifierException {
-		return Optional.ofNullable(resolveDocumentId(propertySet));
+		final Property<?> property = resolveDocumentId(propertySet);
+		return Optional.ofNullable(property);
 	}
 
 	/*

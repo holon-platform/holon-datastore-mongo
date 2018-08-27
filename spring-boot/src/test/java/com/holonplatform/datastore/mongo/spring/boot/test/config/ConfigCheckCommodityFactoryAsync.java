@@ -16,17 +16,17 @@
 package com.holonplatform.datastore.mongo.spring.boot.test.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.spring.DatastoreCommodityFactory;
 
 @DatastoreCommodityFactory
-public class ConfigCheckCommodityFactory implements SyncMongoDatastoreCommodityFactory<ConfigCheckCommodity> {
+public class ConfigCheckCommodityFactoryAsync implements AsyncMongoDatastoreCommodityFactory<ConfigCheckCommodity> {
 
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public ConfigCheckCommodity createCommodity(SyncMongoDatastoreCommodityContext ctx)
+	public ConfigCheckCommodity createCommodity(AsyncMongoDatastoreCommodityContext ctx)
 			throws CommodityConfigurationException {
 		return new ConfigCheckCommodityImpl(ctx);
 	}

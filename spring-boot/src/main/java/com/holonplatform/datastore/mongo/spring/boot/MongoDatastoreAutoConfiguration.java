@@ -35,7 +35,7 @@ import com.holonplatform.spring.EnableDatastoreConfiguration;
  * @since 5.2.0
  */
 @Configuration
-// @ConditionalOnClass(MongoDatastore.class)
+@EnableDatastoreConfiguration
 @AutoConfigureAfter(MongoAutoConfiguration.class)
 public class MongoDatastoreAutoConfiguration {
 
@@ -45,7 +45,6 @@ public class MongoDatastoreAutoConfiguration {
 	@Configuration
 	@ConditionalOnClass(name = "com.mongodb.client.MongoClient")
 	@ConditionalOnMissingBean(MongoDatastore.class)
-	@EnableDatastoreConfiguration
 	@Import(MongoSyncDatastoreAutoConfigurationRegistrar.class)
 	static class MongoSyncDatastoreConfiguration {
 
@@ -57,7 +56,6 @@ public class MongoDatastoreAutoConfiguration {
 	@Configuration
 	@ConditionalOnClass(name = "com.mongodb.async.client.MongoClient")
 	@ConditionalOnMissingBean(AsyncMongoDatastore.class)
-	@EnableDatastoreConfiguration
 	@Import(MongoAsyncDatastoreAutoConfigurationRegistrar.class)
 	static class MongoAsyncDatastoreConfiguration {
 

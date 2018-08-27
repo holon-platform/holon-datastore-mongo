@@ -212,13 +212,13 @@ public class MongoAsyncDatastoreRegistrar extends AbstractConfigPropertyRegistra
 		}
 
 		if (readPreference != null && readPreference != MongoReadPreference.DEFAULT) {
-			pvs.add("defaultReadPreference", readPreference);
+			pvs.add("defaultReadPreference", readPreference.getReadPreference().orElse(null));
 		}
 		if (readConcern != null && readConcern != MongoReadConcern.DEFAULT) {
-			pvs.add("defaultReadConcern", readConcern);
+			pvs.add("defaultReadConcern", readConcern.getReadConcern());
 		}
 		if (writeConcern != null && writeConcern != MongoWriteConcern.DEFAULT) {
-			pvs.add("defaultWriteConcern", writeConcern);
+			pvs.add("defaultWriteConcern", writeConcern.getWriteConcern().orElse(null));
 		}
 		if (enumCodecStrategy != null && enumCodecStrategy != EnumCodecStrategy.getDefault()) {
 			pvs.add("enumCodecStrategy", enumCodecStrategy);

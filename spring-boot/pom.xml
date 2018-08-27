@@ -46,6 +46,30 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- MongoDB core Java driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-core</artifactId>
+			<version>${mongo.driver.core.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- MongoDB synchronous Java driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-sync</artifactId>
+			<version>${mongo.driver.sync.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- MongoDB asynchronous Java driver -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-async</artifactId>
+			<version>${mongo.driver.async.version}</version>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Test -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -70,6 +94,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>${embed.mongo.version}</version>
 			<scope>test</scope>
 		</dependency>
 

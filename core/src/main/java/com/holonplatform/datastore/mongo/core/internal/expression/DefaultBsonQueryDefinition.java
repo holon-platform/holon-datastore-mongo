@@ -50,10 +50,8 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	private Bson hint;
 	private Bson max;
 	private Bson min;
-	private Long maxScan;
 	private boolean returnKey = false;
 	private boolean showRecordId = false;
-	private boolean snapshot = false;
 
 	public DefaultBsonQueryDefinition() {
 		super();
@@ -223,15 +221,6 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition#getMaxScan()
-	 */
-	@Override
-	public Optional<Long> getMaxScan() {
-		return Optional.ofNullable(maxScan);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition#isReturnKey()
 	 */
 	@Override
@@ -246,11 +235,6 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 	@Override
 	public boolean isShowRecordId() {
 		return showRecordId;
-	}
-
-	@Override
-	public boolean isSnapshot() {
-		return snapshot;
 	}
 
 	// ------- setters
@@ -327,20 +311,12 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		this.min = min;
 	}
 
-	public void setMaxScan(Long maxScan) {
-		this.maxScan = maxScan;
-	}
-
 	public void setReturnKey(boolean returnKey) {
 		this.returnKey = returnKey;
 	}
 
 	public void setShowRecordId(boolean showRecordId) {
 		this.showRecordId = showRecordId;
-	}
-
-	public void setSnapshot(boolean snapshot) {
-		this.snapshot = snapshot;
 	}
 
 	/*
@@ -547,16 +523,6 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition.Builder#maxScan(long)
-		 */
-		@Override
-		public Builder maxScan(long maxScan) {
-			instance.setMaxScan(maxScan);
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
 		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition.Builder#returnKey(boolean)
 		 */
 		@Override
@@ -572,16 +538,6 @@ public class DefaultBsonQueryDefinition implements BsonQueryDefinition {
 		@Override
 		public Builder showRecordId(boolean showRecordId) {
 			instance.setShowRecordId(showRecordId);
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.mongo.core.expression.MongoQueryDefinition.Builder#snapshot(boolean)
-		 */
-		@Override
-		public Builder snapshot(boolean snapshot) {
-			instance.setSnapshot(snapshot);
 			return this;
 		}
 

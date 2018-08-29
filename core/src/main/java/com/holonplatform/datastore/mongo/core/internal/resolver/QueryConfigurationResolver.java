@@ -137,9 +137,6 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 		expression.getParameter(ReadOperationConfiguration.QUERY_MIN).ifPresent(p -> {
 			builder.min(p);
 		});
-		expression.getParameter(ReadOperationConfiguration.QUERY_MAX_SCAN).ifPresent(p -> {
-			builder.maxScan(p);
-		});
 		expression.getParameter(ReadOperationConfiguration.QUERY_PARTIAL).ifPresent(p -> {
 			builder.partial(p);
 		});
@@ -148,9 +145,6 @@ public enum QueryConfigurationResolver implements MongoExpressionResolver<QueryC
 		});
 		expression.getParameter(ReadOperationConfiguration.QUERY_SHOW_RECORD_ID).ifPresent(p -> {
 			builder.showRecordId(p);
-		});
-		expression.getParameter(ReadOperationConfiguration.QUERY_SNAPSHOT).ifPresent(p -> {
-			builder.snapshot(p);
 		});
 
 		// resolved

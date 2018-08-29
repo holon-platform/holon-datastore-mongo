@@ -41,6 +41,8 @@ import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncAggregateOperationConfigurator;
@@ -134,7 +136,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param definition Query definition
 	 * @return The operation result
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	private static <R> Stream<R> count(MongoContext context, MongoCollection<Document> collection,
 			BsonQueryDefinition definition) {
 
@@ -142,9 +144,19 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		context.trace("COUNT query", "Filter: \n" + DocumentSerializer.getDefault()
 				.toJson(definition.getFilter().map(f -> f.getExpression()).orElse(null)));
 
+		// check driver version
+		final MongoVersion version = MongoDriverInfo.getMongoVersion();
+
 		// count
-		Long count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
-				.orElse(collection.count());
+		final Long count;
+		if (version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
+				&& version.getDriverMinorVersion() < 8) {
+			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
+					.orElse(collection.count());
+		} else {
+			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(e))
+					.orElse(collection.countDocuments());
+		}
 
 		return Stream.of((R) count);
 	}

@@ -142,12 +142,6 @@ public interface BsonQueryDefinition extends Expression {
 	Optional<Bson> getMin();
 
 	/**
-	 * Get the maximum number of documents or index keys to scan when executing the query.
-	 * @return Optional maximum number of documents or index keys to scan
-	 */
-	Optional<Long> getMaxScan();
-
-	/**
 	 * Get whether the find operation will return only the index keys in the resulting documents.
 	 * @return Whether to return only the index keys
 	 */
@@ -158,16 +152,6 @@ public interface BsonQueryDefinition extends Expression {
 	 * @return <code>true</code> to add a <code> $recordId</code> field to the returned documents
 	 */
 	boolean isShowRecordId();
-
-	/**
-	 * Whether to perform the query using a snapshot.
-	 * <p>
-	 * If true it prevents the cursor from returning a document more than once because of an intervening write
-	 * operation.
-	 * </p>
-	 * @return whether to perform the query using a snapshot
-	 */
-	boolean isSnapshot();
 
 	/**
 	 * Get a {@link BsonQueryDefinition} builder.
@@ -305,13 +289,6 @@ public interface BsonQueryDefinition extends Expression {
 		Builder min(Bson min);
 
 		/**
-		 * Set the maximum number of documents or index keys to scan when executing the query.
-		 * @param maxScan the maximum number of documents or index keys to scan when executing the query
-		 * @return this
-		 */
-		Builder maxScan(long maxScan);
-
-		/**
 		 * Set whether the find operation will return only the index keys in the resulting documents.
 		 * @param returnKey whether the find operation will return only the index keys in the resulting documents
 		 * @return this
@@ -324,17 +301,6 @@ public interface BsonQueryDefinition extends Expression {
 		 * @return this
 		 */
 		Builder showRecordId(boolean showRecordId);
-
-		/**
-		 * Set whether to perform the query using a snapshot.
-		 * <p>
-		 * If true it prevents the cursor from returning a document more than once because of an intervening write
-		 * operation.
-		 * </p>
-		 * @param snapshot Whether to perform the query using a snapshot
-		 * @return this
-		 */
-		Builder snapshot(boolean snapshot);
 
 		/**
 		 * Build the query definition.

@@ -385,8 +385,6 @@ public class MongoOperations {
 		// max-min
 		definition.getMax().ifPresent(m -> configurator.max(m));
 		definition.getMin().ifPresent(m -> configurator.min(m));
-		// max scan
-		definition.getMaxScan().ifPresent(m -> configurator.maxScan(m));
 		// partial
 		if (definition.isPartial()) {
 			configurator.partial(true);
@@ -398,10 +396,6 @@ public class MongoOperations {
 		// record id
 		if (definition.isShowRecordId()) {
 			configurator.showRecordId(true);
-		}
-		// snapshot
-		if (definition.isSnapshot()) {
-			configurator.snapshot(true);
 		}
 
 		// projection

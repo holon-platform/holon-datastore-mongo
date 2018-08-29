@@ -196,16 +196,6 @@ public class AsyncFindOperationConfigurator implements FindOperationConfigurator
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator#maxScan(long)
-	 */
-	@Override
-	public FindOperationConfigurator maxScan(long maxScan) {
-		iterable.maxScan(maxScan);
-		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator#returnKey(boolean)
 	 */
 	@Override
@@ -221,16 +211,6 @@ public class AsyncFindOperationConfigurator implements FindOperationConfigurator
 	@Override
 	public FindOperationConfigurator showRecordId(boolean showRecordId) {
 		iterable.showRecordId(showRecordId);
-		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator#snapshot(boolean)
-	 */
-	@Override
-	public FindOperationConfigurator snapshot(boolean snapshot) {
-		iterable.snapshot(snapshot);
 		return this;
 	}
 

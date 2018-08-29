@@ -101,12 +101,6 @@ public interface ReadOperationConfiguration {
 			.create(ReadOperationConfiguration.class.getName() + ".queryMin", Bson.class);
 
 	/**
-	 * The maximum number of documents or index keys to scan when executing a query operation.
-	 */
-	public static final ConfigProperty<Long> QUERY_MAX_SCAN = ConfigProperty
-			.create(ReadOperationConfiguration.class.getName() + ".queryMaxScan", Long.class);
-
-	/**
 	 * Whether to get partial results from a sharded cluster if one or more shards are unreachable (instead of throwing
 	 * an error) for a query operation.
 	 */
@@ -124,15 +118,5 @@ public interface ReadOperationConfiguration {
 	 */
 	public static final ConfigProperty<Boolean> QUERY_SHOW_RECORD_ID = ConfigProperty
 			.create(ReadOperationConfiguration.class.getName() + ".queryShowRecordId", Boolean.class);
-
-	/**
-	 * Whether to perform a query operation using a snapshot.
-	 * <p>
-	 * If true it prevents the cursor from returning a document more than once because of an intervening write
-	 * operation.
-	 * </p>
-	 */
-	public static final ConfigProperty<Boolean> QUERY_SNAPSHOT = ConfigProperty
-			.create(ReadOperationConfiguration.class.getName() + ".querySnapshot", Boolean.class);
 
 }

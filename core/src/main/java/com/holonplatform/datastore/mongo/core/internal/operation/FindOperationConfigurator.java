@@ -104,14 +104,6 @@ public interface FindOperationConfigurator extends QueryOperationConfigurator<Fi
 	FindOperationConfigurator min(Bson min);
 
 	/**
-	 * Sets the maximum number of documents or index keys to scan when executing the query. A zero value or less will be
-	 * ignored, and indicates that the driver should respect the server's default value.
-	 * @param maxScan the maxScan
-	 * @return this
-	 */
-	FindOperationConfigurator maxScan(long maxScan);
-
-	/**
 	 * Sets the returnKey. If true the find operation will return only the index keys in the resulting documents.
 	 * @param returnKey the returnKey
 	 * @return this
@@ -124,13 +116,5 @@ public interface FindOperationConfigurator extends QueryOperationConfigurator<Fi
 	 * @return this
 	 */
 	FindOperationConfigurator showRecordId(boolean showRecordId);
-
-	/**
-	 * Sets the snapshot. If true it prevents the cursor from returning a document more than once because of an
-	 * intervening write operation.
-	 * @param snapshot the snapshot
-	 * @return this
-	 */
-	FindOperationConfigurator snapshot(boolean snapshot);
 
 }

@@ -46,6 +46,8 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.async.client.DistinctIterable;
@@ -114,7 +116,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			// build context
 			return (QueryOperationContext<R>) QueryOperationContext.create(context, collection, query,
 					queryOperation.getProjection().getType());
-			
+
 		}).thenCompose(context -> {
 
 			// query operation type
@@ -141,7 +143,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	private static <R> CompletableFuture<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
@@ -153,23 +155,47 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 
 		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
 
+		// check driver version
+		final MongoVersion version = MongoDriverInfo.getMongoVersion();
+
 		// count
-		if (filter != null) {
-			queryContext.getCollection().count(filter, (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(Stream.of((R) result));
-				}
-			});
+		if (version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
+				&& version.getDriverMinorVersion() < 8) {
+			if (filter != null) {
+				queryContext.getCollection().count(filter, (result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(Stream.of((R) result));
+					}
+				});
+			} else {
+				queryContext.getCollection().count((result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(Stream.of((R) result));
+					}
+				});
+			}
 		} else {
-			queryContext.getCollection().count((result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(Stream.of((R) result));
-				}
-			});
+			if (filter != null) {
+				queryContext.getCollection().countDocuments(filter, (result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(Stream.of((R) result));
+					}
+				});
+			} else {
+				queryContext.getCollection().countDocuments((result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(Stream.of((R) result));
+					}
+				});
+			}
 		}
 
 		return operation;

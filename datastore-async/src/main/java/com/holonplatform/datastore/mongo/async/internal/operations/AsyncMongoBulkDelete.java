@@ -37,6 +37,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -65,9 +66,9 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoBulkDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoBulkDelete(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -86,7 +87,7 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 			configuration.validate();
 
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
 			// filter
@@ -109,15 +110,27 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
 
 			// delete
-			collection.deleteMany(filter.orElse(null), MongoOperations.getDeleteOptions(configuration),
-					(result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(AsyncOperationResultContext.create(context, collection, configuration,
-									result.getDeletedCount(), OperationType.DELETE));
-						}
-					});
+			if (context.getClientSession().isPresent()) {
+				collection.deleteMany(context.getClientSession().get(), filter.orElse(null),
+						MongoOperations.getDeleteOptions(configuration), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncOperationResultContext.create(context, collection,
+										configuration, result.getDeletedCount(), OperationType.DELETE));
+							}
+						});
+			} else {
+				collection.deleteMany(filter.orElse(null), MongoOperations.getDeleteOptions(configuration),
+						(result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncOperationResultContext.create(context, collection,
+										configuration, result.getDeletedCount(), OperationType.DELETE));
+							}
+						});
+			}
 
 			// join the future
 			return operation.join();

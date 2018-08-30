@@ -47,7 +47,7 @@ public interface MongoExpressionResolver<E extends Expression, R extends Express
 			throw new InvalidExpressionException("Invalid context type: expected a ["
 					+ MongoResolutionContext.class.getName() + ", got a [" + context.getClass().getName() + "]");
 		}
-		return resolve(expression, (MongoResolutionContext) context);
+		return resolve(expression, (MongoResolutionContext<?>) context);
 	}
 
 	/**
@@ -57,7 +57,7 @@ public interface MongoExpressionResolver<E extends Expression, R extends Express
 	 * @return The resolved expression, or an empty Optional if this resolver is not able to resolve given expression.
 	 * @throws InvalidExpressionException If an expression resolution error occurred
 	 */
-	Optional<R> resolve(E expression, MongoResolutionContext context) throws InvalidExpressionException;
+	Optional<R> resolve(E expression, MongoResolutionContext<?> context) throws InvalidExpressionException;
 
 	/**
 	 * Get the default {@link MongoExpressionResolver}s.

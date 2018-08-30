@@ -67,14 +67,14 @@ public enum PropertySetProjectionResolver implements MongoExpressionResolver<Pro
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<BsonProjection> resolve(PropertySetProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(PropertySetProjection expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// document context
-		final MongoDocumentContext documentContext = context.documentContext(expression.getPropertySet());
+		final MongoDocumentContext<?> documentContext = context.documentContext(expression.getPropertySet());
 
 		final BsonProjection.Builder builder = BsonProjection.builder(PropertyBox.class);
 

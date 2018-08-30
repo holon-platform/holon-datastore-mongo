@@ -45,7 +45,7 @@ public final class AsyncMongoCollectionConfigurator {
 	 * @param operation Operation configuration
 	 * @return The configured collection
 	 */
-	public static <T> MongoCollection<T> configureWrite(MongoCollection<T> collection, MongoContext context,
+	public static <T> MongoCollection<T> configureWrite(MongoCollection<T> collection, MongoContext<?> context,
 			DatastoreOperationConfiguration operation) {
 
 		// check write option
@@ -68,7 +68,7 @@ public final class AsyncMongoCollectionConfigurator {
 	 * @param operationParameters Operation configuration parameters
 	 * @return The configured collection
 	 */
-	public static <T> MongoCollection<T> configureRead(MongoCollection<T> collection, MongoContext context,
+	public static <T> MongoCollection<T> configureRead(MongoCollection<T> collection, MongoContext<?> context,
 			ParameterSet operationParameters) {
 
 		if (operationParameters == null) {

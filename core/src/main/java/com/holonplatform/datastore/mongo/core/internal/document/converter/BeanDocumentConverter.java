@@ -72,12 +72,12 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 	 * context.MongoResolutionContext, org.bson.Document)
 	 */
 	@Override
-	public T convert(MongoResolutionContext context, Document document) {
+	public T convert(MongoResolutionContext<?> context, Document document) {
 		return (document == null) ? null
 				: decodeDocument(context.documentContext(beanPropertySet), null, document, beanPropertySet);
 	}
 
-	private static <T> T decodeDocument(final MongoDocumentContext context, final String parent,
+	private static <T> T decodeDocument(final MongoDocumentContext<?> context, final String parent,
 			Map<String, Object> document, BeanPropertySet<T> beanPropertySet) throws DataAccessException {
 
 		// new instance
@@ -98,7 +98,7 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static <T> void decodeDocumentField(MongoDocumentContext context, BeanPropertySet<T> beanPropertySet,
+	private static <T> void decodeDocumentField(MongoDocumentContext<?> context, BeanPropertySet<T> beanPropertySet,
 			T instance, String parent, String name, Object value) throws DataAccessException {
 		// full path
 		final String fieldName = composeFieldPath(parent, name);

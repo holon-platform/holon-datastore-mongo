@@ -69,7 +69,7 @@ public enum BeanProjectionResolver implements MongoExpressionResolver<BeanProjec
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<BsonProjection> resolve(BeanProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(BeanProjection expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

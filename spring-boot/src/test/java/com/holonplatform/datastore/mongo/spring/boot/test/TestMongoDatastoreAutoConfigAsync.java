@@ -31,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -48,6 +49,7 @@ import com.mongodb.async.client.MongoClients;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@DirtiesContext
 @ActiveProfiles("p2")
 public class TestMongoDatastoreAutoConfigAsync extends AbstractMongoSpringBootTest {
 

@@ -35,9 +35,11 @@ import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -65,9 +67,9 @@ public class MongoUpdate extends AbstractUpdate {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoUpdate(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoUpdate(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -86,7 +88,8 @@ public class MongoUpdate extends AbstractUpdate {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext, value);
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.createForUpdate(operationContext,
+				value);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// check document id property
@@ -115,9 +118,13 @@ public class MongoUpdate extends AbstractUpdate {
 			// trace
 			operationContext.trace("Update document", document);
 
+			// options
+			final UpdateOptions options = MongoOperations.getUpdateOptions(getConfiguration(), false);
+
 			// update
-			final UpdateResult result = collection.updateOne(Filters.eq(id), document,
-					MongoOperations.getUpdateOptions(getConfiguration(), false));
+			final UpdateResult result = context.getClientSession()
+					.map(cs -> collection.updateOne(cs, Filters.eq(id), document, options))
+					.orElse(collection.updateOne(Filters.eq(id), document, options));
 
 			// result
 			return OperationResult.builder().type(OperationType.UPDATE)

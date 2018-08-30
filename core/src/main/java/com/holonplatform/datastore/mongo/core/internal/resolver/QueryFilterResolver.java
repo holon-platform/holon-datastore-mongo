@@ -54,7 +54,7 @@ public enum QueryFilterResolver implements BsonExpressionResolver<QueryFilter> {
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(QueryFilter expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(QueryFilter expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

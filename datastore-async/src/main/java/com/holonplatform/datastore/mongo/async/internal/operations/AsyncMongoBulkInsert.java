@@ -41,6 +41,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -70,9 +71,9 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoBulkInsert(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoBulkInsert(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -95,7 +96,8 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 
 			// resolution context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
+					propertySet);
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
 			// resolve collection name
@@ -119,14 +121,30 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 			final CompletableFuture<AsyncMultiPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
 
 			// insert
-			collection.insertMany(documents, MongoOperations.getInsertManyOptions(configuration), (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
-							configuration, documents.size(), OperationType.INSERT, documentValues));
-				}
-			});
+			if (context.getClientSession().isPresent()) {
+				collection.insertMany(context.getClientSession().get(), documents,
+						MongoOperations.getInsertManyOptions(configuration), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(
+										AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
+												configuration, documents.size(), OperationType.INSERT, documentValues));
+							}
+						});
+			} else {
+				collection.insertMany(documents, MongoOperations.getInsertManyOptions(configuration),
+						(result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(
+										AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
+												configuration, documents.size(), OperationType.INSERT, documentValues));
+							}
+						});
+			}
+
 			// join the future
 			return operation.join();
 		}).thenApply(context -> {

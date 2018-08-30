@@ -70,7 +70,7 @@ public enum ConstantExpressionProjectionResolver
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<BsonProjection> resolve(ConstantExpression expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(ConstantExpression expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

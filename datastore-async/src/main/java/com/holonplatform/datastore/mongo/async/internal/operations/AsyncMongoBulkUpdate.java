@@ -37,6 +37,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -65,9 +66,9 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoBulkUpdate(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoBulkUpdate(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -86,7 +87,7 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 			configuration.validate();
 
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
 			// filter
@@ -112,15 +113,27 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
 
 			// update
-			collection.updateMany(filter.orElse(null), update, MongoOperations.getUpdateOptions(configuration, false),
-					(result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(AsyncOperationResultContext.create(context, collection, configuration,
-									result.getModifiedCount(), OperationType.UPDATE));
-						}
-					});
+			if (context.getClientSession().isPresent()) {
+				collection.updateMany(context.getClientSession().get(), filter.orElse(null), update,
+						MongoOperations.getUpdateOptions(configuration, false), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncOperationResultContext.create(context, collection,
+										configuration, result.getModifiedCount(), OperationType.UPDATE));
+							}
+						});
+			} else {
+				collection.updateMany(filter.orElse(null), update,
+						MongoOperations.getUpdateOptions(configuration, false), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncOperationResultContext.create(context, collection,
+										configuration, result.getModifiedCount(), OperationType.UPDATE));
+							}
+						});
+			}
 			return operation.join();
 		}).thenApply(context -> {
 

@@ -33,10 +33,10 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 public class CallbackDocumentConverter<R> implements DocumentConverter<R> {
 
 	private final Class<? extends R> conversionType;
-	private final BiFunction<MongoResolutionContext, Document, R> converter;
+	private final BiFunction<MongoResolutionContext<?>, Document, R> converter;
 
 	public CallbackDocumentConverter(Class<? extends R> conversionType,
-			BiFunction<MongoResolutionContext, Document, R> converter) {
+			BiFunction<MongoResolutionContext<?>, Document, R> converter) {
 		super();
 		ObjectUtils.argumentNotNull(conversionType, "Conversion type must be not null");
 		ObjectUtils.argumentNotNull(converter, "Converter function must be not null");
@@ -60,7 +60,7 @@ public class CallbackDocumentConverter<R> implements DocumentConverter<R> {
 	 * context.MongoResolutionContext, org.bson.Document)
 	 */
 	@Override
-	public R convert(MongoResolutionContext context, Document document) {
+	public R convert(MongoResolutionContext<?> context, Document document) {
 		return converter.apply(context, document);
 	}
 

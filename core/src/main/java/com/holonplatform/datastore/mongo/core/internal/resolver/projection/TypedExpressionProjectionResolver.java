@@ -69,7 +69,7 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonProjection> resolve(TypedExpression expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(TypedExpression expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -85,7 +85,7 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 		return resolveExpression(context, expression);
 	}
 
-	private static Optional<BsonProjection> resolveDocumentExpression(MongoDocumentContext context,
+	private static Optional<BsonProjection> resolveDocumentExpression(MongoDocumentContext<?> context,
 			TypedExpression<?> expression) {
 		// check property
 		return context.getPropertySet().stream().filter(p -> p.equals(expression)).findFirst()
@@ -93,7 +93,7 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 	}
 
 	@SuppressWarnings("unchecked")
-	private static Optional<BsonProjection> resolveExpression(MongoResolutionContext context,
+	private static Optional<BsonProjection> resolveExpression(MongoResolutionContext<?> context,
 			TypedExpression<?> expression) {
 		// resolve as field expression
 		return resolveProjectionField(context, expression).map(pf -> {
@@ -108,7 +108,7 @@ public enum TypedExpressionProjectionResolver implements MongoExpressionResolver
 		});
 	}
 
-	private static Optional<FieldProjection> resolveProjectionField(MongoResolutionContext context,
+	private static Optional<FieldProjection> resolveProjectionField(MongoResolutionContext<?> context,
 			TypedExpression<?> expression) {
 		// resolve field name
 		return context.resolve(expression, FieldName.class).map(fn -> fn.getFieldName()).map(fieldName -> {

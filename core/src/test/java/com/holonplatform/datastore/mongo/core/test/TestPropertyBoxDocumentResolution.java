@@ -101,7 +101,7 @@ import com.mongodb.MongoClientSettings;
 
 public class TestPropertyBoxDocumentResolution {
 
-	private static MongoResolutionContext context;
+	private static MongoResolutionContext<?> context;
 
 	@BeforeClass
 	public static void init() {

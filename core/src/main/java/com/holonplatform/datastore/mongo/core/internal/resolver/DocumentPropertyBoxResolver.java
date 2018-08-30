@@ -100,7 +100,7 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @return Decoded PropertyBox instance
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static PropertyBox decodePropertyBox(final MongoDocumentContext context, final String parent,
+	private static PropertyBox decodePropertyBox(final MongoDocumentContext<?> context, final String parent,
 			Map<String, Object> document) throws InvalidExpressionException {
 		// PropertyBox builder
 		final PropertyBox propertyBox = PropertyBox.builder(context.getPropertySet()).invalidAllowed(true).build();
@@ -125,7 +125,7 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @param adapter PropertyBox adapter
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static void decodeDocument(final MongoDocumentContext context, final String parent,
+	private static void decodeDocument(final MongoDocumentContext<?> context, final String parent,
 			Map<String, Object> document, PropertyBox propertyBox, PathPropertyBoxAdapter adapter)
 			throws InvalidExpressionException {
 		final List<Property<?>> properties = new ArrayList<>(context.getPropertySet().asList());
@@ -155,7 +155,7 @@ public enum DocumentPropertyBoxResolver implements MongoExpressionResolver<Docum
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	@SuppressWarnings("unchecked")
-	private static Optional<Property<?>> decodeDocumentField(MongoDocumentContext context, PropertyBox propertyBox,
+	private static Optional<Property<?>> decodeDocumentField(MongoDocumentContext<?> context, PropertyBox propertyBox,
 			PathPropertyBoxAdapter adapter, String parent, String name, Object value)
 			throws InvalidExpressionException {
 

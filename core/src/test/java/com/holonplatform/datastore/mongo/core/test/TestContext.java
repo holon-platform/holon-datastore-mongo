@@ -29,7 +29,7 @@ public class TestContext {
 	@Test
 	public void testDocumentContext() {
 		
-		final MongoResolutionContext ctx = MongoResolutionContext.create(new MongoTestContext());
+		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
 		
 		assertFalse(MongoDocumentContext.isDocumentContext(ctx).isPresent());
 		

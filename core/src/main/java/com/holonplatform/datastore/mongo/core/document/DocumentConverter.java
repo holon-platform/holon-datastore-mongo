@@ -52,7 +52,7 @@ public interface DocumentConverter<R> {
 	 * @param document The Document to convert
 	 * @return Converted result
 	 */
-	R convert(MongoResolutionContext context, Document document);
+	R convert(MongoResolutionContext<?> context, Document document);
 
 	/**
 	 * Create a new {@link DocumentConverter}.
@@ -61,7 +61,7 @@ public interface DocumentConverter<R> {
 	 * @param converter Conversion function (not null)
 	 * @return A new {@link DocumentConverter} instance
 	 */
-	static <R> DocumentConverter<R> create(Class<R> type, BiFunction<MongoResolutionContext, Document, R> converter) {
+	static <R> DocumentConverter<R> create(Class<R> type, BiFunction<MongoResolutionContext<?>, Document, R> converter) {
 		return new CallbackDocumentConverter<>(type, converter);
 	}
 

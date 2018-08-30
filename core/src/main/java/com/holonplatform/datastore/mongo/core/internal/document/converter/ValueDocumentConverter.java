@@ -75,7 +75,7 @@ public class ValueDocumentConverter<T> implements DocumentConverter<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T convert(MongoResolutionContext context, Document document) {
+	public T convert(MongoResolutionContext<?> context, Document document) {
 		if (document != null) {
 
 			final Object fieldValue = document.get(selection);

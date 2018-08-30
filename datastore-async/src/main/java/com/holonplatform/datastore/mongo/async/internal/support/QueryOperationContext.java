@@ -21,6 +21,7 @@ import org.bson.Document;
 
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -36,7 +37,7 @@ public interface QueryOperationContext<R> {
 	 * Get the resolution context.
 	 * @return Resolution context
 	 */
-	MongoResolutionContext getResolutionContext();
+	MongoResolutionContext<ClientSession> getResolutionContext();
 
 	/**
 	 * Get the mongo collection reference.
@@ -78,7 +79,7 @@ public interface QueryOperationContext<R> {
 		getResolutionContext().trace(title, json);
 	}
 
-	static <R> QueryOperationContext<R> create(MongoResolutionContext resolutionContext,
+	static <R> QueryOperationContext<R> create(MongoResolutionContext<ClientSession> resolutionContext,
 			MongoCollection<Document> collection, BsonQuery query, Class<? extends R> resultType) {
 		return new DefaultQueryOperationContext<>(resolutionContext, collection, query, resultType);
 	}

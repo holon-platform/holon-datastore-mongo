@@ -43,14 +43,15 @@ import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogg
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.session.ClientSession;
 
 /**
  * Abstract MongoDB Datastore class.
  *
  * @since 5.2.0
  */
-public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext, MongoDatabase>
-		extends AbstractInitializableDatastore<X> implements MongoDatastoreCommodityContext<MongoDatabase> {
+public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext, S extends ClientSession, MongoDatabase>
+		extends AbstractInitializableDatastore<X> implements MongoDatastoreCommodityContext<MongoDatabase, S> {
 
 	private static final long serialVersionUID = -378734658521151958L;
 
@@ -271,7 +272,7 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 	}
 
 	@SuppressWarnings("rawtypes")
-	public abstract static class AbstractBuilder<MDB, CX extends DatastoreCommodityContext, I extends AbstractMongoDatastore<CX, MDB>, D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, B>>
+	public abstract static class AbstractBuilder<MDB, CX extends DatastoreCommodityContext, S extends ClientSession, I extends AbstractMongoDatastore<CX, S, MDB>, D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, B>>
 			implements MongoDatastoreBuilder<D, B> {
 
 		private final List<Codec<?>> codecs = new LinkedList<>();

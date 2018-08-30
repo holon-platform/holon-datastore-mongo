@@ -39,6 +39,7 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -68,9 +69,9 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoUpdate(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoUpdate(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -89,7 +90,7 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 			configuration.validate();
 
 			// build context (for update)
-			final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext,
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.createForUpdate(operationContext,
 					configuration.getValue());
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
@@ -122,16 +123,30 @@ public class AsyncMongoUpdate extends AbstractAsyncUpdate {
 					.resolveOrFail(PropertyBoxValue.create(configuration.getValue()), DocumentValue.class).getValue();
 
 			// insert
-			collection.updateOne(Filters.eq(id), document, MongoOperations.getUpdateOptions(configuration, false),
-					(result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-									configuration, MongoOperations.getAffectedCount(result), OperationType.UPDATE,
-									configuration.getValue(), document));
-						}
-					});
+			if (context.getClientSession().isPresent()) {
+				collection.updateOne(context.getClientSession().get(), Filters.eq(id), document,
+						MongoOperations.getUpdateOptions(configuration, false), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, MongoOperations.getAffectedCount(result), OperationType.UPDATE,
+										configuration.getValue(), document));
+							}
+						});
+			} else {
+				collection.updateOne(Filters.eq(id), document, MongoOperations.getUpdateOptions(configuration, false),
+						(result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, MongoOperations.getAffectedCount(result), OperationType.UPDATE,
+										configuration.getValue(), document));
+							}
+						});
+			}
+
 			// join the future
 			return operation.join();
 		}).thenApply(context -> {

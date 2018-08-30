@@ -71,7 +71,7 @@ public enum QueryFunctionResolver implements BsonExpressionResolver<QueryFunctio
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(QueryFunction expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(QueryFunction expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

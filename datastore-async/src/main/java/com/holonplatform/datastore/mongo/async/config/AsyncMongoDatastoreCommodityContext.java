@@ -17,6 +17,7 @@ package com.holonplatform.datastore.mongo.async.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityContext;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -25,12 +26,13 @@ import com.mongodb.async.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public interface AsyncMongoDatastoreCommodityContext extends MongoDatastoreCommodityContext<MongoDatabase> {
+public interface AsyncMongoDatastoreCommodityContext
+		extends MongoDatastoreCommodityContext<MongoDatabase, ClientSession> {
 
 	/**
 	 * Get the MongoDB client.
 	 * @return the MongoDB client
 	 */
 	MongoClient getClient();
-	
+
 }

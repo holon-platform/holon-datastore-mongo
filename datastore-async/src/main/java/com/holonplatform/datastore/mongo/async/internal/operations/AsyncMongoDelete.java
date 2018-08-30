@@ -37,6 +37,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -66,9 +67,9 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoDelete(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -87,7 +88,7 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 			configuration.validate();
 
 			// build context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
 					configuration.getValue());
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
@@ -116,14 +117,30 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
 
 			// delete
-			collection.deleteOne(Filters.eq(id), MongoOperations.getDeleteOptions(configuration), (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
-							result.getDeletedCount(), OperationType.DELETE, configuration.getValue(), null, id));
-				}
-			});
+			if (context.getClientSession().isPresent()) {
+				collection.deleteOne(context.getClientSession().get(), Filters.eq(id),
+						MongoOperations.getDeleteOptions(configuration), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, result.getDeletedCount(), OperationType.DELETE,
+										configuration.getValue(), null, id));
+							}
+						});
+			} else {
+				collection.deleteOne(Filters.eq(id), MongoOperations.getDeleteOptions(configuration),
+						(result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, result.getDeletedCount(), OperationType.DELETE,
+										configuration.getValue(), null, id));
+							}
+						});
+			}
+
 			// join the future
 			return operation.join();
 		}).thenApply(context -> {

@@ -42,6 +42,7 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -73,9 +74,9 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoSave(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoSave(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -94,7 +95,7 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 			configuration.validate();
 
 			// build context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
 					configuration.getValue());
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
@@ -128,19 +129,25 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 						.getValue();
 
 				// insert
-				collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-								configuration, 1, OperationType.INSERT, configuration.getValue(), document));
-					}
-				});
+				if (context.getClientSession().isPresent()) {
+
+				} else {
+					collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration),
+							(result, error) -> {
+								if (error != null) {
+									operation.completeExceptionally(error);
+								} else {
+									operation.complete(AsyncPropertyBoxOperationResultContext.create(context,
+											collection, configuration, 1, OperationType.INSERT,
+											configuration.getValue(), document));
+								}
+							});
+				}
 
 			} else {
 
 				// build context (for update)
-				final MongoDocumentContext upsertContext = MongoDocumentContext.createForUpdate(context,
+				final MongoDocumentContext<ClientSession> upsertContext = MongoDocumentContext.createForUpdate(context,
 						configuration.getValue());
 
 				// document to upsert
@@ -149,21 +156,39 @@ public class AsyncMongoSave extends AbstractAsyncSave {
 						.getValue();
 
 				// upsert
-				collection.updateOne(Filters.eq(id), document, MongoOperations.getUpdateOptions(configuration, true),
-						(result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								// check insert
-								final BsonValue upsertedId = result.getUpsertedId();
-								final long affected = (upsertedId != null) ? 1
-										: MongoOperations.getAffectedCount(result);
-								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-										configuration, affected,
-										(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
-										configuration.getValue(), document, upsertedId));
-							}
-						});
+				if (context.getClientSession().isPresent()) {
+					collection.updateOne(context.getClientSession().get(), Filters.eq(id), document,
+							MongoOperations.getUpdateOptions(configuration, true), (result, error) -> {
+								if (error != null) {
+									operation.completeExceptionally(error);
+								} else {
+									// check insert
+									final BsonValue upsertedId = result.getUpsertedId();
+									final long affected = (upsertedId != null) ? 1
+											: MongoOperations.getAffectedCount(result);
+									operation.complete(AsyncPropertyBoxOperationResultContext.create(context,
+											collection, configuration, affected,
+											(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+											configuration.getValue(), document, upsertedId));
+								}
+							});
+				} else {
+					collection.updateOne(Filters.eq(id), document,
+							MongoOperations.getUpdateOptions(configuration, true), (result, error) -> {
+								if (error != null) {
+									operation.completeExceptionally(error);
+								} else {
+									// check insert
+									final BsonValue upsertedId = result.getUpsertedId();
+									final long affected = (upsertedId != null) ? 1
+											: MongoOperations.getAffectedCount(result);
+									operation.complete(AsyncPropertyBoxOperationResultContext.create(context,
+											collection, configuration, affected,
+											(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+											configuration.getValue(), document, upsertedId));
+								}
+							});
+				}
 			}
 
 			// join the future

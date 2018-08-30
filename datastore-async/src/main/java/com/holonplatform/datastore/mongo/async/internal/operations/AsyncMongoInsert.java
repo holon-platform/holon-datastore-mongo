@@ -39,6 +39,7 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -68,9 +69,9 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoInsert(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoInsert(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -89,7 +90,7 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 			configuration.validate();
 
 			// build context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
 					configuration.getValue());
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
@@ -110,14 +111,27 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 					.resolveOrFail(PropertyBoxValue.create(configuration.getValue()), DocumentValue.class).getValue();
 
 			// insert
-			collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
-							1, OperationType.INSERT, configuration.getValue(), document));
-				}
-			});
+			if (context.getClientSession().isPresent()) {
+				collection.insertOne(context.getClientSession().get(), document,
+						MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
+							if (error != null) {
+								operation.completeExceptionally(error);
+							} else {
+								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+										configuration, 1, OperationType.INSERT, configuration.getValue(), document));
+							}
+						});
+			} else {
+				collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+								configuration, 1, OperationType.INSERT, configuration.getValue(), document));
+					}
+				});
+			}
+
 			// join the future
 			return operation.join();
 		}).thenApply(context -> {

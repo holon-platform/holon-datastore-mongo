@@ -21,6 +21,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -30,7 +31,7 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public class DefaultAsyncOperationResultContext<C extends MongoContext> implements AsyncOperationResultContext<C> {
+public class DefaultAsyncOperationResultContext<C extends MongoContext<ClientSession>> implements AsyncOperationResultContext<C> {
 
 	private final C context;
 	private final MongoCollection<Document> collection;

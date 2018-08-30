@@ -28,19 +28,23 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.internal.context.ExpressionAliasProvider;
+import com.mongodb.session.ClientSession;
 
 /**
  * MongoDB Datastore expresion resolution context.
  * 
+ * @param <S> Concrete ClientSession type
+ * 
  * @since 5.2.0
  */
-public interface MongoResolutionContext extends MongoContext, ResolutionContext, ExpressionResolverSupport {
+public interface MongoResolutionContext<S extends ClientSession>
+		extends MongoContext<S>, ResolutionContext, ExpressionResolverSupport {
 
 	/**
 	 * Get the parent context, if available.
 	 * @return Optional parent context
 	 */
-	Optional<MongoResolutionContext> getParent();
+	Optional<MongoResolutionContext<S>> getParent();
 
 	/**
 	 * Get whether this context is intended for an update type operation.
@@ -168,14 +172,14 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * the new context.
 	 * @return A new {@link MongoResolutionContext} with this context as parent
 	 */
-	MongoResolutionContext childContext();
+	MongoResolutionContext<S> childContext();
 
 	/**
 	 * Create a new {@link MongoResolutionContext} as child of this context for update type operations. This context
 	 * will be setted as parent of the new context.
 	 * @return A new {@link MongoResolutionContext} with this context as parent
 	 */
-	MongoResolutionContext childContextForUpdate();
+	MongoResolutionContext<S> childContextForUpdate();
 
 	/**
 	 * Create a new {@link MongoResolutionContext} as child of this context for update type operations. This context
@@ -183,14 +187,14 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @param updatePath The path to which the update operation refers
 	 * @return A new {@link MongoResolutionContext} with this context as parent
 	 */
-	MongoResolutionContext childContextForUpdate(Path<?> updatePath);
+	MongoResolutionContext<S> childContextForUpdate(Path<?> updatePath);
 
 	/**
 	 * Create a {@link MongoDocumentContext} as child of this context.
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	default MongoDocumentContext documentContext(PropertySet<?> propertySet) {
+	default MongoDocumentContext<S> documentContext(PropertySet<?> propertySet) {
 		return documentContext(propertySet, true);
 	}
 
@@ -200,15 +204,15 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @param resolveDocumentId Whether to resolve the document id property
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	MongoDocumentContext documentContext(PropertySet<?> propertySet, boolean resolveDocumentId);
+	MongoDocumentContext<S> documentContext(PropertySet<?> propertySet, boolean resolveDocumentId);
 
 	/**
 	 * Create a new default {@link MongoResolutionContext}.
 	 * @param context MongoContext to use (not null)
 	 * @return A new {@link MongoResolutionContext}
 	 */
-	static MongoResolutionContext create(MongoContext context) {
-		return new DefaultMongoResolutionContext(context);
+	static <S extends ClientSession> MongoResolutionContext<S> create(MongoContext<S> context) {
+		return new DefaultMongoResolutionContext<>(context);
 	}
 
 	/**
@@ -216,8 +220,8 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @param context MongoContext to use (not null)
 	 * @return A new {@link MongoResolutionContext}
 	 */
-	static MongoResolutionContext createForUpdate(MongoContext context) {
-		return new DefaultMongoResolutionContext(context, true);
+	static <S extends ClientSession> MongoResolutionContext<S> createForUpdate(MongoContext<S> context) {
+		return new DefaultMongoResolutionContext<>(context, true);
 	}
 
 	/**
@@ -227,8 +231,9 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @param updatePath Update operation {@link Path}
 	 * @return A new {@link MongoResolutionContext}
 	 */
-	static MongoResolutionContext createForUpdate(MongoContext context, Path<?> updatePath) {
-		return new DefaultMongoResolutionContext(context, updatePath);
+	static <S extends ClientSession> MongoResolutionContext<S> createForUpdate(MongoContext<S> context,
+			Path<?> updatePath) {
+		return new DefaultMongoResolutionContext<>(context, updatePath);
 	}
 
 	/**
@@ -237,9 +242,9 @@ public interface MongoResolutionContext extends MongoContext, ResolutionContext,
 	 * @return if given context is a {@link MongoResolutionContext}, it is returned as a {@link MongoResolutionContext}
 	 *         type. Otherwise, an empty Optional is returned.
 	 */
-	static Optional<MongoResolutionContext> isMongoResolutionContext(ResolutionContext context) {
+	static Optional<MongoResolutionContext<?>> isMongoResolutionContext(ResolutionContext context) {
 		if (context instanceof MongoResolutionContext) {
-			return Optional.of((MongoResolutionContext) context);
+			return Optional.of((MongoResolutionContext<?>) context);
 		}
 		return Optional.empty();
 	}

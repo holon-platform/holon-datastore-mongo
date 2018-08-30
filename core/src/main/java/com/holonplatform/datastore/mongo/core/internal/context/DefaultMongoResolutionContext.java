@@ -39,13 +39,16 @@ import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogg
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.session.ClientSession;
 
 /**
  * Default {@link MongoResolutionContext} implementation.
+ * 
+ * @param <S> Concrete ClientSession type
  *
  * @since 5.2.0
  */
-public class DefaultMongoResolutionContext implements MongoResolutionContext {
+public class DefaultMongoResolutionContext<S extends ClientSession> implements MongoResolutionContext<S> {
 
 	protected final static Logger LOGGER = MongoDatastoreLogger.create();
 
@@ -57,12 +60,12 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	/**
 	 * Mongo context
 	 */
-	private final MongoContext context;
+	private final MongoContext<S> context;
 
 	/**
 	 * Optional parent context
 	 */
-	private final MongoResolutionContext parent;
+	private final MongoResolutionContext<S> parent;
 
 	/**
 	 * Alias provder
@@ -88,7 +91,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * Default constructor.
 	 * @param context Mongo context (not null)
 	 */
-	public DefaultMongoResolutionContext(MongoContext context) {
+	public DefaultMongoResolutionContext(MongoContext<S> context) {
 		this(context, null, false, null);
 	}
 
@@ -97,7 +100,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param context Mongo context (not null)
 	 * @param forUpdate Whether this context is intended for an update type operation
 	 */
-	public DefaultMongoResolutionContext(MongoContext context, boolean forUpdate) {
+	public DefaultMongoResolutionContext(MongoContext<S> context, boolean forUpdate) {
 		this(context, null, forUpdate, null);
 	}
 
@@ -106,7 +109,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param context Mongo context (not null)
 	 * @param updatePath Optional update path
 	 */
-	public DefaultMongoResolutionContext(MongoContext context, Path<?> updatePath) {
+	public DefaultMongoResolutionContext(MongoContext<S> context, Path<?> updatePath) {
 		this(context, null, true, updatePath);
 	}
 
@@ -114,7 +117,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * Constructor with parent composition context.
 	 * @param parent Parent context (not null)
 	 */
-	public DefaultMongoResolutionContext(MongoResolutionContext parent) {
+	public DefaultMongoResolutionContext(MongoResolutionContext<S> parent) {
 		this(parent, parent, false, null);
 	}
 
@@ -123,7 +126,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param parent Parent context (not null)
 	 * @param forUpdate Whether this context is intended for an update type operation
 	 */
-	public DefaultMongoResolutionContext(MongoResolutionContext parent, boolean forUpdate) {
+	public DefaultMongoResolutionContext(MongoResolutionContext<S> parent, boolean forUpdate) {
 		this(parent, parent, forUpdate, null);
 	}
 
@@ -133,7 +136,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param updatePath Optional update path
 	 * @param forUpdate Whether this context is intended for an update type operation
 	 */
-	public DefaultMongoResolutionContext(MongoResolutionContext parent, Path<?> updatePath) {
+	public DefaultMongoResolutionContext(MongoResolutionContext<S> parent, Path<?> updatePath) {
 		this(parent, parent, true, updatePath);
 	}
 
@@ -144,8 +147,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @param forUpdate Whether this context is intended for an update type operation
 	 * @param updatePath Optional update {@link Path}
 	 */
-	protected DefaultMongoResolutionContext(MongoContext context, MongoResolutionContext parent, boolean forUpdate,
-			Path<?> updatePath) {
+	protected DefaultMongoResolutionContext(MongoContext<S> context, MongoResolutionContext<S> parent,
+			boolean forUpdate, Path<?> updatePath) {
 		super();
 		ObjectUtils.argumentNotNull(context, "Mongo context must be not null");
 		this.context = context;
@@ -166,7 +169,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * Get the Mongo context.
 	 * @return the Mongo context
 	 */
-	protected MongoContext getContext() {
+	protected MongoContext<S> getContext() {
 		return context;
 	}
 
@@ -175,7 +178,7 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#getParent()
 	 */
 	@Override
-	public Optional<MongoResolutionContext> getParent() {
+	public Optional<MongoResolutionContext<S>> getParent() {
 		return Optional.ofNullable(parent);
 	}
 
@@ -236,8 +239,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#childContext()
 	 */
 	@Override
-	public MongoResolutionContext childContext() {
-		return new DefaultMongoResolutionContext(this);
+	public MongoResolutionContext<S> childContext() {
+		return new DefaultMongoResolutionContext<>(this);
 	}
 
 	/*
@@ -245,8 +248,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoResolutionContext#childContextForUpdate()
 	 */
 	@Override
-	public MongoResolutionContext childContextForUpdate() {
-		return new DefaultMongoResolutionContext(this, true);
+	public MongoResolutionContext<S> childContextForUpdate() {
+		return new DefaultMongoResolutionContext<>(this, true);
 	}
 
 	/*
@@ -256,8 +259,8 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * core.Path)
 	 */
 	@Override
-	public MongoResolutionContext childContextForUpdate(Path<?> updatePath) {
-		return new DefaultMongoResolutionContext(this, updatePath);
+	public MongoResolutionContext<S> childContextForUpdate(Path<?> updatePath) {
+		return new DefaultMongoResolutionContext<>(this, updatePath);
 	}
 
 	/*
@@ -267,8 +270,17 @@ public class DefaultMongoResolutionContext implements MongoResolutionContext {
 	 * property.PropertySet, boolean)
 	 */
 	@Override
-	public MongoDocumentContext documentContext(PropertySet<?> propertySet, boolean resolveDocumentId) {
-		return new DefaultMongoDocumentContext(this, propertySet, resolveDocumentId);
+	public MongoDocumentContext<S> documentContext(PropertySet<?> propertySet, boolean resolveDocumentId) {
+		return new DefaultMongoDocumentContext<>(this, propertySet, resolveDocumentId);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
+	 */
+	@Override
+	public Optional<S> getClientSession() {
+		return getContext().getClientSession();
 	}
 
 	/*

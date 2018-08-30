@@ -34,8 +34,10 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -63,9 +65,9 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoBulkUpdate(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoBulkUpdate(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -81,7 +83,7 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 			getConfiguration().validate();
 
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 			// resolve collection
@@ -105,9 +107,13 @@ public class MongoBulkUpdate extends AbstractBulkUpdate {
 				operationContext.trace("Update documents",
 						MongoOperations.traceUpdate(operationContext, filter, update));
 
-				// delete
-				UpdateResult result = collection.updateMany(filter.orElse(null), update,
-						MongoOperations.getUpdateOptions(getConfiguration(), false));
+				// options
+				final UpdateOptions options = MongoOperations.getUpdateOptions(getConfiguration(), false);
+
+				// update
+				final UpdateResult result = context.getClientSession()
+						.map(cs -> collection.updateMany(cs, filter.orElse(null), update, options))
+						.orElse(collection.updateMany(filter.orElse(null), update, options));
 
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result.getModifiedCount())
 						.build();

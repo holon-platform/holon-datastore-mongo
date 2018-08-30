@@ -42,7 +42,7 @@ public enum QueryFunctionNameResolver implements MongoExpressionResolver<QueryFu
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<FieldName> resolve(QueryFunction expression, MongoResolutionContext context)
+	public Optional<FieldName> resolve(QueryFunction expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

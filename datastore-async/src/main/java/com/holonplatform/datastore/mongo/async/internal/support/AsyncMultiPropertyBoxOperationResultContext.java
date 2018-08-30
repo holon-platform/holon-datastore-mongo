@@ -24,6 +24,7 @@ import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConf
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -31,7 +32,8 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public interface AsyncMultiPropertyBoxOperationResultContext extends AsyncOperationResultContext<MongoDocumentContext> {
+public interface AsyncMultiPropertyBoxOperationResultContext
+		extends AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
 
 	/**
 	 * Get the {@link PropertyBox} and corresponding {@link Document} values.
@@ -39,7 +41,7 @@ public interface AsyncMultiPropertyBoxOperationResultContext extends AsyncOperat
 	 */
 	List<ResolvedDocument> getValues();
 
-	static AsyncMultiPropertyBoxOperationResultContext create(MongoDocumentContext mongoContext,
+	static AsyncMultiPropertyBoxOperationResultContext create(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
 			OperationType operationType, List<ResolvedDocument> values) {
 		return new DefaultAsyncMultiPropertyBoxOperationResultContext(mongoContext, collection, configuration,

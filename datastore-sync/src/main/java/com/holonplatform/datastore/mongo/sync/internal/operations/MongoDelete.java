@@ -33,8 +33,10 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
@@ -63,9 +65,9 @@ public class MongoDelete extends AbstractDelete {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoDelete(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -84,7 +86,7 @@ public class MongoDelete extends AbstractDelete {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext, value);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// resolve collection
@@ -107,9 +109,13 @@ public class MongoDelete extends AbstractDelete {
 			final MongoCollection<Document> collection = SyncMongoCollectionConfigurator
 					.configureWrite(database.getCollection(collectionName), context, getConfiguration());
 
+			// options
+			final DeleteOptions options = MongoOperations.getDeleteOptions(getConfiguration());
+
 			// delete
-			final DeleteResult result = collection.deleteOne(Filters.eq(id),
-					MongoOperations.getDeleteOptions(getConfiguration()));
+			final DeleteResult result = context.getClientSession()
+					.map(cs -> collection.deleteOne(cs, Filters.eq(id), options))
+					.orElse(collection.deleteOne(Filters.eq(id), options));
 
 			// trace
 			operationContext.trace("Deleted document", "Deleted document id: " + id);

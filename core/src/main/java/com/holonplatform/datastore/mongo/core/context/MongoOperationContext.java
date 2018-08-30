@@ -17,16 +17,18 @@ package com.holonplatform.datastore.mongo.core.context;
 
 import com.holonplatform.core.datastore.DatastoreCommodityHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
+import com.mongodb.session.ClientSession;
 
 /**
  * MongoDB Datastore operations execution context.
  * 
  * @param <MongoDatabase> Actual MongoDatabase type (sync or async)
+ * @param <S> Concrete ClientSession type
  *
  * @since 5.2.0
  */
-public interface MongoOperationContext<MongoDatabase>
-		extends MongoContext, MongoDatabaseHandler<MongoDatabase>, DatastoreCommodityHandler {
+public interface MongoOperationContext<MongoDatabase, S extends ClientSession>
+		extends MongoContext<S>, MongoDatabaseHandler<MongoDatabase>, DatastoreCommodityHandler {
 
 	/**
 	 * Gets whether the MongoDB driver in use is asynchronous.

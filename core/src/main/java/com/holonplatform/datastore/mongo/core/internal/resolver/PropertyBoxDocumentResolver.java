@@ -67,14 +67,14 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<DocumentValue> resolve(PropertyBoxValue expression, MongoResolutionContext context)
+	public Optional<DocumentValue> resolve(PropertyBoxValue expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// Document context
-		final MongoDocumentContext documentContext = MongoDocumentContext.isDocumentContext(context)
+		final MongoDocumentContext<?> documentContext = MongoDocumentContext.isDocumentContext(context)
 				.orElse(context.documentContext(expression.getPropertySet()));
 
 		// Encode document
@@ -141,8 +141,8 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 		return set;
 	}
 
-	private static Document encodePropertyBox(MongoDocumentContext context, PropertyBox propertyBox, String parentPath,
-			boolean forUpdate) throws InvalidExpressionException {
+	private static Document encodePropertyBox(MongoDocumentContext<?> context, PropertyBox propertyBox,
+			String parentPath, boolean forUpdate) throws InvalidExpressionException {
 		// get the serialization tree
 		final PropertySetSerializationTree nodes = MongoPropertySetSerializationTreeResolver.getDefault()
 				.resolve(context.getPropertySet());
@@ -158,7 +158,7 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @return The document field-value map
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static Map<String, Object> encodePropertyBoxNodes(MongoDocumentContext context, PropertyBox propertyBox,
+	private static Map<String, Object> encodePropertyBoxNodes(MongoDocumentContext<?> context, PropertyBox propertyBox,
 			Iterable<PropertySetSerializationNode> nodes, String parentPath, boolean forUpdate)
 			throws InvalidExpressionException {
 		return StreamSupport.stream(nodes.spliterator(), false)
@@ -176,7 +176,7 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @return The document fragment field-value map
 	 * @throws InvalidExpressionException If an error occurred
 	 */
-	private static Map<String, Object> encodePropertyBoxNode(MongoDocumentContext context, PropertyBox propertyBox,
+	private static Map<String, Object> encodePropertyBoxNode(MongoDocumentContext<?> context, PropertyBox propertyBox,
 			PropertySetSerializationNode node, String parentPath, boolean forUpdate) throws InvalidExpressionException {
 		return isValidNodeProperty(node)
 				.map(p -> encodeProperty(context, propertyBox, p, node.getName(), parentPath, forUpdate))
@@ -225,9 +225,9 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	 * @throws InvalidExpressionException If an error occurred
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(MongoDocumentContext context,
-			final PropertyBox propertyBox, P property, String name, String parentPath, boolean forUpdate)
-			throws InvalidExpressionException {
+	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodeProperty(
+			MongoDocumentContext<?> context, final PropertyBox propertyBox, P property, String name, String parentPath,
+			boolean forUpdate) throws InvalidExpressionException {
 		final T value = propertyBox.getValue(property);
 		if (value == null) {
 			if (forUpdate) {
@@ -282,7 +282,7 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	}
 
 	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodePropertyBoxTypeProperty(
-			MongoDocumentContext context, P property, PropertyBox value, String name, String parentPath,
+			MongoDocumentContext<?> context, P property, PropertyBox value, String name, String parentPath,
 			boolean forUpdate) throws InvalidExpressionException {
 		// resolve field name
 		String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();
@@ -305,7 +305,7 @@ public enum PropertyBoxDocumentResolver implements MongoExpressionResolver<Prope
 	}
 
 	private static <T, P extends Path<T> & Property<T>> Map<String, Object> encodePropertyBoxTypeCollectionProperty(
-			MongoDocumentContext context, P property, Collection<PropertyBox> values, String name, String parentPath,
+			MongoDocumentContext<?> context, P property, Collection<PropertyBox> values, String name, String parentPath,
 			boolean forUpdate) throws InvalidExpressionException {
 		// resolve field name
 		String fieldName = context.resolveOrFail(Path.of(name, Object.class), FieldName.class).getFieldName();

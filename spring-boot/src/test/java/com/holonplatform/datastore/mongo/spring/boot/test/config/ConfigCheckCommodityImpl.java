@@ -25,9 +25,9 @@ public class ConfigCheckCommodityImpl implements ConfigCheckCommodity {
 
 	private static final long serialVersionUID = 1L;
 
-	private final MongoDatastoreCommodityContext<?> context;
+	private final MongoDatastoreCommodityContext<?, ?> context;
 
-	public ConfigCheckCommodityImpl(MongoDatastoreCommodityContext<?> context) {
+	public ConfigCheckCommodityImpl(MongoDatastoreCommodityContext<?, ?> context) {
 		super();
 		this.context = context;
 	}

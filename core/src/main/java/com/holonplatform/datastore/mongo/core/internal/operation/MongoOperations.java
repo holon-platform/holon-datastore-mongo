@@ -140,14 +140,14 @@ public class MongoOperations {
 	 * @param configuration Operation configuration
 	 * @return Update expression
 	 */
-	public static Bson getUpdateExpression(MongoResolutionContext context,
+	public static Bson getUpdateExpression(MongoResolutionContext<?> context,
 			BulkUpdateOperationConfiguration configuration) {
 		// resolve values
 		final Map<Path<?>, TypedExpression<?>> values = configuration.getValues();
 		List<Bson> updates = new ArrayList<>(values.size());
 		for (Entry<Path<?>, TypedExpression<?>> value : values.entrySet()) {
 			// child update context
-			final MongoResolutionContext subContext = context.childContextForUpdate(value.getKey());
+			final MongoResolutionContext<?> subContext = context.childContextForUpdate(value.getKey());
 
 			if (value.getValue() == null) {
 				// resolve field name
@@ -179,7 +179,8 @@ public class MongoOperations {
 	 * @param values Values to resolve
 	 * @return Resolved {@link PropertyBox} ad {@link Document} pairs
 	 */
-	public static List<ResolvedDocument> resolveDocumentValues(MongoDocumentContext context, List<PropertyBox> values) {
+	public static List<ResolvedDocument> resolveDocumentValues(MongoDocumentContext<?> context,
+			List<PropertyBox> values) {
 		if (values == null || values.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -197,7 +198,7 @@ public class MongoOperations {
 	 * @param insertedId Inserted document id
 	 * @return Optional document which can be used to uodate the id property field
 	 */
-	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId) {
+	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext<?> context, ObjectId insertedId) {
 		return getIdUpdateDocument(context, insertedId, getPropertyDocumentIdFieldName(context).orElse(null));
 	}
 
@@ -208,7 +209,7 @@ public class MongoOperations {
 	 * @param fieldName The id property field name
 	 * @return Optional document which can be used to uodate the id property field
 	 */
-	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext context, ObjectId insertedId,
+	public static Optional<IdUpdateDocument> getIdUpdateDocument(MongoDocumentContext<?> context, ObjectId insertedId,
 			String fieldName) {
 		if (fieldName != null) {
 			Class<?> type = context.getDocumentIdProperty().map(p -> p.getType()).orElse(null);
@@ -230,7 +231,7 @@ public class MongoOperations {
 	 * @param context Document context
 	 * @return Optional id field name
 	 */
-	public static Optional<String> getPropertyDocumentIdFieldName(MongoDocumentContext context) {
+	public static Optional<String> getPropertyDocumentIdFieldName(MongoDocumentContext<?> context) {
 		return context.getDocumentIdPath().flatMap(path -> context.resolve(path, FieldName.class))
 				.map(fn -> fn.getFieldName()).filter(name -> !MongoDocumentContext.ID_FIELD_NAME.equals(name));
 	}
@@ -247,7 +248,7 @@ public class MongoOperations {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Optional<ObjectId> checkInsertedKeys(OperationResult.Builder builder,
-			MongoDocumentContext documentContext, DatastoreOperationConfiguration configuration, Document document,
+			MongoDocumentContext<?> documentContext, DatastoreOperationConfiguration configuration, Document document,
 			PropertyBox value) {
 		// check inserted keys
 		if (document.containsKey(MongoDocumentContext.ID_FIELD_NAME)) {
@@ -288,7 +289,7 @@ public class MongoOperations {
 	 * @return The document ids to use to update the id property value, if applicable
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<ObjectId> checkInsertedKeys(MongoDocumentContext documentContext,
+	public static List<ObjectId> checkInsertedKeys(MongoDocumentContext<?> documentContext,
 			DatastoreOperationConfiguration configuration, List<ResolvedDocument> documentValues) {
 		final List<ObjectId> ids = new LinkedList<>();
 
@@ -331,7 +332,7 @@ public class MongoOperations {
 	 * @param value Original {@link PropertyBox} value
 	 */
 	@SuppressWarnings("unchecked")
-	public static void checkUpsertedKey(OperationResult.Builder builder, MongoDocumentContext documentContext,
+	public static void checkUpsertedKey(OperationResult.Builder builder, MongoDocumentContext<?> documentContext,
 			DatastoreOperationConfiguration configuration, BsonValue upsertedId, PropertyBox value) {
 		if (upsertedId != null) {
 			final ObjectId oid = upsertedId.asObjectId().getValue();
@@ -631,7 +632,7 @@ public class MongoOperations {
 	 * @param projection Optional query projection
 	 * @return Query trace information
 	 */
-	public static String traceQuery(MongoContext context, BsonQuery query, Bson projection) {
+	public static String traceQuery(MongoContext<?> context, BsonQuery query, Bson projection) {
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("Collection name: ");
@@ -659,7 +660,7 @@ public class MongoOperations {
 	 * @param pipeline Aggregation pipeline to trace
 	 * @return Aggregation pipeline trace information
 	 */
-	public static String traceAggregationPipeline(MongoContext context, List<Bson> pipeline) {
+	public static String traceAggregationPipeline(MongoContext<?> context, List<Bson> pipeline) {
 		final StringBuilder sb = new StringBuilder();
 		pipeline.forEach(stage -> {
 			sb.append(context.toJson(stage));
@@ -675,7 +676,7 @@ public class MongoOperations {
 	 * @param update Update expression
 	 * @return Update trace information
 	 */
-	public static String traceUpdate(MongoContext context, Optional<Bson> filter, Bson update) {
+	public static String traceUpdate(MongoContext<?> context, Optional<Bson> filter, Bson update) {
 		final StringBuilder sb = new StringBuilder();
 		filter.ifPresent(f -> {
 			sb.append("Filter:\n");

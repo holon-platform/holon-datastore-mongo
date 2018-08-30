@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.async.internal;
 
+import java.util.Optional;
+
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
@@ -36,6 +38,7 @@ import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpd
 import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
 import com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -45,10 +48,15 @@ import com.mongodb.async.client.MongoDatabase;
  * @since 5.2.0
  */
 public class DefaultAsyncMongoDatastore
-		extends AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, MongoDatabase>
+		extends AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, ClientSession, MongoDatabase>
 		implements AsyncMongoDatastore, AsyncMongoDatastoreCommodityContext {
 
 	private static final long serialVersionUID = 5851873626687056062L;
+
+	/**
+	 * Current session
+	 */
+	private static final ThreadLocal<ClientSession> CURRENT_SESSION = new ThreadLocal<>();
 
 	/**
 	 * Mongo client
@@ -83,6 +91,15 @@ public class DefaultAsyncMongoDatastore
 	@Override
 	public boolean isAsync() {
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
+	 */
+	@Override
+	public Optional<ClientSession> getClientSession() {
+		return Optional.ofNullable(CURRENT_SESSION.get());
 	}
 
 	/*
@@ -193,7 +210,7 @@ public class DefaultAsyncMongoDatastore
 	// ------- Builder
 
 	public static class DefaultBuilder extends
-			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
+			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, ClientSession, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
 			implements AsyncMongoDatastore.Builder {
 
 		public DefaultBuilder() {

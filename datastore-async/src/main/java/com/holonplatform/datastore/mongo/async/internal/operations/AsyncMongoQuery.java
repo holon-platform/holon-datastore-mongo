@@ -50,6 +50,7 @@ import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
 import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.mongodb.async.client.AggregateIterable;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.DistinctIterable;
 import com.mongodb.async.client.FindIterable;
 import com.mongodb.async.client.MongoCollection;
@@ -78,9 +79,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoQuery(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoQuery(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -99,7 +100,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 			queryOperation.validate();
 
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 			// resolve query
@@ -143,7 +144,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	@SuppressWarnings({ "unchecked", "deprecation", "resource" })
 	private static <R> CompletableFuture<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
@@ -157,44 +158,88 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 
 		// check driver version
 		final MongoVersion version = MongoDriverInfo.getMongoVersion();
+		final boolean backwardMode = version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
+				&& version.getDriverMinorVersion() < 8;
+
+		// session
+		final ClientSession cs = queryContext.getResolutionContext().getClientSession().orElse(null);
 
 		// count
-		if (version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
-				&& version.getDriverMinorVersion() < 8) {
+		if (backwardMode) {
 			if (filter != null) {
-				queryContext.getCollection().count(filter, (result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(Stream.of((R) result));
-					}
-				});
+				if (cs != null) {
+					queryContext.getCollection().count(cs, filter, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				} else {
+					queryContext.getCollection().count(filter, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				}
 			} else {
-				queryContext.getCollection().count((result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(Stream.of((R) result));
-					}
-				});
+				if (cs != null) {
+					queryContext.getCollection().count(cs, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				} else {
+					queryContext.getCollection().count((result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				}
 			}
 		} else {
 			if (filter != null) {
-				queryContext.getCollection().countDocuments(filter, (result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(Stream.of((R) result));
-					}
-				});
+				if (cs != null) {
+					queryContext.getCollection().countDocuments(cs, filter, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				} else {
+					queryContext.getCollection().countDocuments(filter, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				}
 			} else {
-				queryContext.getCollection().countDocuments((result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(Stream.of((R) result));
-					}
-				});
+				if (cs != null) {
+					queryContext.getCollection().countDocuments(cs, (result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				} else {
+					queryContext.getCollection().countDocuments((result, error) -> {
+						if (error != null) {
+							operation.completeExceptionally(error);
+						} else {
+							operation.complete(Stream.of((R) result));
+						}
+					});
+				}
 			}
 		}
 
@@ -213,7 +258,8 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
 				queryContext.getResultType());
 
-		final FindIterable<Document> fi = queryContext.getCollection().find();
+		final FindIterable<Document> fi = queryContext.getResolutionContext().getClientSession()
+				.map(cs -> queryContext.getCollection().find(cs)).orElse(queryContext.getCollection().find());
 
 		// configure
 		Optional<Bson> projection = MongoOperations.configure(queryContext.getQuery(),
@@ -260,8 +306,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				queryContext.getResultType());
 
 		@SuppressWarnings("unchecked")
-		final DistinctIterable<R> fi = queryContext.getCollection().distinct(fieldName,
-				(Class<R>) queryContext.getResultType());
+		final DistinctIterable<R> fi = queryContext.getResolutionContext().getClientSession().map(
+				cs -> queryContext.getCollection().distinct(cs, fieldName, (Class<R>) queryContext.getResultType()))
+				.orElse(queryContext.getCollection().distinct(fieldName, (Class<R>) queryContext.getResultType()));
 
 		// configure
 		MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));
@@ -310,7 +357,9 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				() -> MongoOperations.traceAggregationPipeline(queryContext.getResolutionContext(), pipeline));
 
 		// iterable
-		final AggregateIterable<Document> ai = queryContext.getCollection().aggregate(pipeline);
+		final AggregateIterable<Document> ai = queryContext.getResolutionContext().getClientSession()
+				.map(cs -> queryContext.getCollection().aggregate(cs, pipeline))
+				.orElse(queryContext.getCollection().aggregate(pipeline));
 
 		// configure
 		MongoOperations.configure(queryContext.getQuery(), new AsyncAggregateOperationConfigurator(ai));

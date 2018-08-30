@@ -23,6 +23,7 @@ import org.bson.Document;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -32,7 +33,7 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public interface AsyncOperationResultContext<C extends MongoContext> {
+public interface AsyncOperationResultContext<C extends MongoContext<ClientSession>> {
 
 	/**
 	 * Get the related {@link MongoContext}.
@@ -104,7 +105,7 @@ public interface AsyncOperationResultContext<C extends MongoContext> {
 		getContext().trace(title, documents);
 	}
 
-	static <C extends MongoContext> AsyncOperationResultContext<C> create(C mongoContext,
+	static <C extends MongoContext<ClientSession>> AsyncOperationResultContext<C> create(C mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
 			OperationType operationType) {
 		return new DefaultAsyncOperationResultContext<>(mongoContext, collection, configuration, affectedCount,

@@ -36,9 +36,11 @@ import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations
 import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.InsertOneOptions;
 
 /**
  * MongoDB {@link Insert}.
@@ -65,9 +67,9 @@ public class MongoInsert extends AbstractInsert {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoInsert(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoInsert(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -86,7 +88,7 @@ public class MongoInsert extends AbstractInsert {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext, value);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// resolve collection
@@ -102,8 +104,15 @@ public class MongoInsert extends AbstractInsert {
 			// encode Document
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();
 
+			// options
+			final InsertOneOptions options = MongoOperations.getInsertOneOptions(getConfiguration());
+
 			// insert
-			collection.insertOne(document, MongoOperations.getInsertOneOptions(getConfiguration()));
+			if (context.getClientSession().isPresent()) {
+				collection.insertOne(context.getClientSession().get(), document, options);
+			} else {
+				collection.insertOne(document, options);
+			}
 
 			// trace
 			operationContext.trace("Inserted document", document);

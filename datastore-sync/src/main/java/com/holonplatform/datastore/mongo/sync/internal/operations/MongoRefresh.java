@@ -32,6 +32,7 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -61,9 +62,9 @@ public class MongoRefresh extends AbstractRefresh {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoRefresh(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoRefresh(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -82,7 +83,7 @@ public class MongoRefresh extends AbstractRefresh {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.create(operationContext, value);
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext, value);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// check document id property
@@ -106,7 +107,8 @@ public class MongoRefresh extends AbstractRefresh {
 					.configureRead(database.getCollection(collectionName), context, getConfiguration().getParameters());
 
 			// get document by id
-			Document document = collection.find(Filters.eq(id)).first();
+			final Document document = context.getClientSession().map(cs -> collection.find(cs, Filters.eq(id)))
+					.orElse(collection.find(Filters.eq(id))).first();
 
 			if (document == null) {
 				throw new DataAccessException("No document found with id [" + id + "]");

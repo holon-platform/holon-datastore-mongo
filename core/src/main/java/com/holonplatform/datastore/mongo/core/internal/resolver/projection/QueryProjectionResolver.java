@@ -63,7 +63,7 @@ public enum QueryProjectionResolver implements MongoExpressionResolver<QueryProj
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonProjection> resolve(QueryProjection expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(QueryProjection expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

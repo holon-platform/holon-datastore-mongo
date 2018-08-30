@@ -53,7 +53,7 @@ public enum BsonSortResolver implements BsonExpressionResolver<BsonSort> {
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(BsonSort expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(BsonSort expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

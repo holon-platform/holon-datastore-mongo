@@ -40,7 +40,7 @@ import com.mongodb.client.model.Sorts;
  */
 @Priority(Integer.MAX_VALUE - 10)
 public enum VisitableQuerySortResolver implements BsonExpressionResolver<VisitableQuerySort>,
-		QuerySortVisitor<BsonExpression, MongoResolutionContext> {
+		QuerySortVisitor<BsonExpression, MongoResolutionContext<?>> {
 
 	INSTANCE;
 
@@ -50,7 +50,7 @@ public enum VisitableQuerySortResolver implements BsonExpressionResolver<Visitab
 	 * Expression, com.holonplatform.datastore.mongo.core.context.MongoResolutionContext)
 	 */
 	@Override
-	public Optional<BsonExpression> resolve(VisitableQuerySort expression, MongoResolutionContext context)
+	public Optional<BsonExpression> resolve(VisitableQuerySort expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -75,7 +75,7 @@ public enum VisitableQuerySortResolver implements BsonExpressionResolver<Visitab
 	 * PathQuerySort, java.lang.Object)
 	 */
 	@Override
-	public BsonExpression visit(PathQuerySort<?> sort, MongoResolutionContext context) {
+	public BsonExpression visit(PathQuerySort<?> sort, MongoResolutionContext<?> context) {
 
 		// field name
 		String fieldName = context.resolveOrFail(sort.getPath(), FieldName.class).getFieldName();
@@ -91,7 +91,7 @@ public enum VisitableQuerySortResolver implements BsonExpressionResolver<Visitab
 	 * CompositeQuerySort, java.lang.Object)
 	 */
 	@Override
-	public BsonExpression visit(CompositeQuerySort sort, MongoResolutionContext context) {
+	public BsonExpression visit(CompositeQuerySort sort, MongoResolutionContext<?> context) {
 		return BsonExpression.create(Sorts.orderBy(
 				QueryUtils.flattenQuerySort(sort).stream().map(s -> context.resolveOrFail(s, BsonExpression.class))
 						.map(e -> e.getValue()).collect(Collectors.toList())));

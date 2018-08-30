@@ -22,13 +22,16 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.mongo.core.internal.context.DefaultMongoDocumentContext;
+import com.mongodb.session.ClientSession;
 
 /**
  * A {@link MongoResolutionContext} which is bound to a document resolution operation.
+ * 
+ * @param <S> Concrete ClientSession type
  *
  * @since 5.2.0
  */
-public interface MongoDocumentContext extends MongoResolutionContext {
+public interface MongoDocumentContext<S extends ClientSession> extends MongoResolutionContext<S> {
 
 	/**
 	 * Default MongoDB document id field name
@@ -76,8 +79,8 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 * @return If the given context is a {@link MongoDocumentContext}, returns the context itself as a
 	 *         {@link MongoDocumentContext} type. Otherwise an empty Optional is returned.
 	 */
-	static Optional<MongoDocumentContext> isDocumentContext(ResolutionContext context) {
-		return Optional.ofNullable((context instanceof MongoDocumentContext) ? (MongoDocumentContext) context : null);
+	static Optional<MongoDocumentContext<?>> isDocumentContext(ResolutionContext context) {
+		return Optional.ofNullable((context instanceof MongoDocumentContext) ? (MongoDocumentContext<?>) context : null);
 	}
 
 	/**
@@ -86,8 +89,8 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	static MongoDocumentContext create(MongoContext context, PropertySet<?> propertySet) {
-		return new DefaultMongoDocumentContext(context, propertySet, false);
+	static <S extends ClientSession> MongoDocumentContext<S> create(MongoContext<S> context, PropertySet<?> propertySet) {
+		return new DefaultMongoDocumentContext<>(context, propertySet, false);
 	}
 
 	/**
@@ -96,8 +99,8 @@ public interface MongoDocumentContext extends MongoResolutionContext {
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	static MongoDocumentContext createForUpdate(MongoContext context, PropertySet<?> propertySet) {
-		return new DefaultMongoDocumentContext(context, propertySet, true);
+	static <S extends ClientSession> MongoDocumentContext<S> createForUpdate(MongoContext<S> context, PropertySet<?> propertySet) {
+		return new DefaultMongoDocumentContext<>(context, propertySet, true);
 	}
 
 }

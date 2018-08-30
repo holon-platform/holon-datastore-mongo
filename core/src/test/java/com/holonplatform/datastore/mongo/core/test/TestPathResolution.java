@@ -40,7 +40,7 @@ public class TestPathResolution {
 
 	@Test
 	public void testDataTarget() {
-		final MongoResolutionContext ctx = MongoResolutionContext.create(new MongoTestContext());
+		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
 		ctx.addExpressionResolver(DataTargetCollectionNameResolver.INSTANCE);
 
 		Optional<CollectionName> cn = ctx.resolve(DataTarget.named("test"), CollectionName.class);
@@ -51,7 +51,7 @@ public class TestPathResolution {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testPathExpressions() {
-		final MongoResolutionContext ctx = MongoResolutionContext.create(new MongoTestContext());
+		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
 		ctx.addExpressionResolver(PathFieldNameResolver.INSTANCE);
 		ctx.addExpressionResolver(FieldNamePathResolver.INSTANCE);
 
@@ -86,11 +86,11 @@ public class TestPathResolution {
 
 		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
 
-		final MongoResolutionContext ctx = MongoResolutionContext.create(new MongoTestContext());
+		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
 		ctx.addExpressionResolver(PathFieldNameResolver.INSTANCE);
 		ctx.addExpressionResolver(FieldNamePathResolver.INSTANCE);
 
-		MongoDocumentContext dctx = ctx.documentContext(SET);
+		MongoDocumentContext<?> dctx = ctx.documentContext(SET);
 
 		Optional<Path> path = ctx.resolve(FieldName.create("bool"), Path.class);
 		assertTrue(path.isPresent());

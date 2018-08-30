@@ -30,13 +30,22 @@ import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializ
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.session.ClientSession;
 
 /**
  * MongoDB Datastore base context.
+ * 
+ * @param <S> Concrete ClientSession type
  *
  * @since 5.2.0
  */
-public interface MongoContext extends ExpressionResolverProvider {
+public interface MongoContext<S extends ClientSession> extends ExpressionResolverProvider {
+
+	/**
+	 * Get the current client session, if available.
+	 * @return Optional client session
+	 */
+	Optional<S> getClientSession();
 
 	/**
 	 * Get the {@link DocumentIdResolver} of this context.

@@ -77,7 +77,7 @@ public class TypedExpressionDocumentConverter<T> implements DocumentConverter<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T convert(MongoResolutionContext context, Document document) {
+	public T convert(MongoResolutionContext<?> context, Document document) {
 		if (document != null) {
 			EnumCodecStrategy strategy = (Property.class.isAssignableFrom(expression.getClass()))
 					? ((Property<?>) expression).getConfiguration().getParameter(EnumCodecStrategy.CONFIG_PROPERTY)

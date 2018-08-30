@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.sync.internal;
 
+import java.util.Optional;
+
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
@@ -36,6 +38,7 @@ import com.holonplatform.datastore.mongo.sync.internal.operations.MongoQuery;
 import com.holonplatform.datastore.mongo.sync.internal.operations.MongoRefresh;
 import com.holonplatform.datastore.mongo.sync.internal.operations.MongoSave;
 import com.holonplatform.datastore.mongo.sync.internal.operations.MongoUpdate;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 
@@ -44,10 +47,16 @@ import com.mongodb.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatastoreCommodityContext, MongoDatabase>
+public class DefaultMongoDatastore
+		extends AbstractMongoDatastore<SyncMongoDatastoreCommodityContext, ClientSession, MongoDatabase>
 		implements MongoDatastore, SyncMongoDatastoreCommodityContext {
 
 	private static final long serialVersionUID = -3618780277490335232L;
+
+	/**
+	 * Current session
+	 */
+	private static final ThreadLocal<ClientSession> CURRENT_SESSION = new ThreadLocal<>();
 
 	/**
 	 * Mongo client
@@ -127,6 +136,15 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
+	 */
+	@Override
+	public Optional<ClientSession> getClientSession() {
+		return Optional.ofNullable(CURRENT_SESSION.get());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
 	 */
 	@Override
@@ -191,7 +209,7 @@ public class DefaultMongoDatastore extends AbstractMongoDatastore<SyncMongoDatas
 	// ------- Builder
 
 	public static class DefaultBuilder extends
-			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, SyncMongoDatastoreCommodityContext, DefaultMongoDatastore, MongoDatastore, MongoDatastore.Builder>
+			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, SyncMongoDatastoreCommodityContext, ClientSession, DefaultMongoDatastore, MongoDatastore, MongoDatastore.Builder>
 			implements MongoDatastore.Builder {
 
 		public DefaultBuilder() {

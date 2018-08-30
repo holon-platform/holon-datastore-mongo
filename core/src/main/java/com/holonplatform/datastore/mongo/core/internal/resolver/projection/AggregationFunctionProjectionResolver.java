@@ -56,7 +56,7 @@ public enum AggregationFunctionProjectionResolver implements MongoExpressionReso
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<BsonProjection> resolve(QueryFunction expression, MongoResolutionContext context)
+	public Optional<BsonProjection> resolve(QueryFunction expression, MongoResolutionContext<?> context)
 			throws InvalidExpressionException {
 
 		// validate

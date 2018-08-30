@@ -38,6 +38,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -67,9 +68,9 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public AsyncMongoRefresh(MongoOperationContext<MongoDatabase> operationContext) {
+	public AsyncMongoRefresh(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -88,7 +89,7 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 			configuration.validate();
 
 			// build context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext,
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
 					configuration.getValue());
 			context.addExpressionResolvers(configuration.getExpressionResolvers());
 
@@ -116,14 +117,25 @@ public class AsyncMongoRefresh extends AbstractAsyncRefresh {
 			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
 
 			// find
-			collection.find(Filters.eq(id)).first((result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
-							1L, OperationType.UPDATE, configuration.getValue(), result));
-				}
-			});
+			if (context.getClientSession().isPresent()) {
+				collection.find(context.getClientSession().get(), Filters.eq(id)).first((result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+								configuration, 1L, OperationType.UPDATE, configuration.getValue(), result));
+					}
+				});
+			} else {
+				collection.find(Filters.eq(id)).first((result, error) -> {
+					if (error != null) {
+						operation.completeExceptionally(error);
+					} else {
+						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
+								configuration, 1L, OperationType.UPDATE, configuration.getValue(), result));
+					}
+				});
+			}
 
 			// join the future
 			return operation.join();

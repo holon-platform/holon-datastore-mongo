@@ -40,9 +40,11 @@ import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogg
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -71,9 +73,9 @@ public class MongoSave extends AbstractSave {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoSave(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoSave(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -92,7 +94,8 @@ public class MongoSave extends AbstractSave {
 		final PropertyBox value = getConfiguration().getValue();
 
 		// resolution context
-		final MongoDocumentContext context = MongoDocumentContext.createForUpdate(operationContext, value);
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.createForUpdate(operationContext,
+				value);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// document id
@@ -121,9 +124,13 @@ public class MongoSave extends AbstractSave {
 			// encode Document
 			Document document = context.resolveOrFail(PropertyBoxValue.create(value), DocumentValue.class).getValue();
 
+			// options
+			final UpdateOptions options = MongoOperations.getUpdateOptions(getConfiguration(), true);
+
 			// update with upsert
-			final UpdateResult result = collection.updateOne(Filters.eq(id), document,
-					MongoOperations.getUpdateOptions(getConfiguration(), true));
+			final UpdateResult result = context.getClientSession()
+					.map(cs -> collection.updateOne(cs, Filters.eq(id), document, options))
+					.orElse(collection.updateOne(Filters.eq(id), document, options));
 
 			// check insert
 			final BsonValue upsertedId = result.getUpsertedId();

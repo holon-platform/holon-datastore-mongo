@@ -31,8 +31,9 @@ import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogg
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.session.ClientSession;
 
-public class MongoTestContext implements MongoContext {
+public class MongoTestContext implements MongoContext<ClientSession> {
 
 	private static final Logger LOGGER = MongoDatastoreLogger.create();
 
@@ -109,6 +110,15 @@ public class MongoTestContext implements MongoContext {
 	@Override
 	public void trace(String title, Supplier<String> json) {
 		LOGGER.info(title + ": " + json.get());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
+	 */
+	@Override
+	public Optional<ClientSession> getClientSession() {
+		return Optional.empty();
 	}
 
 }

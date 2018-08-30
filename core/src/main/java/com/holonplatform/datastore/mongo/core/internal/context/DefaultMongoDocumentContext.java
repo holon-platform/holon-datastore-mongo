@@ -25,13 +25,17 @@ import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentPathMatcher;
+import com.mongodb.session.ClientSession;
 
 /**
  * Default {@link MongoDocumentContext} implementation.
  *
+ * @param <S> Concrete ClientSession type
+ * 
  * @since 5.1.0
  */
-public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext implements MongoDocumentContext {
+public class DefaultMongoDocumentContext<S extends ClientSession> extends DefaultMongoResolutionContext<S>
+		implements MongoDocumentContext<S> {
 
 	/**
 	 * Document property set
@@ -48,7 +52,7 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 	 * @param context Mongo context (not null)
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 */
-	public DefaultMongoDocumentContext(MongoContext context, PropertySet<?> propertySet, boolean forUpdate) {
+	public DefaultMongoDocumentContext(MongoContext<S> context, PropertySet<?> propertySet, boolean forUpdate) {
 		super(context, forUpdate);
 		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
 		this.propertySet = propertySet;
@@ -61,7 +65,7 @@ public class DefaultMongoDocumentContext extends DefaultMongoResolutionContext i
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @param resolveDocumentId Whether to resolve the document id property
 	 */
-	public DefaultMongoDocumentContext(MongoResolutionContext parent, PropertySet<?> propertySet,
+	public DefaultMongoDocumentContext(MongoResolutionContext<S> parent, PropertySet<?> propertySet,
 			boolean resolveDocumentId) {
 		super(parent);
 		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");

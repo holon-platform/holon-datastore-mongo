@@ -37,9 +37,11 @@ import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.InsertManyOptions;
 
 /**
  * Mongo {@link BulkInsert} implementation.
@@ -66,9 +68,9 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoBulkInsert(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoBulkInsert(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -88,7 +90,8 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 
 			// resolution context
-			final MongoDocumentContext context = MongoDocumentContext.create(operationContext, propertySet);
+			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
+					propertySet);
 			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 			// encode documents
@@ -109,7 +112,14 @@ public class MongoBulkInsert extends AbstractBulkInsert {
 				final List<Document> documents = documentValues.stream().map(v -> v.getDocument())
 						.collect(Collectors.toList());
 
-				collection.insertMany(documents, MongoOperations.getInsertManyOptions(getConfiguration()));
+				// options
+				final InsertManyOptions options = MongoOperations.getInsertManyOptions(getConfiguration());
+
+				if (context.getClientSession().isPresent()) {
+					collection.insertMany(context.getClientSession().get(), documents, options);
+				} else {
+					collection.insertMany(documents, options);
+				}
 
 				// trace
 				operationContext.trace("Inserted documents", documents);

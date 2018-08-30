@@ -17,16 +17,18 @@ package com.holonplatform.datastore.mongo.core.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
+import com.mongodb.session.ClientSession;
 
 /**
  * Base MongoDB Datastore {@link DatastoreCommodityContext}.
  *
  * @param <MongoDatabase> Actual MongoDatabase type (sync or async)
+ * @param <S> Concrete ClientSession type
  *
  * @since 5.2.0
  */
-public interface MongoDatastoreCommodityContext<MongoDatabase>
-		extends MongoOperationContext<MongoDatabase>, DatastoreCommodityContext {
+public interface MongoDatastoreCommodityContext<MongoDatabase, S extends ClientSession>
+		extends MongoOperationContext<MongoDatabase, S>, DatastoreCommodityContext {
 
 	/**
 	 * Get the MongoDB database name to which the Datastore is bound.

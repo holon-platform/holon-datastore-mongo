@@ -23,6 +23,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -31,12 +32,12 @@ import com.mongodb.async.client.MongoCollection;
  * @since 5.2.0
  */
 public class DefaultAsyncMultiPropertyBoxOperationResultContext
-		extends DefaultAsyncOperationResultContext<MongoDocumentContext>
+		extends DefaultAsyncOperationResultContext<MongoDocumentContext<ClientSession>>
 		implements AsyncMultiPropertyBoxOperationResultContext {
 
 	private final List<ResolvedDocument> values;
 
-	public DefaultAsyncMultiPropertyBoxOperationResultContext(MongoDocumentContext mongoContext,
+	public DefaultAsyncMultiPropertyBoxOperationResultContext(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
 			OperationType operationType, List<ResolvedDocument> values) {
 		super(mongoContext, collection, configuration, affectedCount, operationType);

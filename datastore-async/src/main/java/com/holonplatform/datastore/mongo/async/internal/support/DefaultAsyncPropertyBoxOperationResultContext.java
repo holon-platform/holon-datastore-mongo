@@ -26,6 +26,7 @@ import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConf
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 
 /**
@@ -34,14 +35,14 @@ import com.mongodb.async.client.MongoCollection;
  * @since 5.2.0
  */
 public class DefaultAsyncPropertyBoxOperationResultContext extends
-		DefaultAsyncOperationResultContext<MongoDocumentContext> implements AsyncPropertyBoxOperationResultContext {
+		DefaultAsyncOperationResultContext<MongoDocumentContext<ClientSession>> implements AsyncPropertyBoxOperationResultContext {
 
 	private final PropertyBox value;
 	private final Document document;
 	private final ObjectId documentId;
 	private final BsonValue upsertedId;
 
-	public DefaultAsyncPropertyBoxOperationResultContext(MongoDocumentContext mongoContext,
+	public DefaultAsyncPropertyBoxOperationResultContext(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,
 			OperationType operationType, PropertyBox value, Document document, ObjectId documentId,
 			BsonValue upsertedId) {

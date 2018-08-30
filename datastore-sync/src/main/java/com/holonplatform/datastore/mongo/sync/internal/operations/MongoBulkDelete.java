@@ -34,8 +34,10 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.result.DeleteResult;
 
 /**
@@ -63,9 +65,9 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoBulkDelete(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoBulkDelete(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -81,7 +83,7 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 			getConfiguration().validate();
 
 			// context
-			final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 			context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 			// resolve collection
@@ -102,9 +104,13 @@ public class MongoBulkDelete extends AbstractBulkDelete {
 				operationContext.trace("Delete documents - filter",
 						filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
 
+				// options
+				final DeleteOptions options = MongoOperations.getDeleteOptions(getConfiguration());
+
 				// delete
-				DeleteResult result = collection.deleteMany(filter.orElse(null),
-						MongoOperations.getDeleteOptions(getConfiguration()));
+				final DeleteResult result = context.getClientSession()
+						.map(cs -> collection.deleteMany(cs, filter.orElse(null), options))
+						.orElse(collection.deleteMany(filter.orElse(null), options));
 
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(result.getDeletedCount())
 						.build();

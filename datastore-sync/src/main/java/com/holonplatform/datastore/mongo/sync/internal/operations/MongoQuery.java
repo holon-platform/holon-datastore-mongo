@@ -50,6 +50,7 @@ import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncDistinct
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncFindOperationConfigurator;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncMongoCollectionConfigurator;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -78,9 +79,9 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		}
 	};
 
-	private final MongoOperationContext<MongoDatabase> operationContext;
+	private final MongoOperationContext<MongoDatabase, ClientSession> operationContext;
 
-	public MongoQuery(MongoOperationContext<MongoDatabase> operationContext) {
+	public MongoQuery(MongoOperationContext<MongoDatabase, ClientSession> operationContext) {
 		super();
 		this.operationContext = operationContext;
 	}
@@ -96,7 +97,7 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		queryOperation.validate();
 
 		// resolution context
-		final MongoResolutionContext context = MongoResolutionContext.create(operationContext);
+		final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
 		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 		// resolve query
@@ -136,8 +137,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param definition Query definition
 	 * @return The operation result
 	 */
-	@SuppressWarnings({ "unchecked", "deprecation" })
-	private static <R> Stream<R> count(MongoContext context, MongoCollection<Document> collection,
+	@SuppressWarnings({ "unchecked", "deprecation", "resource" })
+	private static <R> Stream<R> count(MongoContext<ClientSession> context, MongoCollection<Document> collection,
 			BsonQueryDefinition definition) {
 
 		// trace
@@ -146,16 +147,30 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// check driver version
 		final MongoVersion version = MongoDriverInfo.getMongoVersion();
+		final boolean backwardMode = version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
+				&& version.getDriverMinorVersion() < 8;
+
+		// session
+		final ClientSession cs = context.getClientSession().orElse(null);
 
 		// count
 		final Long count;
-		if (version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
-				&& version.getDriverMinorVersion() < 8) {
-			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
-					.orElse(collection.count());
+		if (backwardMode) {
+			if (cs != null) {
+				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(cs, e))
+						.orElse(collection.count(cs));
+			} else {
+				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
+						.orElse(collection.count());
+			}
 		} else {
-			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(e))
-					.orElse(collection.countDocuments());
+			if (cs != null) {
+				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(cs, e))
+						.orElse(collection.countDocuments(cs));
+			} else {
+				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(e))
+						.orElse(collection.countDocuments());
+			}
 		}
 
 		return Stream.of((R) count);
@@ -170,14 +185,15 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param query Query definition
 	 * @return The operation result
 	 */
-	private static <R> Stream<R> find(MongoResolutionContext context, MongoCollection<Document> collection,
-			Class<? extends R> resultType, BsonQuery query) {
+	private static <R> Stream<R> find(MongoResolutionContext<ClientSession> context,
+			MongoCollection<Document> collection, Class<? extends R> resultType, BsonQuery query) {
 
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
 
 		// iterable
-		final FindIterable<Document> fi = collection.find();
+		final FindIterable<Document> fi = context.getClientSession().map(cs -> collection.find(cs))
+				.orElse(collection.find());
 
 		// configure
 		Optional<Bson> projection = MongoOperations.configure(query, new SyncFindOperationConfigurator(fi));
@@ -199,8 +215,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param query Query definition
 	 * @return The operation result
 	 */
-	private static <R> Stream<R> distinct(MongoResolutionContext context, MongoCollection<Document> collection,
-			Class<? extends R> resultType, BsonQuery query) {
+	private static <R> Stream<R> distinct(MongoResolutionContext<ClientSession> context,
+			MongoCollection<Document> collection, Class<? extends R> resultType, BsonQuery query) {
 
 		// check distinct field name
 		if (!query.getDistinctFieldName().isPresent()) {
@@ -214,7 +230,9 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 		// iterable
 		@SuppressWarnings("unchecked")
-		final DistinctIterable<R> fi = collection.distinct(fieldName, (Class<R>) resultType);
+		final DistinctIterable<R> fi = context.getClientSession()
+				.map(cs -> collection.distinct(cs, fieldName, (Class<R>) resultType))
+				.orElse(collection.distinct(fieldName, (Class<R>) resultType));
 
 		// configure
 		MongoOperations.configure(query, new SyncDistinctOperationConfigurator(fi));
@@ -238,8 +256,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	 * @param query Query definition
 	 * @return The operation result
 	 */
-	private static <R> Stream<R> aggregate(MongoResolutionContext context, MongoCollection<Document> collection,
-			Class<? extends R> resultType, BsonQuery query) {
+	private static <R> Stream<R> aggregate(MongoResolutionContext<ClientSession> context,
+			MongoCollection<Document> collection, Class<? extends R> resultType, BsonQuery query) {
 
 		// converter
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(query, resultType);
@@ -251,7 +269,8 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		context.trace("Aggregation pipeline", () -> MongoOperations.traceAggregationPipeline(context, pipeline));
 
 		// iterable
-		final AggregateIterable<Document> ai = collection.aggregate(pipeline);
+		final AggregateIterable<Document> ai = context.getClientSession().map(cs -> collection.aggregate(cs, pipeline))
+				.orElse(collection.aggregate(pipeline));
 
 		// configure
 		MongoOperations.configure(query, new SyncAggregateOperationConfigurator(ai));

@@ -20,20 +20,25 @@ import org.bson.codecs.configuration.CodecProvider;
 
 import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
+import com.holonplatform.datastore.mongo.core.tx.MongoTransactionFactory;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.session.ClientSession;
 
 /**
  * Base MongoDB Datastore builder.
  * 
  * @param <D> {@link DatastoreOperations} type
+ * @param <S> Concrete client session type
+ * @param <TX> Concrete transaction type
  * @param <B> Concrete builder type
  *
  * @since 5.2.0
  */
 @SuppressWarnings("rawtypes")
-public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, B>>
+public interface MongoDatastoreBuilder<D extends DatastoreOperations, S extends ClientSession, TX extends MongoTransaction<S>, B extends MongoDatastoreBuilder<D, S, TX, B>>
 		extends DatastoreOperations.Builder<D, B> {
 
 	/**
@@ -92,5 +97,12 @@ public interface MongoDatastoreBuilder<D extends DatastoreOperations, B extends 
 	 * @return this
 	 */
 	B enumCodecStrategy(EnumCodecStrategy enumCodecStrategy);
+
+	/**
+	 * Set the {@link MongoTransactionFactory} to use to provide {@link MongoTransaction} implementations.
+	 * @param transactionFactory The transaction factory to set (not null)
+	 * @return this
+	 */
+	B transactionFactory(MongoTransactionFactory<S, TX> transactionFactory);
 
 }

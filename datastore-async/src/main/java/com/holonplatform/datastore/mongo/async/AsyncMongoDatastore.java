@@ -16,13 +16,16 @@
 package com.holonplatform.datastore.mongo.async;
 
 import com.holonplatform.async.datastore.AsyncDatastore;
+import com.holonplatform.async.datastore.transaction.AsyncTransactional;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.async.internal.DefaultAsyncMongoDatastore;
+import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoDatabase;
 
@@ -32,7 +35,7 @@ import com.mongodb.async.client.MongoDatabase;
  * @since 5.2.0
  */
 public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandler<MongoDatabase>,
-		DatastoreCommodityRegistrar<AsyncMongoDatastoreCommodityContext> {
+		DatastoreCommodityRegistrar<AsyncMongoDatastoreCommodityContext>, AsyncTransactional {
 
 	/**
 	 * Get a builder to create a {@link AsyncMongoDatastore} instance.
@@ -45,7 +48,8 @@ public interface AsyncMongoDatastore extends AsyncDatastore, MongoDatabaseHandle
 	/**
 	 * {@link AsyncMongoDatastore} builder.
 	 */
-	public interface Builder extends MongoDatastoreBuilder<AsyncMongoDatastore, Builder> {
+	public interface Builder
+			extends MongoDatastoreBuilder<AsyncMongoDatastore, ClientSession, AsyncMongoTransaction, Builder> {
 
 		/**
 		 * Set the {@link MongoClient} to use.

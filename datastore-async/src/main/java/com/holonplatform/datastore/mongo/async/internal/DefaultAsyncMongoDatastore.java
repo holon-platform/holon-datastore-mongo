@@ -16,11 +16,16 @@
 package com.holonplatform.datastore.mongo.async.internal;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
+import com.holonplatform.async.datastore.transaction.AsyncTransactionalOperation;
 import com.holonplatform.core.datastore.DatastoreCommodity;
+import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionException;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
@@ -35,6 +40,7 @@ import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoQue
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRefresh;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoSave;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpdate;
+import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
 import com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
@@ -47,16 +53,16 @@ import com.mongodb.async.client.MongoDatabase;
  *
  * @since 5.2.0
  */
-public class DefaultAsyncMongoDatastore
-		extends AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, ClientSession, MongoDatabase>
+public class DefaultAsyncMongoDatastore extends
+		AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, ClientSession, AsyncMongoTransaction, MongoDatabase>
 		implements AsyncMongoDatastore, AsyncMongoDatastoreCommodityContext {
 
 	private static final long serialVersionUID = 5851873626687056062L;
 
 	/**
-	 * Current session
+	 * Current local transaction
 	 */
-	private static final ThreadLocal<ClientSession> CURRENT_SESSION = new ThreadLocal<>();
+	private static final ThreadLocal<AsyncMongoTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
 
 	/**
 	 * Mongo client
@@ -67,7 +73,7 @@ public class DefaultAsyncMongoDatastore
 	 * Constructor.
 	 */
 	public DefaultAsyncMongoDatastore() {
-		super(AsyncMongoDatastoreCommodityFactory.class);
+		super(AsyncMongoDatastoreCommodityFactory.class, (s, c) -> AsyncMongoTransaction.create(s, c));
 
 		// default resolvers
 		addExpressionResolvers(MongoExpressionResolver.getDefaultResolvers());
@@ -99,7 +105,7 @@ public class DefaultAsyncMongoDatastore
 	 */
 	@Override
 	public Optional<ClientSession> getClientSession() {
-		return Optional.ofNullable(CURRENT_SESSION.get());
+		return getCurrentTransaction().map(tx -> tx.getSession());
 	}
 
 	/*
@@ -187,6 +193,203 @@ public class DefaultAsyncMongoDatastore
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.async.datastore.transaction.AsyncTransactional#withTransaction(com.holonplatform.async.
+	 * datastore.transaction.AsyncTransactionalOperation,
+	 * com.holonplatform.core.datastore.transaction.TransactionConfiguration)
+	 */
+	@Override
+	public <R> CompletionStage<R> withTransaction(AsyncTransactionalOperation<R> operation,
+			TransactionConfiguration transactionConfiguration) {
+		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
+
+		// check active transaction or create a new one
+		return getCurrentTransaction()
+				.map(t -> (CompletionStage<AsyncMongoTransaction>) CompletableFuture
+						.completedFuture(AsyncMongoTransaction.delegate(t)))
+				.orElseGet(() -> startTransaction(transactionConfiguration)).thenCompose(tx -> {
+					// execute operation
+					try {
+						return operation.execute(tx).thenApply(r -> new TransactionalOperationResult<>(tx, r));
+					} catch (Exception e) {
+						// check rollback transaction
+						if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
+							tx.setRollbackOnly();
+						}
+						return CompletableFuture.completedFuture(new TransactionalOperationResult<R>(tx, e));
+					}
+				}).thenApply(result -> {
+					// finalize transaction
+					endTransaction(result.getTransaction());
+					// check execution error
+					if (result.getError() != null) {
+						throw new TransactionException("Failed to execute operation", result.getError());
+					}
+					// return the result
+					return result.getResult();
+				});
+
+		/*
+		 * try { // execute operation return operation.execute(tx); } catch (Exception e) { // check rollback
+		 * transaction if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) { tx.setRollbackOnly(); }
+		 * throw e; } finally { try { endTransaction(tx); } catch (Exception e) { throw new
+		 * DataAccessException("Failed to finalize transaction", e); } }
+		 */
+	}
+
+	private static final class TransactionalOperationResult<R> {
+
+		private final AsyncMongoTransaction transaction;
+		private final R result;
+		private final Throwable error;
+
+		public TransactionalOperationResult(AsyncMongoTransaction transaction, R result) {
+			super();
+			this.transaction = transaction;
+			this.result = result;
+			this.error = null;
+		}
+
+		public TransactionalOperationResult(AsyncMongoTransaction transaction, Throwable error) {
+			super();
+			this.transaction = transaction;
+			this.result = null;
+			this.error = error;
+		}
+
+		public AsyncMongoTransaction getTransaction() {
+			return transaction;
+		}
+
+		public R getResult() {
+			return result;
+		}
+
+		public Throwable getError() {
+			return error;
+		}
+
+	}
+
+	/**
+	 * Starts a {@link AsyncMongoTransaction}. If a local transaction is active, it will be forcedly finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
+	 * @return A {@link CompletionStage} to handle the operation outcome and obtain the {@link AsyncMongoTransaction}
+	 *         instance
+	 */
+	private CompletionStage<AsyncMongoTransaction> startTransaction(TransactionConfiguration configuration)
+			throws TransactionException {
+
+		// check supported
+		checkTransactionSupported();
+
+		// check if a current transaction is present
+		getCurrentTransaction().ifPresent(tx -> {
+			LOGGER.warn("A thread bound transaction was already present [" + tx
+					+ "] - The current transaction will be finalized");
+			try {
+				endTransaction(tx);
+			} catch (Exception e) {
+				LOGGER.warn("Failed to force current transaction finalization", e);
+			}
+		});
+
+		// configuration
+		final TransactionConfiguration cfg = (configuration != null) ? configuration
+				: TransactionConfiguration.getDefault();
+
+		return CompletableFuture.supplyAsync(() -> {
+			final CompletableFuture<ClientSession> operation = new CompletableFuture<>();
+			// start a client session
+			checkClient().startSession((result, error) -> {
+				if (error != null) {
+					operation.completeExceptionally(error);
+				} else {
+					operation.complete(result);
+				}
+			});
+			return operation.join();
+		}).thenApply(s -> {
+			// create a new transaction
+			return getTransactionFactory().createTransaction(s, cfg);
+		}).thenApply(tx -> {
+			// start transaction
+			try {
+				tx.start();
+			} catch (TransactionException e) {
+				// ensure session finalization
+				try {
+					tx.getSession().close();
+				} catch (Exception re) {
+					LOGGER.warn("Transaction failed to start but the transaction session cannot be closed", re);
+				}
+				// propagate
+				throw e;
+			}
+			return tx;
+		}).thenApply(tx -> {
+
+			// set as current transaction
+			CURRENT_TRANSACTION.set(tx);
+
+			LOGGER.debug(() -> "MongoDB transaction [" + tx + "] created and setted as current transaction");
+
+			return tx;
+		});
+	}
+
+	/**
+	 * Finalize the given transaction, only if the transaction is new.
+	 * @param tx Transaction to finalize
+	 * @throws TransactionException Error finalizing transaction
+	 * @return A {@link CompletionStage} to handle the operation outcome, with result value <code>true</code> if the
+	 *         transaction was actually finalized
+	 */
+	@SuppressWarnings("static-method")
+	private CompletionStage<Boolean> endTransaction(AsyncMongoTransaction tx) throws TransactionException {
+		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
+
+		// check new
+		if (!tx.isNew()) {
+			LOGGER.debug(() -> "MongoDB transaction [" + tx + "] was not finalized because it is not new");
+			return CompletableFuture.completedFuture(Boolean.FALSE);
+		}
+
+		// remove reference
+		getCurrentTransaction().filter(current -> current == tx).ifPresent(current -> CURRENT_TRANSACTION.remove());
+
+		// end the transaction if active
+		if (tx.isActive()) {
+			return tx.end().exceptionally(e -> {
+				LOGGER.error("Failed to finalize the transaction", e);
+				return null;
+			}).thenApply(r -> {
+				tx.getSession().close();
+				return true;
+			});
+		}
+
+		// close session
+		try {
+			tx.getSession().close();
+		} catch (Exception e) {
+			throw new TransactionException("Failed to close client session", e);
+		}
+
+		LOGGER.debug(() -> "MongoDB transaction [" + tx + "] finalized");
+
+		return CompletableFuture.completedFuture(Boolean.TRUE);
+	}
+
+	/**
+	 * Get the current transaction, if active.
+	 * @return Optional current transaction
+	 */
+	private static Optional<AsyncMongoTransaction> getCurrentTransaction() {
+		return Optional.ofNullable(CURRENT_TRANSACTION.get());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see
 	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
 	 * .ClassLoader)
@@ -210,7 +413,7 @@ public class DefaultAsyncMongoDatastore
 	// ------- Builder
 
 	public static class DefaultBuilder extends
-			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, ClientSession, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
+			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, ClientSession, AsyncMongoTransaction, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
 			implements AsyncMongoDatastore.Builder {
 
 		public DefaultBuilder() {

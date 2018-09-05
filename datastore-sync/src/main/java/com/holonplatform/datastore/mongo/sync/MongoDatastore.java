@@ -18,11 +18,14 @@ package com.holonplatform.datastore.mongo.sync;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
+import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.sync.internal.DefaultMongoDatastore;
+import com.holonplatform.datastore.mongo.sync.tx.SyncMongoTransaction;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 
@@ -32,7 +35,7 @@ import com.mongodb.client.MongoDatabase;
  * @since 5.2.0
  */
 public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDatabase>,
-		DatastoreCommodityRegistrar<SyncMongoDatastoreCommodityContext> {
+		DatastoreCommodityRegistrar<SyncMongoDatastoreCommodityContext>, Transactional {
 
 	/**
 	 * Get a builder to create a {@link MongoDatastore} instance.
@@ -45,7 +48,8 @@ public interface MongoDatastore extends Datastore, MongoDatabaseHandler<MongoDat
 	/**
 	 * {@link MongoDatastore} builder.
 	 */
-	public interface Builder extends MongoDatastoreBuilder<MongoDatastore, Builder> {
+	public interface Builder
+			extends MongoDatastoreBuilder<MongoDatastore, ClientSession, SyncMongoTransaction, Builder> {
 
 		/**
 		 * Set the {@link MongoClient} to use.

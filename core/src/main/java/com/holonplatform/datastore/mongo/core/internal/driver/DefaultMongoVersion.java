@@ -100,4 +100,23 @@ public class DefaultMongoVersion implements MongoVersion {
 		return driverPatchVersion;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (wasDriverVersionDetected()) {
+			sb.append(getDriverMajorVersion());
+			sb.append('.');
+			sb.append(getDriverMinorVersion());
+			sb.append('.');
+			sb.append(getDriverPatchVersion());
+		} else {
+			sb.append("[Not detected]");
+		}
+		return sb.toString();
+	}
+
 }

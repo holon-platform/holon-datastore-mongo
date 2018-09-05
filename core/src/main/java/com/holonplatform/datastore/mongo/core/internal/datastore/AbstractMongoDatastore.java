@@ -31,6 +31,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.DatastoreOperations;
+import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionNotSupportedException;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractInitializableDatastore;
 import com.holonplatform.core.internal.utils.ObjectUtils;
@@ -39,7 +40,11 @@ import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityCont
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreExpressionResolver;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
+import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
+import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
+import com.holonplatform.datastore.mongo.core.tx.MongoTransactionFactory;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
@@ -47,10 +52,15 @@ import com.mongodb.session.ClientSession;
 
 /**
  * Abstract MongoDB Datastore class.
+ * 
+ * @param <X> Concrete commodity context type
+ * @param <S> Concrete client session type
+ * @param <TX> Concrete transaction type
+ * @param <MongoDatabase> Concrete MongoDatabase type
  *
  * @since 5.2.0
  */
-public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext, S extends ClientSession, MongoDatabase>
+public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext, S extends ClientSession, TX extends MongoTransaction<S>, MongoDatabase>
 		extends AbstractInitializableDatastore<X> implements MongoDatastoreCommodityContext<MongoDatabase, S> {
 
 	private static final long serialVersionUID = -378734658521151958L;
@@ -96,12 +106,20 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 	protected CodecRegistry additionalCodecRegistry;
 
 	/**
+	 * Transaction factory
+	 */
+	private MongoTransactionFactory<S, TX> transactionFactory;
+
+	/**
 	 * Constructor
-	 * @param commodityFactoryType Commodity factory actual type
+	 * @param commodityFactoryType Commodity factory actual type (not null)
+	 * @param transactionFactory Default transaction factory (not null)
 	 */
 	@SuppressWarnings("rawtypes")
-	public AbstractMongoDatastore(Class<? extends DatastoreCommodityFactory> commodityFactoryType) {
+	public AbstractMongoDatastore(Class<? extends DatastoreCommodityFactory> commodityFactoryType,
+			MongoTransactionFactory<S, TX> transactionFactory) {
 		super(commodityFactoryType, MongoDatastoreExpressionResolver.class);
+		setTransactionFactory(transactionFactory);
 	}
 
 	/*
@@ -258,6 +276,39 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 		this.defaultWriteConcern = defaultWriteConcern;
 	}
 
+	/**
+	 * Get the {@link MongoTransaction} factory.
+	 * @return the transaction factory
+	 */
+	protected MongoTransactionFactory<S, TX> getTransactionFactory() {
+		return transactionFactory;
+	}
+
+	/**
+	 * Set the {@link MongoTransaction} factory.
+	 * @param transactionFactory the transaction factory to set (not null)
+	 */
+	public void setTransactionFactory(MongoTransactionFactory<S, TX> transactionFactory) {
+		ObjectUtils.argumentNotNull(transactionFactory, "MongoTransactionFactory must be not null");
+		this.transactionFactory = transactionFactory;
+	}
+
+	/**
+	 * Checks if transactions are supported by the driver version in use.
+	 * @throws TransactionNotSupportedException If transactions are supported by the driver version in use
+	 */
+	protected void checkTransactionSupported() throws TransactionNotSupportedException {
+		final MongoVersion version = MongoDriverInfo.getMongoVersion();
+		if (version.wasDriverVersionDetected()) {
+			if (version.getDriverMajorVersion() < 3
+					|| (version.getDriverMajorVersion() == 3 && version.getDriverMinorVersion() < 8)) {
+				throw new TransactionNotSupportedException(
+						"Transactions are not supported by the MongoDB driver version is use [" + version.toString()
+								+ "]");
+			}
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#trace(java.lang.String)
@@ -272,8 +323,8 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 	}
 
 	@SuppressWarnings("rawtypes")
-	public abstract static class AbstractBuilder<MDB, CX extends DatastoreCommodityContext, S extends ClientSession, I extends AbstractMongoDatastore<CX, S, MDB>, D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, B>>
-			implements MongoDatastoreBuilder<D, B> {
+	public abstract static class AbstractBuilder<MDB, CX extends DatastoreCommodityContext, S extends ClientSession, TX extends MongoTransaction<S>, I extends AbstractMongoDatastore<CX, S, TX, MDB>, D extends DatastoreOperations, B extends MongoDatastoreBuilder<D, S, TX, B>>
+			implements MongoDatastoreBuilder<D, S, TX, B> {
 
 		private final List<Codec<?>> codecs = new LinkedList<>();
 		private final List<CodecProvider> codecProviders = new LinkedList<>();
@@ -354,6 +405,18 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 		@Override
 		public B enumCodecStrategy(EnumCodecStrategy defaultEnumCodecStrategy) {
 			getDatastore().setEnumCodecStrategy(defaultEnumCodecStrategy);
+			return getActualBuilder();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder#transactionFactory(com.holonplatform.datastore.
+		 * mongo.core.tx.MongoTransactionFactory)
+		 */
+		@Override
+		public B transactionFactory(MongoTransactionFactory<S, TX> transactionFactory) {
+			getDatastore().setTransactionFactory(transactionFactory);
 			return getActualBuilder();
 		}
 

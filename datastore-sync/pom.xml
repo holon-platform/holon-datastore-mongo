@@ -126,7 +126,7 @@
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
 							<includes>
-								<include>**/*TransactionalIT.java</include>
+								<include>**/*TransactionalOperationsIT.java</include>
 							</includes>
 						</configuration>
 					</plugin>
@@ -136,20 +136,16 @@
 						<configuration>
 							<images>
 								<image>
-									<name>mongo:3.4.6</name>
+									<name>mongo:4.1</name>
 									<alias>mongo</alias>
 									<run>
 										<ports>
 											<port>27017:27017</port>
 										</ports>
-										<env>
-											<MONGO_INITDB_ROOT_USERNAME>test</MONGO_INITDB_ROOT_USERNAME>
-											<MONGO_INITDB_ROOT_PASSWORD>test</MONGO_INITDB_ROOT_PASSWORD>
-
-										</env>
+										<!-- <env> <MONGO_INITDB_ROOT_USERNAME>test</MONGO_INITDB_ROOT_USERNAME> 
+											<MONGO_INITDB_ROOT_PASSWORD>test</MONGO_INITDB_ROOT_PASSWORD> </env> -->
 										<wait>
-											<log>waiting for connections on port</log>
-											<time>60000</time>
+											<time>10000</time>
 										</wait>
 									</run>
 								</image>

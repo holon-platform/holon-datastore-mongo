@@ -21,7 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 import com.holonplatform.datastore.mongo.sync.test.suite.AggregationFunctionsTest;
 import com.holonplatform.datastore.mongo.sync.test.suite.BulkDeleteTest;
@@ -53,11 +52,9 @@ import com.mongodb.client.MongoClients;
 		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
 		StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class,
 		CustomExpressionsTest.class, TransactionalTest.class })
-public class TestTransactionalOperationsIT {
+public class TestTransactionalOperationsIT extends AbstractMongoDatastoreTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops";
-
-	public static Datastore datastore;
 
 	@BeforeClass
 	public static void initDatastore() {

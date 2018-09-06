@@ -21,6 +21,7 @@ import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
+import com.holonplatform.datastore.mongo.sync.test.AbstractMongoDatastoreTest;
 import com.holonplatform.datastore.mongo.sync.test.TestDatastoreOperationsUT;
 
 public class AbstractDatastoreOperationTest {
@@ -30,7 +31,7 @@ public class AbstractDatastoreOperationTest {
 	protected final static DataTarget<?> TARGET = DataTarget.named(TestDatastoreOperationsUT.TEST_OPS_DATABASE_NAME);
 
 	protected Datastore getDatastore() {
-		return TestDatastoreOperationsUT.datastore;
+		return AbstractMongoDatastoreTest.datastore;
 	}
 
 	protected void inTransaction(Runnable operation) {

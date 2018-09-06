@@ -23,7 +23,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.runtime.Network;
 
-public abstract class AbstractMongoDBTest {
+public abstract class AbstractMongoDBTest extends AbstractMongoDatastoreTest {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractMongoDBTest.class);
 

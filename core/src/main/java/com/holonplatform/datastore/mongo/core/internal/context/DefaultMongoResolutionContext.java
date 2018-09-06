@@ -134,7 +134,6 @@ public class DefaultMongoResolutionContext<S extends ClientSession> implements M
 	 * Constructor with parent composition context.
 	 * @param parent Parent context (not null)
 	 * @param updatePath Optional update path
-	 * @param forUpdate Whether this context is intended for an update type operation
 	 */
 	public DefaultMongoResolutionContext(MongoResolutionContext<S> parent, Path<?> updatePath) {
 		this(parent, parent, true, updatePath);

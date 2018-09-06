@@ -51,6 +51,7 @@ public class DefaultMongoDocumentContext<S extends ClientSession> extends Defaul
 	 * Constructor.
 	 * @param context Mongo context (not null)
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
+	 * @param forUpdate Whether this context is intended for an update type operation
 	 */
 	public DefaultMongoDocumentContext(MongoContext<S> context, PropertySet<?> propertySet, boolean forUpdate) {
 		super(context, forUpdate);

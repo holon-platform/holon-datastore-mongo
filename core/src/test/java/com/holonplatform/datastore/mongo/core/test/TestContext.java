@@ -28,15 +28,15 @@ public class TestContext {
 
 	@Test
 	public void testDocumentContext() {
-		
+
 		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
-		
+
 		assertFalse(MongoDocumentContext.isDocumentContext(ctx).isPresent());
-		
+
 		Path<?> path = Path.of("test", String.class);
-		
+
 		assertFalse(MongoDocumentContext.isDocumentContext(ctx).flatMap(c -> c.isDocumentIdPath(path)).isPresent());
-		
+
 	}
-	
+
 }

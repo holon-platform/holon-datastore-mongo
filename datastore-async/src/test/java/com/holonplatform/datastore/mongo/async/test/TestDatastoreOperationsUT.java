@@ -42,10 +42,10 @@ import com.holonplatform.datastore.mongo.async.test.suite.UpdateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,
-	BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
-	QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
-	StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class,
-	CustomExpressionsTest.class })
+		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
+		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
+		StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class,
+		CustomExpressionsTest.class })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 
 	public static final String TEST_OPS_DATABASE_NAME = "testops_async";

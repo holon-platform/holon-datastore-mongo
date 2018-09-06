@@ -129,7 +129,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
 
 		getDatastore().refresh(TARGET, value);
-		
+
 	}
 
 }

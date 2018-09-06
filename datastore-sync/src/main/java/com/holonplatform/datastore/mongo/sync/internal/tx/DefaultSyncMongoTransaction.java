@@ -140,7 +140,8 @@ public class DefaultSyncMongoTransaction extends AbstractMongoTransaction<Client
 
 		// check active
 		if (!isActive()) {
-			throw new IllegalTransactionStatusException("Cannot rollback the transaction: the transaction is not active");
+			throw new IllegalTransactionStatusException(
+					"Cannot rollback the transaction: the transaction is not active");
 		}
 
 		// check completed

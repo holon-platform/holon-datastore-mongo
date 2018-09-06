@@ -88,7 +88,8 @@ public class TestMongoDatastoreAutoConfigAsync extends AbstractMongoSpringBootTe
 		assertTrue(rp.isPresent());
 		assertEquals(ReadPreference.primaryPreferred(), rp.get());
 
-		assertEquals(EnumCodecStrategy.getDefault(), datastore.create(ConfigCheckCommodity.class).getEnumCodecStrategy());
+		assertEquals(EnumCodecStrategy.getDefault(),
+				datastore.create(ConfigCheckCommodity.class).getEnumCodecStrategy());
 
 		String databaseName = mongoDatastore.withDatabase(db -> {
 			return db.getName();

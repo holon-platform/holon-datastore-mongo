@@ -53,7 +53,7 @@ public class TestConfigUT extends AbstractMongoDBTest {
 		String name = ds.withDatabase(db -> {
 			return db.getName();
 		});
-		
+
 		assertEquals("testdb1", name);
 
 	}

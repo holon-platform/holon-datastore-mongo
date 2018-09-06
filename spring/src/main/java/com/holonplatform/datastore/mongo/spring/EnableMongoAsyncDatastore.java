@@ -65,8 +65,8 @@ public @interface EnableMongoAsyncDatastore {
 	 * <p>
 	 * When a data context id is specified, the registered Datastore is bound to the <code>MongoClient</code> with a
 	 * matching data context id, if available. During registration phase, if the data context id is not null/empty and a
-	 * {@link #dataSourceReference()} is not specified, a <code>MongoClient</code> bean is searched in context using the
-	 * bean name pattern: <code>mongoClient_[datacontextid]</code> where <code>[datacontextid]</code> is equal to
+	 * {@link #mongoClientReference()} is not specified, a <code>MongoClient</code> bean is searched in context using
+	 * the bean name pattern: <code>mongoClient_[datacontextid]</code> where <code>[datacontextid]</code> is equal to
 	 * {@link #dataContextId()} attribute.
 	 * </p>
 	 * @return Data context id

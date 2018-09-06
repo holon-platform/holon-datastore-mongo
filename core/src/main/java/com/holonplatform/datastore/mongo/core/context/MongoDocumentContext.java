@@ -80,26 +80,31 @@ public interface MongoDocumentContext<S extends ClientSession> extends MongoReso
 	 *         {@link MongoDocumentContext} type. Otherwise an empty Optional is returned.
 	 */
 	static Optional<MongoDocumentContext<?>> isDocumentContext(ResolutionContext context) {
-		return Optional.ofNullable((context instanceof MongoDocumentContext) ? (MongoDocumentContext<?>) context : null);
+		return Optional
+				.ofNullable((context instanceof MongoDocumentContext) ? (MongoDocumentContext<?>) context : null);
 	}
 
 	/**
 	 * Create a new {@link MongoDocumentContext}.
+	 * @param <S> Concrete client session type
 	 * @param context Mongo context (not null)
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	static <S extends ClientSession> MongoDocumentContext<S> create(MongoContext<S> context, PropertySet<?> propertySet) {
+	static <S extends ClientSession> MongoDocumentContext<S> create(MongoContext<S> context,
+			PropertySet<?> propertySet) {
 		return new DefaultMongoDocumentContext<>(context, propertySet, false);
 	}
 
 	/**
 	 * Create a new {@link MongoDocumentContext} for an update type operation.
+	 * @param <S> Concrete client session type
 	 * @param context Mongo context (not null)
 	 * @param propertySet The {@link PropertySet} to which the document is bound (not null)
 	 * @return A new {@link MongoDocumentContext} instance
 	 */
-	static <S extends ClientSession> MongoDocumentContext<S> createForUpdate(MongoContext<S> context, PropertySet<?> propertySet) {
+	static <S extends ClientSession> MongoDocumentContext<S> createForUpdate(MongoContext<S> context,
+			PropertySet<?> propertySet) {
 		return new DefaultMongoDocumentContext<>(context, propertySet, true);
 	}
 

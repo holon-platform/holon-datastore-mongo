@@ -23,9 +23,9 @@ public interface ModelTest {
 
 	public static final StringProperty ID = StringProperty.create("id");
 	public static final StringProperty TEXT = StringProperty.create("text");
-	
+
 	public static final PropertySet<?> SET = PropertySet.builderOf(ID, TEXT).identifier(ID).build();
-	
+
 	public static final DataTarget<?> T1 = DataTarget.named("t1");
-	
+
 }

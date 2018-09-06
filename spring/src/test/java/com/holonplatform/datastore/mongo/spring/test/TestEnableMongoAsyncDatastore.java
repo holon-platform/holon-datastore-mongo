@@ -40,16 +40,18 @@ import com.mongodb.async.client.MongoClients;
 public class TestEnableMongoAsyncDatastore extends AbstractMongoDBSpringTest {
 
 	@Configuration
-	@EnableMongoAsyncDatastore(database="test")
+	@EnableMongoAsyncDatastore(database = "test")
 	protected static class Config {
 
 		@Bean
 		public MongoClient mongoClient() {
-			return MongoClients.create(MongoClientSettings.builder()
-					.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress("localhost", 12345))))
-					.build());
+			return MongoClients
+					.create(MongoClientSettings.builder()
+							.applyToClusterSettings(
+									builder -> builder.hosts(Arrays.asList(new ServerAddress("localhost", 12345))))
+							.build());
 		}
-		
+
 	}
 
 	@Autowired
@@ -57,9 +59,9 @@ public class TestEnableMongoAsyncDatastore extends AbstractMongoDBSpringTest {
 
 	@Test
 	public void testConfig() {
-		
+
 		assertNotNull(datastore);
-		
+
 		String databaseName = datastore.withDatabase(db -> {
 			return db.getName();
 		});

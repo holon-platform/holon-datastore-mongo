@@ -30,7 +30,7 @@ public enum MongoReadPreference {
 	 * Default read preference.
 	 */
 	DEFAULT(null),
-	
+
 	/**
 	 * Forces read to the primary.
 	 */

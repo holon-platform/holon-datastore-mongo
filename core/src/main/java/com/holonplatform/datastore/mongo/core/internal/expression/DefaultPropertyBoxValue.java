@@ -28,7 +28,7 @@ public class DefaultPropertyBoxValue implements PropertyBoxValue {
 
 	private final PropertyBox value;
 	private final PropertySet<?> propertySet;
-	
+
 	/**
 	 * Constructor.
 	 * @param value The PropertyBox value
@@ -40,7 +40,8 @@ public class DefaultPropertyBoxValue implements PropertyBoxValue {
 		this.propertySet = propertySet;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.expression.ExpressionValue#getValue()
 	 */
 	@Override
@@ -48,7 +49,8 @@ public class DefaultPropertyBoxValue implements PropertyBoxValue {
 		return value;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue#getPropertySet()
 	 */
 	@Override
@@ -56,10 +58,12 @@ public class DefaultPropertyBoxValue implements PropertyBoxValue {
 		return (propertySet != null) ? propertySet : getValue();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.core.Expression#validate()
 	 */
 	@Override
-	public void validate() throws InvalidExpressionException {}
+	public void validate() throws InvalidExpressionException {
+	}
 
 }

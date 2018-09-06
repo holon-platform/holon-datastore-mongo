@@ -107,4 +107,59 @@
 
 	</dependencies>
 
+	<profiles>
+
+		<!-- MongoDB 4 integration test -->
+		<profile>
+			<id>it-mongo4</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*TransactionalIT.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<configuration>
+							<images>
+								<image>
+									<name>mongo:3.4.6</name>
+									<alias>mongo</alias>
+									<run>
+										<ports>
+											<port>27017:27017</port>
+										</ports>
+										<env>
+											<MONGO_INITDB_ROOT_USERNAME>test</MONGO_INITDB_ROOT_USERNAME>
+											<MONGO_INITDB_ROOT_PASSWORD>test</MONGO_INITDB_ROOT_PASSWORD>
+
+										</env>
+										<wait>
+											<log>waiting for connections on port</log>
+											<time>60000</time>
+										</wait>
+									</run>
+								</image>
+							</images>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
+
 </project>

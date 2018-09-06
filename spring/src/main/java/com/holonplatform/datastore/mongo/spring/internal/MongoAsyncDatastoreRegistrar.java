@@ -45,7 +45,7 @@ import com.holonplatform.spring.internal.BeanRegistryUtils;
 import com.holonplatform.spring.internal.GenericDataContextBoundBeanDefinition;
 
 /**
- * Registrar for MongoDB async Datastore bean registration using the {@link EnableAsyncMongoDatastore} annotation.
+ * Registrar for MongoDB async Datastore bean registration using the {@link EnableMongoAsyncDatastore} annotation.
  * 
  * @since 5.2.0
  */

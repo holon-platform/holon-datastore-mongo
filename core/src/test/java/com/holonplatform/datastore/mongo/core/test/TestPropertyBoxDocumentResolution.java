@@ -303,7 +303,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(doc.get("_id") instanceof ObjectId);
 		assertEquals(oid, doc.getObjectId("_id"));
 		assertTrue(doc.containsKey(ID5.getName()));
-		
+
 		ObjectId idv = context.getDocumentIdResolver().encode(biv);
 		assertEquals(oid, idv);
 
@@ -568,7 +568,7 @@ public class TestPropertyBoxDocumentResolution {
 		List<PropertyBox> values = pb.getValue(C_PBX);
 		assertNotNull(values);
 		assertEquals(3, values.size());
-		
+
 		for (PropertyBox vpb : values) {
 			assertNotNull(vpb.getValue(NESTED_V1));
 			assertNotNull(vpb.getValue(NESTED_V2));

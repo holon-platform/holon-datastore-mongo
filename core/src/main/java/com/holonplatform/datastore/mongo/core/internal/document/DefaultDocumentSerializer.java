@@ -89,8 +89,11 @@ public enum DefaultDocumentSerializer implements DocumentSerializer {
 		return toJson(DEFAULT_CODEC_REGISTRY, document);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer#toJson(org.bson.codecs.configuration.CodecRegistry, java.util.List)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer#toJson(org.bson.codecs.configuration.
+	 * CodecRegistry, java.util.List)
 	 */
 	@Override
 	public String toJson(CodecRegistry codecRegistry, List<Document> documents) {
@@ -102,7 +105,8 @@ public enum DefaultDocumentSerializer implements DocumentSerializer {
 		return sb.toString();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer#toJson(java.util.List)
 	 */
 	@Override

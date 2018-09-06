@@ -94,7 +94,7 @@ public interface MongoContext<S extends ClientSession> extends ExpressionResolve
 
 	/**
 	 * Serialize given documents to JSON using the database codec registry.
-	 * @param document The documents to serialize
+	 * @param documents The documents to serialize
 	 * @return Serialized documents
 	 */
 	default String toJson(List<Document> documents) {

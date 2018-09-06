@@ -37,8 +37,8 @@ public class DefaultQueryOperationContext<R> implements QueryOperationContext<R>
 	private final BsonQuery query;
 	private final Class<? extends R> resultType;
 
-	public DefaultQueryOperationContext(MongoResolutionContext<ClientSession> resolutionContext, MongoCollection<Document> collection,
-			BsonQuery query, Class<? extends R> resultType) {
+	public DefaultQueryOperationContext(MongoResolutionContext<ClientSession> resolutionContext,
+			MongoCollection<Document> collection, BsonQuery query, Class<? extends R> resultType) {
 		super();
 		ObjectUtils.argumentNotNull(resolutionContext, "Resolution context must be not null");
 		ObjectUtils.argumentNotNull(collection, "MongoCollection must be not null");

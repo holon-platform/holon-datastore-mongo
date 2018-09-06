@@ -27,7 +27,7 @@ import com.holonplatform.datastore.mongo.core.BsonFilter;
 public class DefaultBsonFilter implements BsonFilter {
 
 	private static final long serialVersionUID = -6720398895950240806L;
-	
+
 	private final Bson bson;
 
 	/**

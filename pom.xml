@@ -62,16 +62,16 @@
 		<holon.core.version>5.2.0-alpha2-SNAPSHOT</holon.core.version>
 		<!-- Holon JSON -->
 		<holon.json.version>5.2.0-alpha2-SNAPSHOT</holon.json.version>
-		
+
 		<!-- MongoDB Java driver (core) -->
 		<mongo.driver.core.version>3.8.1</mongo.driver.core.version>
 		<!-- MongoDB Java driver (synchronous) -->
 		<mongo.driver.sync.version>3.8.1</mongo.driver.sync.version>
 		<!-- MongoDB Java driver (asynchronous) -->
 		<mongo.driver.async.version>3.8.1</mongo.driver.async.version>
-		
+
 		<!-- Embedded MongoDB for test -->
-		<embed.mongo.version>2.0.3</embed.mongo.version>
+		<embed.mongo.version>2.1.1</embed.mongo.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.8.7</bytebuddy.version>
@@ -90,6 +90,52 @@
 	</modules>
 
 	<build>
+
+		<pluginManagement>
+			<plugins>
+
+				<!-- failsafe -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<executions>
+						<execution>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- docker -->
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<configuration>
+						<showLogs>true</showLogs>
+					</configuration>
+					<executions>
+						<execution>
+							<id>start</id>
+							<phase>pre-integration-test</phase>
+							<goals>
+								<!-- <goal>build</goal> -->
+								<goal>start</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>stop</id>
+							<phase>post-integration-test</phase>
+							<goals>
+								<goal>stop</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
 			<!-- Aggregate javadocs -->
 			<plugin>

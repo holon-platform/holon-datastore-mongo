@@ -314,6 +314,5 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 		assertEquals(1, result.getAffectedCount());
 
 	}
-	
 
 }

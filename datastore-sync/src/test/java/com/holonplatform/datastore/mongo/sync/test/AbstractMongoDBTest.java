@@ -29,7 +29,7 @@ public abstract class AbstractMongoDBTest {
 
 	private static final IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder()
 			.defaultsWithLogger(Command.MongoD, logger)
-			//.daemonProcess(false)
+			// .daemonProcess(false)
 			.build();
 
 	private static final MongodStarter starter = MongodStarter.getInstance(runtimeConfig);

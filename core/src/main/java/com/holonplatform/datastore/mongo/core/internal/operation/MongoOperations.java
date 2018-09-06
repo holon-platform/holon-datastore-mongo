@@ -411,7 +411,6 @@ public class MongoOperations {
 	 * Configure a <em>distinct</em> query using given configurator.
 	 * @param query Query definition (not null)
 	 * @param configurator Operation configurator (not null)
-	 * @return The configured projection, if any
 	 */
 	public static void configure(BsonQuery query, DistinctOperationConfigurator configurator) {
 		ObjectUtils.argumentNotNull(query, "Query must be not null");

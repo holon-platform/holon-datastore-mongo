@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
+import java.util.function.Supplier;
+
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.internal.Logger;
@@ -29,6 +31,20 @@ public class AbstractDatastoreOperationTest {
 
 	protected Datastore getDatastore() {
 		return TestDatastoreOperationsUT.datastore;
+	}
+
+	protected void inTransaction(Runnable operation) {
+		getDatastore().requireTransactional().withTransaction(tx -> {
+			tx.setRollbackOnly();
+			operation.run();
+		});
+	}
+
+	protected <T> T inTransaction(Supplier<T> operation) {
+		return getDatastore().requireTransactional().withTransaction(tx -> {
+			tx.setRollbackOnly();
+			return operation.get();
+		});
 	}
 
 }

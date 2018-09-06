@@ -34,8 +34,9 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public class DefaultAsyncPropertyBoxOperationResultContext extends
-		DefaultAsyncOperationResultContext<MongoDocumentContext<ClientSession>> implements AsyncPropertyBoxOperationResultContext {
+public class DefaultAsyncPropertyBoxOperationResultContext
+		extends DefaultAsyncOperationResultContext<MongoDocumentContext<ClientSession>>
+		implements AsyncPropertyBoxOperationResultContext {
 
 	private final PropertyBox value;
 	private final Document document;

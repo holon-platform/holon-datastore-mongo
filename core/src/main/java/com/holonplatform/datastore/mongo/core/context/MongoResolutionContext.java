@@ -208,6 +208,7 @@ public interface MongoResolutionContext<S extends ClientSession>
 
 	/**
 	 * Create a new default {@link MongoResolutionContext}.
+	 * @param <S> Concrete client session type
 	 * @param context MongoContext to use (not null)
 	 * @return A new {@link MongoResolutionContext}
 	 */
@@ -217,6 +218,7 @@ public interface MongoResolutionContext<S extends ClientSession>
 
 	/**
 	 * Create a new default {@link MongoResolutionContext} for an update type operation.
+	 * @param <S> Concrete client session type
 	 * @param context MongoContext to use (not null)
 	 * @return A new {@link MongoResolutionContext}
 	 */
@@ -227,6 +229,7 @@ public interface MongoResolutionContext<S extends ClientSession>
 	/**
 	 * Create a new default {@link MongoResolutionContext} for an update type operation, specifying the {@link Path} to
 	 * which the update operation refers.
+	 * @param <S> Concrete client session type
 	 * @param context MongoContext to use (not null)
 	 * @param updatePath Update operation {@link Path}
 	 * @return A new {@link MongoResolutionContext}

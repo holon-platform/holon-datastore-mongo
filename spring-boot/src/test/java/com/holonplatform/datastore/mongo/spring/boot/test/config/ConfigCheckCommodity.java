@@ -24,9 +24,9 @@ import com.mongodb.ReadPreference;
 public interface ConfigCheckCommodity extends DatastoreCommodity {
 
 	String getDatabaseName();
-	
+
 	Optional<ReadPreference> getDefaultReadPreference();
-	
+
 	EnumCodecStrategy getEnumCodecStrategy();
-	
+
 }

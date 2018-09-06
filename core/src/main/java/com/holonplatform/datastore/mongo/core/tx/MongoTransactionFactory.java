@@ -37,7 +37,6 @@ public interface MongoTransactionFactory<S extends ClientSession, TX extends Mon
 	 * @return A new {@link MongoTransaction} instance
 	 * @throws TransactionException If an error occurred
 	 */
-	TX createTransaction(S session, TransactionConfiguration configuration)
-			throws TransactionException;
+	TX createTransaction(S session, TransactionConfiguration configuration) throws TransactionException;
 
 }

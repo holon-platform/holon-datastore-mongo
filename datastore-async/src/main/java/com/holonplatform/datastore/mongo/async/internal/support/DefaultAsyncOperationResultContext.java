@@ -31,7 +31,8 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public class DefaultAsyncOperationResultContext<C extends MongoContext<ClientSession>> implements AsyncOperationResultContext<C> {
+public class DefaultAsyncOperationResultContext<C extends MongoContext<ClientSession>>
+		implements AsyncOperationResultContext<C> {
 
 	private final C context;
 	private final MongoCollection<Document> collection;

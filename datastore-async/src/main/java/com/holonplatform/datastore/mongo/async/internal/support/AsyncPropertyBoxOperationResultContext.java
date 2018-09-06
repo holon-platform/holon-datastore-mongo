@@ -33,7 +33,8 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public interface AsyncPropertyBoxOperationResultContext extends AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
+public interface AsyncPropertyBoxOperationResultContext
+		extends AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
 
 	/**
 	 * Get the {@link PropertyBox} value.

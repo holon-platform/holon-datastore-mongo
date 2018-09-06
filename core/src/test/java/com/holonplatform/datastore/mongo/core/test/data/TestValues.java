@@ -57,7 +57,7 @@ public final class TestValues {
 	public static final Set<EnumValue> C_ENM = new HashSet<>(
 			Arrays.asList(EnumValue.FIRST, EnumValue.SECOND, EnumValue.THIRD));
 	public static final List<Long> C_LNG = Arrays.asList(10L, 11L, 12L);
-	
+
 	public static final String U_STR = "test_u";
 	public static final String U_STR2 = "test2_u";
 	public static final Boolean U_BOOL = Boolean.FALSE;
@@ -82,8 +82,7 @@ public final class TestValues {
 	public static final byte[] U_A_BYT = { 4, 5, 6, 7 };
 	public static final List<String> U_C_STR = Arrays.asList("g", "h", "i");
 	public static final Set<Integer> U_C_INT = new HashSet<>(Arrays.asList(7, 8, 9, 10));
-	public static final Set<EnumValue> U_C_ENM = new HashSet<>(
-			Arrays.asList(EnumValue.FIRST));
+	public static final Set<EnumValue> U_C_ENM = new HashSet<>(Arrays.asList(EnumValue.FIRST));
 	public static final List<Long> U_C_LNG = Arrays.asList(20L, 21L, 22L);
 
 	static {
@@ -106,7 +105,7 @@ public final class TestValues {
 		c.set(Calendar.SECOND, 15);
 		c.set(Calendar.MILLISECOND, 0);
 		TMS = c.getTime();
-		
+
 		c = Calendar.getInstance();
 		c.set(Calendar.YEAR, 2019);
 		c.set(Calendar.MONTH, 5);

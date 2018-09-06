@@ -61,8 +61,9 @@ public class PropertyBoxDocumentConverter implements DocumentConverter<PropertyB
 	 */
 	@Override
 	public PropertyBox convert(MongoResolutionContext<?> context, Document document) {
-		return (document == null) ? null : context.documentContext(propertySet)
-				.resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class).getValue();
+		return (document == null) ? null
+				: context.documentContext(propertySet)
+						.resolveOrFail(DocumentValue.create(document), PropertyBoxValue.class).getValue();
 	}
 
 }

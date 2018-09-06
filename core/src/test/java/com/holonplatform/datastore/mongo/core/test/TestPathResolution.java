@@ -71,8 +71,7 @@ public class TestPathResolution {
 		assertTrue(name.isPresent());
 		assertEquals("test1.test2", name.get().getFieldName());
 
-		name = ctx.resolve(Path.of("test2", Object.class).parent(Path.of("test1", Object.class)),
-				FieldName.class);
+		name = ctx.resolve(Path.of("test2", Object.class).parent(Path.of("test1", Object.class)), FieldName.class);
 		assertTrue(name.isPresent());
 		assertEquals("test1.test2", name.get().getFieldName());
 	}

@@ -77,7 +77,6 @@ public class DefaultBsonQuery implements BsonQuery {
 	/**
 	 * Set the query as distinct.
 	 * @param fieldName Field name
-	 * @param distinctFieldExpression the distinct field expression to set
 	 */
 	public void setDistinct(String fieldName) {
 		this.distinctFieldName = fieldName;

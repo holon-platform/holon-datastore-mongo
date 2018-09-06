@@ -53,7 +53,7 @@ public interface DocumentSerializer {
 
 	/**
 	 * Serialize given documents to JSON using the default codec registry.
-	 * @param document The documents to serialize
+	 * @param documents The documents to serialize
 	 * @return Serialized documents
 	 */
 	String toJson(List<Document> documents);

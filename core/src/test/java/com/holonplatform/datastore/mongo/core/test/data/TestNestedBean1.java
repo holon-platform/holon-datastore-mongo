@@ -20,10 +20,10 @@ import com.holonplatform.core.beans.DataPath;
 public class TestNestedBean1 {
 
 	private String v1;
-	
+
 	@DataPath("v2")
 	private String value2;
-	
+
 	private boolean v3;
 
 	public String getV1() {
@@ -49,5 +49,5 @@ public class TestNestedBean1 {
 	public void setV3(boolean v3) {
 		this.v3 = v3;
 	}
-	
+
 }

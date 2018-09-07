@@ -47,19 +47,6 @@
 		</plugins>
 	</build>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- Holon platform BOM -->
-			<dependency>
-				<groupId>com.holon-platform.core</groupId>
-				<artifactId>holon-bom-platform</artifactId>
-				<version>${holon.core.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 	<dependencies>
 
 		<!-- MongoDB Datastore core -->
@@ -100,7 +87,6 @@
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<version>${embed.mongo.version}</version>
 			<scope>test</scope>
 		</dependency>
 

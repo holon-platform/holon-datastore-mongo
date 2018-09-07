@@ -17,28 +17,12 @@
 
 	<url>https://holon-platform.com</url>
 
-	<dependencyManagement>
-		<dependencies>
-
-			<!-- Holon Spring platform -->
-			<dependency>
-				<groupId>com.holon-platform.core</groupId>
-				<artifactId>holon-bom-platform</artifactId>
-				<version>${holon.core.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-		</dependencies>
-	</dependencyManagement>
-
 	<dependencies>
 
 		<!-- Spring integration -->
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-spring</artifactId>
-			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- Sync Datastore -->
@@ -65,13 +49,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-		</dependency>
-
-		<!-- ByteBuddy -->
-		<dependency>
-			<groupId>net.bytebuddy</groupId>
-			<artifactId>byte-buddy</artifactId>
-			<version>${bytebuddy.version}</version>
 		</dependency>
 
 		<!-- Test -->
@@ -113,7 +90,6 @@
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<version>${embed.mongo.version}</version>
 			<scope>test</scope>
 		</dependency>
 

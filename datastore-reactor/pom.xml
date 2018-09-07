@@ -9,11 +9,11 @@
 		<version>5.2.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>holon-datastore-mongo-async</artifactId>
+	<artifactId>holon-datastore-mongo-reactor</artifactId>
 	<packaging>jar</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Holon MongoDB Datastore asynchronous implementation</description>
+	<description>Holon MongoDB Datastore reactive implementation using Project Reactor</description>
 
 	<url>https://holon-platform.com</url>
 
@@ -39,7 +39,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Automatic-Module-Name>com.holonplatform.datastore.mongo.async</Automatic-Module-Name>
+							<Automatic-Module-Name>com.holonplatform.datastore.mongo.reactor</Automatic-Module-Name>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -49,10 +49,10 @@
 
 	<dependencies>
 
-		<!-- Holon async support -->
+		<!-- Holon Reactor Datastore -->
 		<dependency>
-			<groupId>com.holon-platform.core</groupId>
-			<artifactId>holon-async-datastore</artifactId>
+			<groupId>com.holon-platform.reactor</groupId>
+			<artifactId>holon-reactor-datastore</artifactId>
 		</dependency>
 
 		<!-- MongoDB Datastore core -->
@@ -60,6 +60,12 @@
 			<groupId>com.holon-platform.mongo</groupId>
 			<artifactId>holon-datastore-mongo-core</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Reactor core -->
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
 		</dependency>
 
 		<!-- MongoDB asynchronous Java driver -->
@@ -87,6 +93,12 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 

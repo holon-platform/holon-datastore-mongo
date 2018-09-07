@@ -9,11 +9,11 @@
 		<version>5.2.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>holon-starter-mongo-datastore</artifactId>
+	<artifactId>holon-starter-mongo-datastore-reactor</artifactId>
 	<packaging>jar</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Holon Spring Boot MongoDB Datastore starter</description>
+	<description>Holon Spring Boot MongoDB Datastore starter with Reactor support</description>
 
 	<url>https://holon-platform.com</url>
 
@@ -25,6 +25,13 @@
 			<artifactId>holon-starter</artifactId>
 		</dependency>
 
+		<!-- Holon MongoDB Reactor Datastore -->
+		<dependency>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-reactor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Holon MongoDB Datastore Spring Boot integration -->
 		<dependency>
 			<groupId>com.holon-platform.mongo</groupId>
@@ -32,10 +39,10 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- MongoDB driver -->
+		<!-- MongoDB asynchronous driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
+			<artifactId>mongodb-driver-async</artifactId>
 		</dependency>
 
 	</dependencies>

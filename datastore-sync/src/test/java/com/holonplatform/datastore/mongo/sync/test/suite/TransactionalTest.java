@@ -31,7 +31,7 @@ public class TransactionalTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testTransaction() {
 
-		ObjectId id = inTransaction(() -> {
+		final ObjectId id = inTransaction(() -> {
 
 			final ObjectId oid = new ObjectId();
 
@@ -45,6 +45,9 @@ public class TransactionalTest extends AbstractDatastoreOperationTest {
 
 			return oid;
 		});
+		
+		long count = getDatastore().query(TARGET).filter(ID.eq(id)).count();
+		assertEquals(0, count);
 	}
 
 }

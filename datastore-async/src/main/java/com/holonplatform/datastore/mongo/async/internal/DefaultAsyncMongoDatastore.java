@@ -19,18 +19,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-
 import com.holonplatform.async.datastore.transaction.AsyncTransactionalOperation;
-import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionException;
-import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkDelete;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkInsert;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoBulkUpdate;
@@ -41,21 +34,16 @@ import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoRef
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoSave;
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpdate;
 import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
-import com.holonplatform.datastore.mongo.core.MongoDatabaseOperation;
-import com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore;
-import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
+import com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore;
 import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoDatabase;
 
 /**
  * Default {@link AsyncMongoDatastore} implementation.
  *
  * @since 5.2.0
  */
-public class DefaultAsyncMongoDatastore extends
-		AbstractMongoDatastore<AsyncMongoDatastoreCommodityContext, ClientSession, AsyncMongoTransaction, MongoDatabase>
-		implements AsyncMongoDatastore, AsyncMongoDatastoreCommodityContext {
+public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<AsyncMongoTransaction>
+		implements AsyncMongoDatastore {
 
 	private static final long serialVersionUID = 5851873626687056062L;
 
@@ -65,18 +53,10 @@ public class DefaultAsyncMongoDatastore extends
 	private static final ThreadLocal<AsyncMongoTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
 
 	/**
-	 * Mongo client
-	 */
-	private MongoClient client;
-
-	/**
 	 * Constructor.
 	 */
 	public DefaultAsyncMongoDatastore() {
-		super(AsyncMongoDatastoreCommodityFactory.class, (s, c) -> AsyncMongoTransaction.create(s, c));
-
-		// default resolvers
-		addExpressionResolvers(MongoExpressionResolver.getDefaultResolvers());
+		super((s, c) -> AsyncMongoTransaction.create(s, c));
 
 		// register operation commodities
 		registerCommodity(AsyncMongoRefresh.FACTORY);
@@ -88,107 +68,6 @@ public class DefaultAsyncMongoDatastore extends
 		registerCommodity(AsyncMongoBulkInsert.FACTORY);
 		registerCommodity(AsyncMongoBulkUpdate.FACTORY);
 		registerCommodity(AsyncMongoQuery.FACTORY);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync()
-	 */
-	@Override
-	public boolean isAsync() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
-	 */
-	@Override
-	public Optional<ClientSession> getClientSession() {
-		return getCurrentTransaction().map(tx -> tx.getSession());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
-	 */
-	@Override
-	public CodecRegistry getDatabaseCodecRegistry() {
-		return checkClient().getDatabase(checkDatabaseName()).getCodecRegistry();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.AbstractDatastore#getCommodityContext()
-	 */
-	@Override
-	protected AsyncMongoDatastoreCommodityContext getCommodityContext() throws CommodityConfigurationException {
-		return this;
-	}
-
-	/**
-	 * Set the MongoDB client to use.
-	 * @param client the client to set
-	 */
-	public void setClient(MongoClient client) {
-		this.client = client;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext#getClient()
-	 */
-	@Override
-	public MongoClient getClient() {
-		return client;
-	}
-
-	/**
-	 * Check the client is available and returns it.
-	 * <p>
-	 * If the client is not available, an {@link IllegalStateException} is thrown.
-	 * </p>
-	 * @return The client
-	 */
-	protected MongoClient checkClient() {
-		MongoClient client = getClient();
-		if (client == null) {
-			throw new IllegalStateException("No MongoClient configured");
-		}
-		return client;
-	}
-
-	/**
-	 * Configure the {@link MongoDatabase}, registering the additional codecs if configured.
-	 * @param database The database to configure
-	 * @return The configured database
-	 */
-	protected MongoDatabase checkAdditionalCodecs(MongoDatabase database) {
-		return getAdditionalCodecRegistry()
-				.map(r -> database.withCodecRegistry(CodecRegistries.fromRegistries(database.getCodecRegistry(), r)))
-				.orElse(database);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.MongoDatabaseHandler#withDatabase(com.holonplatform.datastore.mongo.core.
-	 * MongoDatabaseOperation)
-	 */
-	@Override
-	public <R> R withDatabase(MongoDatabaseOperation<MongoDatabase, R> operation) {
-		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
-
-		// get and configure the database
-		final MongoDatabase database = checkAdditionalCodecs(checkClient().getDatabase(checkDatabaseName()));
-
-		try {
-			return operation.execute(database);
-		} catch (DataAccessException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new DataAccessException("Failed to execute operation", e);
-		}
 	}
 
 	/*
@@ -227,13 +106,6 @@ public class DefaultAsyncMongoDatastore extends
 					// return the result
 					return result.getResult();
 				});
-
-		/*
-		 * try { // execute operation return operation.execute(tx); } catch (Exception e) { // check rollback
-		 * transaction if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) { tx.setRollbackOnly(); }
-		 * throw e; } finally { try { endTransaction(tx); } catch (Exception e) { throw new
-		 * DataAccessException("Failed to finalize transaction", e); } }
-		 */
 	}
 
 	private static final class TransactionalOperationResult<R> {
@@ -344,7 +216,6 @@ public class DefaultAsyncMongoDatastore extends
 	 * @return A {@link CompletionStage} to handle the operation outcome, with result value <code>true</code> if the
 	 *         transaction was actually finalized
 	 */
-	@SuppressWarnings("static-method")
 	private CompletionStage<Boolean> endTransaction(AsyncMongoTransaction tx) throws TransactionException {
 		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
 
@@ -380,11 +251,12 @@ public class DefaultAsyncMongoDatastore extends
 		return CompletableFuture.completedFuture(Boolean.TRUE);
 	}
 
-	/**
-	 * Get the current transaction, if active.
-	 * @return Optional current transaction
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore#getCurrentTransaction()
 	 */
-	private static Optional<AsyncMongoTransaction> getCurrentTransaction() {
+	@Override
+	protected Optional<AsyncMongoTransaction> getCurrentTransaction() {
 		return Optional.ofNullable(CURRENT_TRANSACTION.get());
 	}
 
@@ -413,7 +285,7 @@ public class DefaultAsyncMongoDatastore extends
 	// ------- Builder
 
 	public static class DefaultBuilder extends
-			AbstractMongoDatastore.AbstractBuilder<MongoDatabase, AsyncMongoDatastoreCommodityContext, ClientSession, AsyncMongoTransaction, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
+			AbstractAsyncMongoDatastore.AsyncBuilder<AsyncMongoTransaction, DefaultAsyncMongoDatastore, AsyncMongoDatastore, AsyncMongoDatastore.Builder>
 			implements AsyncMongoDatastore.Builder {
 
 		public DefaultBuilder() {
@@ -422,26 +294,6 @@ public class DefaultAsyncMongoDatastore extends
 
 		@Override
 		protected AsyncMongoDatastore.Builder getActualBuilder() {
-			return this;
-		}
-
-		@Override
-		public AsyncMongoDatastore.Builder client(MongoClient client) {
-			ObjectUtils.argumentNotNull(client, "MongoClient must be not null");
-			getDatastore().setClient(client);
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.mongo.async.AsyncMongoDatastore.Builder#withCommodity(com.holonplatform.datastore
-		 * .mongo.async.config.AsyncMongoDatastoreCommodityFactory)
-		 */
-		@Override
-		public <C extends DatastoreCommodity> Builder withCommodity(
-				AsyncMongoDatastoreCommodityFactory<C> commodityFactory) {
-			getDatastore().registerCommodity(commodityFactory);
 			return this;
 		}
 

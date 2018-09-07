@@ -55,10 +55,10 @@
 			<artifactId>holon-async-datastore</artifactId>
 		</dependency>
 
-		<!-- MongoDB Datastore core -->
+		<!-- MongoDB Datastore async core -->
 		<dependency>
 			<groupId>com.holon-platform.mongo</groupId>
-			<artifactId>holon-datastore-mongo-core</artifactId>
+			<artifactId>holon-datastore-mongo-core-async</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

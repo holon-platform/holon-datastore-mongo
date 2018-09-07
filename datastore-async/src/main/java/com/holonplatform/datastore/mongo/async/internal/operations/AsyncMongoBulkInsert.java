@@ -33,9 +33,9 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkInsertOperationConfiguration;
 import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.AsyncMultiPropertyBoxOperationResultContext;
+import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.async.config;
+package com.holonplatform.datastore.mongo.core.async.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityContext;

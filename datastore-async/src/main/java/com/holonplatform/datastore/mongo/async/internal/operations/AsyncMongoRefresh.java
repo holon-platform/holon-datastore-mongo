@@ -30,9 +30,9 @@ import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationCo
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.async.internal.support.AsyncPropertyBoxOperationResultContext;
+import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;

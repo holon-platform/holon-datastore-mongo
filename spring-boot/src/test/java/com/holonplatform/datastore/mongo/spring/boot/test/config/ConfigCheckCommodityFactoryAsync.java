@@ -16,8 +16,8 @@
 package com.holonplatform.datastore.mongo.spring.boot.test.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityContext;
-import com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory;
+import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.spring.DatastoreCommodityFactory;
 
 @DatastoreCommodityFactory

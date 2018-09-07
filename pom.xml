@@ -79,6 +79,7 @@
 
 	<modules>
 		<module>core</module>
+		<module>core-async</module>
 		<module>datastore-sync</module>
 		<module>datastore-async</module>
 		<module>datastore-reactor</module>

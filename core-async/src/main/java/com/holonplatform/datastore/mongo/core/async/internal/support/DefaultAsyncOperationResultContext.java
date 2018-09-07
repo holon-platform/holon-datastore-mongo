@@ -16,6 +16,7 @@
 package com.holonplatform.datastore.mongo.core.async.internal.support;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
@@ -32,53 +33,23 @@ import com.mongodb.async.client.MongoCollection;
  * @since 5.2.0
  */
 public class DefaultAsyncOperationResultContext<C extends MongoContext<ClientSession>>
-		implements AsyncOperationResultContext<C> {
+		extends DefaultAsyncOperationContext<C> implements AsyncOperationResultContext<C> {
 
-	private final C context;
-	private final MongoCollection<Document> collection;
-	private final DatastoreOperationConfiguration configuration;
 	private final long affectedCount;
 	private final OperationType operationType;
 
 	public DefaultAsyncOperationResultContext(C mongoContext, MongoCollection<Document> collection,
 			DatastoreOperationConfiguration configuration, long affectedCount, OperationType operationType) {
-		super();
-		ObjectUtils.argumentNotNull(mongoContext, "MongoContext must be not null");
-		ObjectUtils.argumentNotNull(collection, "Collection must be not null");
-		ObjectUtils.argumentNotNull(configuration, "Operation configuration must be not null");
+		this(mongoContext, collection, configuration, null, affectedCount, operationType);
+	}
+
+	public DefaultAsyncOperationResultContext(C mongoContext, MongoCollection<Document> collection,
+			DatastoreOperationConfiguration configuration, Bson filter, long affectedCount,
+			OperationType operationType) {
+		super(mongoContext, collection, configuration, filter);
 		ObjectUtils.argumentNotNull(operationType, "OperationType must be not null");
-		this.context = mongoContext;
-		this.collection = collection;
-		this.configuration = configuration;
 		this.affectedCount = affectedCount;
 		this.operationType = operationType;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext#getMongoContext()
-	 */
-	@Override
-	public C getContext() {
-		return context;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext#getCollection()
-	 */
-	@Override
-	public MongoCollection<Document> getCollection() {
-		return collection;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext#getConfiguration()
-	 */
-	@Override
-	public DatastoreOperationConfiguration getConfiguration() {
-		return configuration;
 	}
 
 	/*

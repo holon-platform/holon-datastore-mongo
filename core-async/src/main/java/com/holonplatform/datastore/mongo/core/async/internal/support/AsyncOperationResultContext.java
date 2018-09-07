@@ -15,9 +15,6 @@
  */
 package com.holonplatform.datastore.mongo.core.async.internal.support;
 
-import java.util.List;
-import java.util.function.Supplier;
-
 import org.bson.Document;
 
 import com.holonplatform.core.datastore.Datastore.OperationType;
@@ -33,25 +30,7 @@ import com.mongodb.async.client.MongoCollection;
  *
  * @since 5.2.0
  */
-public interface AsyncOperationResultContext<C extends MongoContext<ClientSession>> {
-
-	/**
-	 * Get the related {@link MongoContext}.
-	 * @return The Mongo context
-	 */
-	C getContext();
-
-	/**
-	 * Get the collection.
-	 * @return The collection
-	 */
-	MongoCollection<Document> getCollection();
-
-	/**
-	 * Get the operation configuration.
-	 * @return Operation configuration
-	 */
-	DatastoreOperationConfiguration getConfiguration();
+public interface AsyncOperationResultContext<C extends MongoContext<ClientSession>> extends AsyncOperationContext<C> {
 
 	/**
 	 * Get the elements affected by the operation execution.
@@ -64,46 +43,6 @@ public interface AsyncOperationResultContext<C extends MongoContext<ClientSessio
 	 * @return Operation type
 	 */
 	OperationType getOperationType();
-
-	/**
-	 * Trace given JSON expression.
-	 * <p>
-	 * If tracing is enabled, the JSON expression is logged using the <code>INFO</code> level, otherwise it is logged
-	 * using the <code>DEBUG</code> level.
-	 * </p>
-	 * @param title Optional title
-	 * @param json JSON to trace
-	 */
-	default void trace(String title, Supplier<String> json) {
-		getContext().trace(title, json);
-	}
-
-	/**
-	 * Trace given JSON expression.
-	 * @param title Optional title
-	 * @param json JSON to trace
-	 */
-	default void trace(String title, String json) {
-		getContext().trace(title, json);
-	}
-
-	/**
-	 * Trace given JSON Document.
-	 * @param title Optional title
-	 * @param document Document to trace
-	 */
-	default void trace(String title, Document document) {
-		getContext().trace(title, document);
-	}
-
-	/**
-	 * Trace given JSON Documents.
-	 * @param title Optional title
-	 * @param documents Documents to trace
-	 */
-	default void trace(String title, List<Document> documents) {
-		getContext().trace(title, documents);
-	}
 
 	static <C extends MongoContext<ClientSession>> AsyncOperationResultContext<C> create(C mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,

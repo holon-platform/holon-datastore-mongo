@@ -22,6 +22,7 @@ import com.holonplatform.core.datastore.transaction.TransactionStatus.Transactio
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore;
+import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoBulkDelete;
 import com.holonplatform.datastore.mongo.reactor.tx.ReactiveMongoTransaction;
 import com.holonplatform.reactor.datastore.transaction.ReactiveTransactionalOperation;
 import com.mongodb.async.client.ClientSession;
@@ -54,7 +55,7 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 		// registerCommodity(AsyncMongoUpdate.FACTORY);
 		// registerCommodity(AsyncMongoSave.FACTORY);
 		// registerCommodity(AsyncMongoDelete.FACTORY);
-		// registerCommodity(AsyncMongoBulkDelete.FACTORY);
+		registerCommodity(ReactiveMongoBulkDelete.FACTORY);
 		// registerCommodity(AsyncMongoBulkInsert.FACTORY);
 		// registerCommodity(AsyncMongoBulkUpdate.FACTORY);
 		// registerCommodity(AsyncMongoQuery.FACTORY);

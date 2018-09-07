@@ -26,9 +26,9 @@ import java.util.stream.Stream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import com.holonplatform.async.datastore.internal.operation.AsyncQueryAdapterQuery;
 import com.holonplatform.async.datastore.operation.AsyncQuery;
 import com.holonplatform.async.datastore.operation.AsyncQueryAdapter;
-import com.holonplatform.async.internal.datastore.operation.AsyncQueryAdapterQuery;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.query.QueryDefinition;

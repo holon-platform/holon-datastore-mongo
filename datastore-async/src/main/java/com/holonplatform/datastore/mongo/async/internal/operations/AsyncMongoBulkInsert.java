@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.holonplatform.async.datastore.internal.operation.AbstractAsyncBulkInsert;
 import com.holonplatform.async.datastore.operation.AsyncBulkInsert;
-import com.holonplatform.async.internal.datastore.operation.AbstractAsyncBulkInsert;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;

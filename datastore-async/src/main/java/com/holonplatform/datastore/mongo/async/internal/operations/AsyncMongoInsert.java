@@ -22,8 +22,8 @@ import java.util.concurrent.CompletionStage;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.holonplatform.async.datastore.internal.operation.AbstractAsyncInsert;
 import com.holonplatform.async.datastore.operation.AsyncInsert;
-import com.holonplatform.async.internal.datastore.operation.AbstractAsyncInsert;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;

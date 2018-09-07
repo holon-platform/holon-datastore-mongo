@@ -21,8 +21,8 @@ import java.util.concurrent.CompletionStage;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.holonplatform.async.datastore.internal.operation.AbstractAsyncDelete;
 import com.holonplatform.async.datastore.operation.AsyncDelete;
-import com.holonplatform.async.internal.datastore.operation.AbstractAsyncDelete;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;

@@ -23,8 +23,8 @@ import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.holonplatform.async.datastore.internal.operation.AbstractAsyncSave;
 import com.holonplatform.async.datastore.operation.AsyncSave;
-import com.holonplatform.async.internal.datastore.operation.AbstractAsyncSave;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;

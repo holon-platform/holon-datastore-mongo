@@ -181,4 +181,36 @@
 		</plugins>
 	</build>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- MongoDB core Java driver -->
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-core</artifactId>
+				<version>${mongo.driver.core.version}</version>
+			</dependency>
+
+			<!-- MongoDB synchronous Java driver -->
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-sync</artifactId>
+				<version>${mongo.driver.sync.version}</version>
+			</dependency>
+
+			<!-- MongoDB asynchronous Java driver -->
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-async</artifactId>
+				<version>${mongo.driver.async.version}</version>
+			</dependency>
+
+			<!-- MongoDB driver uber jar -->
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongo-java-driver</artifactId>
+				<version>${mongo.driver.sync.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 </project>

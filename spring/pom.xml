@@ -58,7 +58,6 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-core</artifactId>
-			<version>${mongo.driver.core.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -96,20 +95,18 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- MongoDB synchronous Java driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
-			<version>${mongo.driver.sync.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- MongoDB asynchronous Java driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-async</artifactId>
-			<version>${mongo.driver.async.version}</version>
 			<scope>test</scope>
 		</dependency>
 

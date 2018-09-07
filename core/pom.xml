@@ -42,7 +42,6 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-core</artifactId>
-			<version>${mongo.driver.core.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

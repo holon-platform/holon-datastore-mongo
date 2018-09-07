@@ -29,9 +29,9 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkDeleteOperationConfiguration;
-import com.holonplatform.datastore.mongo.async.internal.configurator.AsyncMongoCollectionConfigurator;
-import com.holonplatform.datastore.mongo.async.internal.support.AsyncOperationResultContext;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
+import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncOperationResultContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
@@ -103,9 +103,6 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 						configuration);
 			});
 
-			// trace
-			context.trace("Delete documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
-
 			// prepare
 			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
 
@@ -116,6 +113,10 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 							if (error != null) {
 								operation.completeExceptionally(error);
 							} else {
+								
+								// trace
+								context.trace("Deleted documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+								
 								operation.complete(AsyncOperationResultContext.create(context, collection,
 										configuration, result.getDeletedCount(), OperationType.DELETE));
 							}
@@ -126,6 +127,9 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 							if (error != null) {
 								operation.completeExceptionally(error);
 							} else {
+								// trace
+								context.trace("Deleted documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+								
 								operation.complete(AsyncOperationResultContext.create(context, collection,
 										configuration, result.getDeletedCount(), OperationType.DELETE));
 							}

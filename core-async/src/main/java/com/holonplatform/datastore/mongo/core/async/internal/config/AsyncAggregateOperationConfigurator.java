@@ -13,40 +13,28 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.async.internal.configurator;
+package com.holonplatform.datastore.mongo.core.async.internal.config;
 
 import java.util.concurrent.TimeUnit;
 
 import org.bson.conversions.Bson;
 
-import com.holonplatform.datastore.mongo.core.internal.operation.DistinctOperationConfigurator;
-import com.mongodb.async.client.DistinctIterable;
+import com.holonplatform.datastore.mongo.core.internal.operation.AggregateOperationConfigurator;
+import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.client.model.Collation;
 
 /**
- * Default {@link DistinctOperationConfigurator} implementation.
+ * Default {@link AggregateOperationConfigurator} implementation.
  *
  * @since 5.2.0
  */
-public class AsyncDistinctOperationConfigurator implements DistinctOperationConfigurator {
+public class AsyncAggregateOperationConfigurator implements AggregateOperationConfigurator {
 
-	private final DistinctIterable<?> iterable;
+	private final AggregateIterable<?> iterable;
 
-	public AsyncDistinctOperationConfigurator(DistinctIterable<?> iterable) {
+	public AsyncAggregateOperationConfigurator(AggregateIterable<?> iterable) {
 		super();
 		this.iterable = iterable;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.internal.operation.QueryOperationConfigurator#filter(org.bson.conversions.
-	 * Bson)
-	 */
-	@Override
-	public DistinctOperationConfigurator filter(Bson filter) {
-		iterable.filter(filter);
-		return this;
 	}
 
 	/*
@@ -55,7 +43,7 @@ public class AsyncDistinctOperationConfigurator implements DistinctOperationConf
 	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public DistinctOperationConfigurator maxTime(long maxTime, TimeUnit timeUnit) {
+	public AggregateOperationConfigurator maxTime(long maxTime, TimeUnit timeUnit) {
 		iterable.maxTime(maxTime, timeUnit);
 		return this;
 	}
@@ -65,7 +53,7 @@ public class AsyncDistinctOperationConfigurator implements DistinctOperationConf
 	 * @see com.holonplatform.datastore.mongo.core.internal.operation.QueryOperationConfigurator#batchSize(int)
 	 */
 	@Override
-	public DistinctOperationConfigurator batchSize(int batchSize) {
+	public AggregateOperationConfigurator batchSize(int batchSize) {
 		iterable.batchSize(batchSize);
 		return this;
 	}
@@ -77,8 +65,31 @@ public class AsyncDistinctOperationConfigurator implements DistinctOperationConf
 	 * .model.Collation)
 	 */
 	@Override
-	public DistinctOperationConfigurator collation(Collation collation) {
+	public AggregateOperationConfigurator collation(Collation collation) {
 		iterable.collation(collation);
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator#comment(java.lang.String)
+	 */
+	@Override
+	public AggregateOperationConfigurator comment(String comment) {
+		iterable.comment(comment);
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator#hint(org.bson.conversions.
+	 * Bson)
+	 */
+	@Override
+	public AggregateOperationConfigurator hint(Bson hint) {
+		iterable.hint(hint);
 		return this;
 	}
 

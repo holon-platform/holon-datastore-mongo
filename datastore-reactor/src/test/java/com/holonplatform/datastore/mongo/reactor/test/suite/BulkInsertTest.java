@@ -37,7 +37,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testBulkInsert() {
 
-		Flux<Long> op = getDatastore().bulkInsert(TARGET, SET1).add(PropertyBox.builder(SET1).set(STR, "bkiv1").build())
+		final Flux<Long> op = getDatastore().bulkInsert(TARGET, SET1).add(PropertyBox.builder(SET1).set(STR, "bkiv1").build())
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv2").build())
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv3").build()).execute().map(r -> r.getAffectedCount())
 				// count
@@ -69,7 +69,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 		final PropertyBox v2 = PropertyBox.builder(SET1).set(STR, "bkiv11").build();
 		final PropertyBox v3 = PropertyBox.builder(SET1).set(STR, "bkiv12").build();
 
-		Flux<Long> op = getDatastore().bulkInsert(TARGET, SET1, DefaultWriteOption.BRING_BACK_GENERATED_IDS).add(v1)
+		final Flux<Long> op = getDatastore().bulkInsert(TARGET, SET1, DefaultWriteOption.BRING_BACK_GENERATED_IDS).add(v1)
 				.add(v2).add(v3).execute().map(r -> r.getAffectedCount())
 				.concatWith(getDatastore().delete(TARGET, v1).map(r -> r.getAffectedCount()))
 				.concatWith(getDatastore().delete(TARGET, v2).map(r -> r.getAffectedCount()))
@@ -86,7 +86,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testBulkInsertOptions() {
 
-		Flux<Long> op = getDatastore()
+		final Flux<Long> op = getDatastore()
 				.bulkInsert(TARGET, SET1, DocumentWriteOption.BYPASS_VALIDATION, DocumentWriteOption.UNORDERED)
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv20").build())
 				.add(PropertyBox.builder(SET1).set(STR, "bkiv21").build()).execute().map(r -> r.getAffectedCount())
@@ -100,7 +100,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testUpdateIdPropertyValue() {
 
-		Flux<Long> op = getDatastore().bulkInsert(TARGET, SET4)
+		final Flux<Long> op = getDatastore().bulkInsert(TARGET, SET4)
 				.add(PropertyBox.builder(SET4).set(STR, "ubkiv200").build())
 				.add(PropertyBox.builder(SET4).set(STR, "ubkiv201").build()).execute().map(r -> r.getAffectedCount())
 				.concatWith(getDatastore().query(TARGET).filter(STR.in("ubkiv200", "ubkiv201")).list(ID4)

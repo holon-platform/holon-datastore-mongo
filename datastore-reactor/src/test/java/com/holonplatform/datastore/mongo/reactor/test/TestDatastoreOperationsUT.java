@@ -20,13 +20,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 import com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore;
+import com.holonplatform.datastore.mongo.reactor.test.suite.AggregationFunctionsTest;
+import com.holonplatform.datastore.mongo.reactor.test.suite.BulkDeleteTest;
 import com.holonplatform.datastore.mongo.reactor.test.suite.BulkInsertTest;
+import com.holonplatform.datastore.mongo.reactor.test.suite.BulkUpdateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ /*InsertTest.class, UpdateTest.class, SaveTest.class, RefreshTest.class, DeleteTest.class,*/
-		BulkInsertTest.class /*, BulkDeleteTest.class, BulkUpdateTest.class, QueryProjectionTest.class,
+		BulkInsertTest.class, BulkDeleteTest.class, BulkUpdateTest.class /*, QueryProjectionTest.class,
 		QueryAggregationTest.class, QueryRestrictionTest.class, QuerySortTest.class, QueryFilterTest.class,
-		StringFunctionsTest.class, TemporalFunctionsTest.class, AggregationFunctionsTest.class, DistinctTest.class,
+		StringFunctionsTest.class, TemporalFunctionsTest.class*/, AggregationFunctionsTest.class /*, DistinctTest.class,
 		CustomExpressionsTest.class */ })
 public class TestDatastoreOperationsUT extends AbstractMongoDBTest {
 

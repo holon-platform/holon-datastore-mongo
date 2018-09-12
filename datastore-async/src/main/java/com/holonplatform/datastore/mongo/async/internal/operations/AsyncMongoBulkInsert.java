@@ -45,6 +45,7 @@ import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.UpdateResult;
 
 /**
  * Mongo {@link AsyncBulkInsert} implementation.
@@ -147,27 +148,20 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 
 			// join the future
 			return operation.join();
-		}).thenApply(context -> {
-
-			// trace
-			context.trace("Inserted documents",
-					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
-
-			final OperationResult result = OperationResult.builder().type(OperationType.INSERT)
-					.affectedCount(context.getAffectedCount()).build();
+		}).thenCompose(context -> {
 
 			// check inserted keys
 			List<ObjectId> insertedIds = MongoOperations.checkInsertedKeys(context.getContext(),
 					context.getConfiguration(), context.getValues());
 
 			// check if the identifier property has to be updated with the document ids values
-			List<CompletableFuture<OperationResult>> operations = new ArrayList<>(insertedIds.size());
+			List<CompletableFuture<UpdateResult>> operations = new ArrayList<>(insertedIds.size());
 			if (!insertedIds.isEmpty()) {
 				MongoOperations.getPropertyDocumentIdFieldName(context.getContext()).ifPresent(fieldName -> {
 					for (ObjectId insertedId : insertedIds) {
 						MongoOperations.getIdUpdateDocument(context.getContext(), insertedId, fieldName)
 								.ifPresent(toUpdate -> {
-									final CompletableFuture<OperationResult> updateOperation = new CompletableFuture<>();
+									final CompletableFuture<UpdateResult> updateOperation = new CompletableFuture<>();
 									context.getCollection().updateOne(Filters.eq(insertedId),
 											toUpdate.getUpdateDocument(), (ur, error) -> {
 												if (error != null) {
@@ -175,7 +169,7 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 												} else {
 													context.trace("Updated identifier property value",
 															toUpdate.getUpdateDocument());
-													updateOperation.complete(result);
+													updateOperation.complete(ur);
 												}
 											});
 								});
@@ -184,11 +178,18 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 			}
 
 			if (!operations.isEmpty()) {
-				CompletableFuture.allOf(operations.toArray(new CompletableFuture[operations.size()])).join();
+				return CompletableFuture.allOf(operations.toArray(new CompletableFuture[operations.size()]))
+						.thenApply(x -> context);
 			}
+			return CompletableFuture.completedFuture(context);
+		}).thenApply(context -> {
 
-			// result
-			return result;
+			// trace
+			context.trace("Inserted documents",
+					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
+
+			return OperationResult.builder().type(OperationType.INSERT).affectedCount(context.getAffectedCount())
+					.build();
 		});
 	}
 

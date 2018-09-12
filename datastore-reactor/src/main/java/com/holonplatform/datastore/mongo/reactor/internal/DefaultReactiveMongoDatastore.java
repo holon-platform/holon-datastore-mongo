@@ -23,6 +23,10 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore;
 import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoBulkDelete;
+import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoBulkInsert;
+import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoBulkUpdate;
+import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoDelete;
+import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoQuery;
 import com.holonplatform.datastore.mongo.reactor.tx.ReactiveMongoTransaction;
 import com.holonplatform.reactor.datastore.transaction.ReactiveTransactionalOperation;
 import com.mongodb.async.client.ClientSession;
@@ -54,11 +58,11 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 		// registerCommodity(AsyncMongoInsert.FACTORY);
 		// registerCommodity(AsyncMongoUpdate.FACTORY);
 		// registerCommodity(AsyncMongoSave.FACTORY);
-		// registerCommodity(AsyncMongoDelete.FACTORY);
+		registerCommodity(ReactiveMongoDelete.FACTORY);
 		registerCommodity(ReactiveMongoBulkDelete.FACTORY);
-		// registerCommodity(AsyncMongoBulkInsert.FACTORY);
-		// registerCommodity(AsyncMongoBulkUpdate.FACTORY);
-		// registerCommodity(AsyncMongoQuery.FACTORY);
+		registerCommodity(ReactiveMongoBulkInsert.FACTORY);
+		registerCommodity(ReactiveMongoBulkUpdate.FACTORY);
+		registerCommodity(ReactiveMongoQuery.FACTORY);
 	}
 
 	/*

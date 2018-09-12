@@ -96,6 +96,8 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 				.thenAccept(codes -> {
 					assertNotNull(codes);
 					assertEquals(2, codes.size());
+					assertNotNull(codes.get(0));
+					assertNotNull(codes.get(1));
 				}).thenCompose(r -> getDatastore().bulkDelete(TARGET).filter(STR.eq("ubkiv200").or(STR.eq("ubkiv201")))
 						.execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();

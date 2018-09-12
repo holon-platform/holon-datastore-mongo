@@ -34,25 +34,13 @@ import com.mongodb.async.client.MongoCollection;
  * @since 5.2.0
  */
 public interface AsyncPropertyBoxOperationResultContext
-		extends AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
-
-	/**
-	 * Get the {@link PropertyBox} value.
-	 * @return The value
-	 */
-	PropertyBox getValue();
+		extends AsyncPropertyBoxOperationContext, AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
 
 	/**
 	 * Get the {@link Document} which represents the value, if available.
 	 * @return Optional document
 	 */
 	Optional<Document> getDocument();
-
-	/**
-	 * Get the document id, if available.
-	 * @return Optional document id
-	 */
-	Optional<ObjectId> getDocumentId();
 
 	/**
 	 * If the performed operation was an upsert, returns the upserted document id.

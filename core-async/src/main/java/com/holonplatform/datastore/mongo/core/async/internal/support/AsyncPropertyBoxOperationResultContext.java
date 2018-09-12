@@ -37,24 +37,10 @@ public interface AsyncPropertyBoxOperationResultContext
 		extends AsyncPropertyBoxOperationContext, AsyncOperationResultContext<MongoDocumentContext<ClientSession>> {
 
 	/**
-	 * Get the {@link Document} which represents the value, if available.
-	 * @return Optional document
-	 */
-	Optional<Document> getDocument();
-
-	/**
 	 * If the performed operation was an upsert, returns the upserted document id.
 	 * @return Optional upserted document id
 	 */
 	Optional<BsonValue> getUpsertedId();
-
-	/**
-	 * Get the {@link Document} which represents the value, throwing an {@link IllegalStateException} if not available.
-	 * @return The Document
-	 */
-	default Document requireDocument() {
-		return getDocument().orElseThrow(() -> new IllegalStateException("Document is not available"));
-	}
 
 	static AsyncPropertyBoxOperationResultContext create(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, long affectedCount,

@@ -47,10 +47,39 @@ public interface AsyncPropertyBoxOperationContext extends AsyncOperationContext<
 	 */
 	Optional<ObjectId> getDocumentId();
 
+	/**
+	 * Get the {@link Document} which represents the value, if available.
+	 * @return Optional document
+	 */
+	Optional<Document> getDocument();
+
+	/**
+	 * Get the {@link Document} which represents the value, throwing an {@link IllegalStateException} if not available.
+	 * @return The Document
+	 */
+	default Document requireDocument() {
+		return getDocument().orElseThrow(() -> new IllegalStateException("Document is not available"));
+	}
+
 	static AsyncPropertyBoxOperationContext create(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, PropertyBox value,
 			ObjectId documentId) {
-		return new DefaultAsyncPropertyBoxOperationContext(mongoContext, collection, configuration, value, documentId);
+		return new DefaultAsyncPropertyBoxOperationContext(mongoContext, collection, configuration, value, documentId,
+				null);
+	}
+
+	static AsyncPropertyBoxOperationContext create(MongoDocumentContext<ClientSession> mongoContext,
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, PropertyBox value,
+			Document document) {
+		return new DefaultAsyncPropertyBoxOperationContext(mongoContext, collection, configuration, value, null,
+				document);
+	}
+
+	static AsyncPropertyBoxOperationContext create(MongoDocumentContext<ClientSession> mongoContext,
+			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, PropertyBox value,
+			ObjectId documentId, Document document) {
+		return new DefaultAsyncPropertyBoxOperationContext(mongoContext, collection, configuration, value, documentId,
+				document);
 	}
 
 }

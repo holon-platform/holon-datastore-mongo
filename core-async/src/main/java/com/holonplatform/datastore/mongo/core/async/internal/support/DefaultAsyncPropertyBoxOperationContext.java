@@ -37,14 +37,16 @@ public class DefaultAsyncPropertyBoxOperationContext extends
 
 	private final PropertyBox value;
 	private final ObjectId documentId;
+	private final Document document;
 
 	public DefaultAsyncPropertyBoxOperationContext(MongoDocumentContext<ClientSession> mongoContext,
 			MongoCollection<Document> collection, DatastoreOperationConfiguration configuration, PropertyBox value,
-			ObjectId documentId) {
+			ObjectId documentId, Document document) {
 		super(mongoContext, collection, configuration, null);
 		ObjectUtils.argumentNotNull(value, "PropertyBox value must be not null");
 		this.value = value;
 		this.documentId = documentId;
+		this.document = document;
 	}
 
 	@Override
@@ -55,6 +57,15 @@ public class DefaultAsyncPropertyBoxOperationContext extends
 	@Override
 	public Optional<ObjectId> getDocumentId() {
 		return Optional.ofNullable(documentId);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.async.internal.support.AsyncPropertyBoxOperationContext#getDocument()
+	 */
+	@Override
+	public Optional<Document> getDocument() {
+		return Optional.ofNullable(document);
 	}
 
 }

@@ -23,6 +23,7 @@
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-starter</artifactId>
+			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- Holon MongoDB Reactor Datastore -->
@@ -43,6 +44,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-async</artifactId>
+			<version>${mongo.driver.async.version}</version>
 		</dependency>
 
 	</dependencies>

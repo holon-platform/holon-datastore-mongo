@@ -23,18 +23,21 @@
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-core</artifactId>
+			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- JSON -->
 		<dependency>
 			<groupId>com.holon-platform.json</groupId>
 			<artifactId>holon-json</artifactId>
+			<version>${holon.json.version}</version>
 		</dependency>
 
 		<!-- MongoDB core Java driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-core</artifactId>
+			<version>${mongo.driver.core.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

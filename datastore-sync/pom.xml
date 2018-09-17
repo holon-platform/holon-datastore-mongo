@@ -60,6 +60,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
+			<version>${mongo.driver.sync.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -87,6 +88,7 @@
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>${embed.mongo.version}</version>
 			<scope>test</scope>
 		</dependency>
 

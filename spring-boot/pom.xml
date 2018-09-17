@@ -17,12 +17,26 @@
 
 	<url>https://holon-platform.com</url>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- Holon core platform -->
+			<dependency>
+				<groupId>com.holon-platform.core</groupId>
+				<artifactId>holon-bom-platform</artifactId>
+				<version>${holon.core.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 
 		<!-- Spring Boot integration -->
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-spring-boot</artifactId>
+			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- MongoDB Datastore Spring -->
@@ -36,6 +50,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-core</artifactId>
+			<version>${mongo.driver.core.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -43,6 +58,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
+			<version>${mongo.driver.sync.version}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -50,6 +66,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-async</artifactId>
+			<version>${mongo.driver.async.version}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -83,6 +100,7 @@
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>${embed.mongo.version}</version>
 			<scope>test</scope>
 		</dependency>
 

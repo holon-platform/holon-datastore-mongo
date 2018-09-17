@@ -23,6 +23,7 @@
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-starter</artifactId>
+			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- Holon MongoDB Datastore Spring Boot integration -->
@@ -36,6 +37,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongo.driver.sync.version}</version>
 		</dependency>
 
 	</dependencies>

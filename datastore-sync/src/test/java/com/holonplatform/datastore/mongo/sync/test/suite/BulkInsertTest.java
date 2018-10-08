@@ -15,9 +15,11 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID4;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET4;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -100,6 +102,8 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 		List<String> codes = getDatastore().query(TARGET).filter(STR.in("ubkiv200", "ubkiv201")).list(ID4);
 		assertNotNull(codes);
 		assertEquals(2, codes.size());
+		assertNotNull(codes.get(0));
+		assertNotNull(codes.get(1));
 
 		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("ubkiv200").or(STR.eq("ubkiv201"))).execute();
 		assertEquals(2, result.getAffectedCount());

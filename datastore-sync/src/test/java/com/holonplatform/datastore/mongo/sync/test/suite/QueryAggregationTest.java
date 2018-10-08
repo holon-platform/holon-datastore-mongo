@@ -15,9 +15,10 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.*;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

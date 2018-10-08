@@ -15,19 +15,19 @@
  */
 package com.holonplatform.datastore.mongo.reactor.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.DAT;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LDAT;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTM;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTMS;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.test.data.TestValues;
+import com.holonplatform.datastore.mongo.reactor.test.data.TestValues;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;

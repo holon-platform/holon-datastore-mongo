@@ -15,17 +15,17 @@
  */
 package com.holonplatform.datastore.mongo.async.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR2;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.DAT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.DBL;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LDAT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTM;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTMS;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -40,7 +40,7 @@ import org.bson.types.ObjectId;
 import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.test.data.TestValues;
+import com.holonplatform.datastore.mongo.async.test.data.TestValues;
 
 public class QueryFilterTest extends AbstractDatastoreOperationTest {
 

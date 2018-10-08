@@ -67,10 +67,10 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.VRT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -86,8 +86,8 @@ import org.bson.Document;
 import org.bson.codecs.DocumentCodec;
 import org.bson.json.JsonWriterSettings;
 import org.bson.types.ObjectId;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
@@ -103,7 +103,7 @@ public class TestPropertyBoxDocumentResolution {
 
 	private static MongoResolutionContext<?> context;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		context = MongoResolutionContext.create(new MongoTestContext());
 		context.addExpressionResolvers(MongoExpressionResolver.getDefaultResolvers());

@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.core.test.expression;
+package com.holonplatform.datastore.mongo.sync.test.expression;
 
 import java.util.Optional;
 
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.mongo.core.test.data.ModelTest;
+import com.holonplatform.datastore.mongo.sync.test.data.ModelTest;
 
 public class IntIsFilter implements QueryFilter {
 

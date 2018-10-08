@@ -15,9 +15,9 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;

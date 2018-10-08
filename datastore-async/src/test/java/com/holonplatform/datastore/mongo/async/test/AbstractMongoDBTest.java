@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ public abstract class AbstractMongoDBTest {
 
 	private static MongoClient _mongo;
 
+	@BeforeAll
 	@BeforeClass
 	public static void setUp() throws Exception {
 
@@ -51,6 +54,7 @@ public abstract class AbstractMongoDBTest {
 				.build());
 	}
 
+	@AfterAll
 	@AfterClass
 	public static void tearDown() throws Exception {
 		_mongod.stop();

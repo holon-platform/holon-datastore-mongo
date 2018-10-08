@@ -15,15 +15,16 @@
  */
 package com.holonplatform.datastore.mongo.core.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import com.holonplatform.core.property.BooleanProperty;
 import com.holonplatform.core.property.NumericProperty;
@@ -159,27 +160,35 @@ public class TestDocumentIdResolver {
 
 	}
 
-	@Test(expected = InvalidDocumentIdentifierException.class)
+	@Test
 	public void testFailOnIdentifierType() {
 
-		final PathProperty<Date> ID = PathProperty.create(_ID, Date.class);
-		final BooleanProperty BOOL = BooleanProperty.create("bool");
+		Assertions.assertThrows(InvalidDocumentIdentifierException.class, () -> {
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+			final PathProperty<Date> ID = PathProperty.create(_ID, Date.class);
+			final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
+			final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+
+			DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
+
+		});
 
 	}
 
-	@Test(expected = InvalidDocumentIdentifierException.class)
+	@Test
 	public void testFailOnMultipleIdentifier() {
 
-		final StringProperty ID1 = StringProperty.create(_ID);
-		final NumericProperty<BigInteger> ID2 = NumericProperty.bigIntegerType(_ID);
+		Assertions.assertThrows(InvalidDocumentIdentifierException.class, () -> {
 
-		final PropertySet<?> SET = PropertySet.of(ID1, ID2);
+			final StringProperty ID1 = StringProperty.create(_ID);
+			final NumericProperty<BigInteger> ID2 = NumericProperty.bigIntegerType(_ID);
 
-		DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
+			final PropertySet<?> SET = PropertySet.of(ID1, ID2);
+
+			DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
+
+		});
 
 	}
 

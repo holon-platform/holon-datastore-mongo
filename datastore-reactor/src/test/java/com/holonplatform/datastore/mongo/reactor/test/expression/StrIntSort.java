@@ -13,10 +13,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.core.test.expression;
+package com.holonplatform.datastore.mongo.reactor.test.expression;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
 
 import java.util.Optional;
 

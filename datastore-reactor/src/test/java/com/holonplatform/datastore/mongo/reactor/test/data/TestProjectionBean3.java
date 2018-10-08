@@ -1,4 +1,4 @@
-package com.holonplatform.datastore.mongo.core.test.data;
+package com.holonplatform.datastore.mongo.reactor.test.data;
 
 import java.io.Serializable;
 

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.core.test.data;
+package com.holonplatform.datastore.mongo.reactor.test.data;
 
 public class TestNestedBean3 {
 

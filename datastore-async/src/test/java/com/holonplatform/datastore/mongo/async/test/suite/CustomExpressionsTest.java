@@ -15,20 +15,20 @@
  */
 package com.holonplatform.datastore.mongo.async.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.mongo.async.test.expression.IntIsFilter;
+import com.holonplatform.datastore.mongo.async.test.expression.StrIntSort;
 import com.holonplatform.datastore.mongo.core.BsonFilter;
 import com.holonplatform.datastore.mongo.core.BsonSort;
-import com.holonplatform.datastore.mongo.core.test.expression.IntIsFilter;
-import com.holonplatform.datastore.mongo.core.test.expression.StrIntSort;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 

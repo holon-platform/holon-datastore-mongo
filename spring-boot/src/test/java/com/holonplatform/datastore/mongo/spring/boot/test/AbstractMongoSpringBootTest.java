@@ -1,7 +1,7 @@
 package com.holonplatform.datastore.mongo.spring.boot.test;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public abstract class AbstractMongoSpringBootTest {
 	private static MongodExecutable _mongodExe;
 	private static MongodProcess _mongod;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() throws Exception {
 
 		_mongodExe = starter.prepare(new MongodConfigBuilder().version(Version.Main.PRODUCTION)
@@ -36,7 +36,7 @@ public abstract class AbstractMongoSpringBootTest {
 		_mongod = _mongodExe.start();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() throws Exception {
 		_mongod.stop();
 		_mongodExe.stop();

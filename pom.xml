@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.12</version>
+		<version>1.1.0</version>
 	</parent>
 
 	<groupId>com.holon-platform.mongo</groupId>
@@ -66,11 +66,11 @@
 		<holon.reactor.version>5.2.0-SNAPSHOT</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
-		<mongo.driver.core.version>3.8.1</mongo.driver.core.version>
+		<mongo.driver.core.version>3.8.2</mongo.driver.core.version>
 		<!-- MongoDB Java driver (synchronous) -->
-		<mongo.driver.sync.version>3.8.1</mongo.driver.sync.version>
+		<mongo.driver.sync.version>3.8.2</mongo.driver.sync.version>
 		<!-- MongoDB Java driver (asynchronous) -->
-		<mongo.driver.async.version>3.8.1</mongo.driver.async.version>
+		<mongo.driver.async.version>3.8.2</mongo.driver.async.version>
 
 		<!-- Embedded MongoDB for test -->
 		<embed.mongo.version>2.1.1</embed.mongo.version>
@@ -90,6 +90,37 @@
 		<module>bom</module>
 		<module>documentation</module>
 	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.junit.vintage</groupId>
+				<artifactId>junit-vintage-engine</artifactId>
+				<version>${junit.jupiter.engine.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<!-- JUnit 5 tests -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Logback for tests -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 

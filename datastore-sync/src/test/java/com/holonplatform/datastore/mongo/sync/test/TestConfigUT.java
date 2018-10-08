@@ -15,36 +15,27 @@
  */
 package com.holonplatform.datastore.mongo.sync.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 
 public class TestConfigUT extends AbstractMongoDBTest {
-
-	/*
-	 * @Test public void testConfig() { MongoDatabase database = getMongo().getDatabase("testdb");
-	 * MongoCollection<Document> collection = database.getCollection("test_collection"); Document doc = new
-	 * Document("name", "MongoDB") .append("type", "database") .append("count", 1) .append("versions",
-	 * Arrays.asList("v3.2", "v3.0", "v2.6")) .append("info", new Document("x", 203).append("y", 102));
-	 * collection.insertOne(doc); ObjectId oid = doc.getObjectId("_id"); System.err.println(oid);
-	 * System.err.println(oid.toHexString()); System.err.println(oid.toByteArray()); }
-	 */
 
 	@Test
 	public void testDatastoreConfig() {
 
 		final MongoDatastore ds1 = MongoDatastore.builder().build();
 
-		TestUtils.expectedException(IllegalStateException.class, () -> ds1.withDatabase(db -> {
+		assertThrows(IllegalStateException.class, () -> ds1.withDatabase(db -> {
 			db.getName();
 		}));
 
 		final MongoDatastore ds2 = MongoDatastore.builder().client(getMongo()).build();
 
-		TestUtils.expectedException(IllegalStateException.class, () -> ds2.withDatabase(db -> {
+		assertThrows(IllegalStateException.class, () -> ds2.withDatabase(db -> {
 			db.getName();
 		}));
 

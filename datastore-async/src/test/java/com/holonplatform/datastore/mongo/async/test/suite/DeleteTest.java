@@ -15,16 +15,16 @@
  */
 package com.holonplatform.datastore.mongo.async.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.test.data.TestValues;
+import com.holonplatform.datastore.mongo.async.test.data.TestValues;
 
 public class DeleteTest extends AbstractDatastoreOperationTest {
 

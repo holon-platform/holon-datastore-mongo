@@ -13,41 +13,41 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.mongo.core.test.data;
+package com.holonplatform.datastore.mongo.sync.test.data;
 
 import com.holonplatform.core.beans.DataPath;
 
-public class TestNestedBean1 {
+public class TestNestedBean2 {
 
-	private String v1;
+	private Integer v1;
 
-	@DataPath("v2")
-	private String value2;
+	private String v2;
 
-	private boolean v3;
+	@DataPath("n3")
+	private TestNestedBean3 nested;
 
-	public String getV1() {
+	public Integer getV1() {
 		return v1;
 	}
 
-	public void setV1(String v1) {
+	public void setV1(Integer v1) {
 		this.v1 = v1;
 	}
 
-	public String getValue2() {
-		return value2;
+	public String getV2() {
+		return v2;
 	}
 
-	public void setValue2(String value2) {
-		this.value2 = value2;
+	public void setV2(String v2) {
+		this.v2 = v2;
 	}
 
-	public boolean isV3() {
-		return v3;
+	public TestNestedBean3 getNested() {
+		return nested;
 	}
 
-	public void setV3(boolean v3) {
-		this.v3 = v3;
+	public void setNested(TestNestedBean3 nested) {
+		this.nested = nested;
 	}
 
 }

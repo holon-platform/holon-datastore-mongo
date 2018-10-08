@@ -15,11 +15,11 @@
  */
 package com.holonplatform.datastore.mongo.reactor.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.Test;
 
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore;
 
 public class TestConfigUT extends AbstractMongoDBTest {
@@ -29,13 +29,13 @@ public class TestConfigUT extends AbstractMongoDBTest {
 
 		final ReactiveMongoDatastore ds1 = ReactiveMongoDatastore.builder().build();
 
-		TestUtils.expectedException(IllegalStateException.class, () -> ds1.withDatabase(db -> {
+		assertThrows(IllegalStateException.class, () -> ds1.withDatabase(db -> {
 			db.getName();
 		}));
 
 		final ReactiveMongoDatastore ds2 = ReactiveMongoDatastore.builder().client(getMongo()).build();
 
-		TestUtils.expectedException(IllegalStateException.class, () -> ds2.withDatabase(db -> {
+		assertThrows(IllegalStateException.class, () -> ds2.withDatabase(db -> {
 			db.getName();
 		}));
 

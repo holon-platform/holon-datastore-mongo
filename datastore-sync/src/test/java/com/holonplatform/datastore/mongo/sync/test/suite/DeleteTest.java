@@ -15,9 +15,9 @@
  */
 package com.holonplatform.datastore.mongo.sync.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;
@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.test.data.TestValues;
+import com.holonplatform.datastore.mongo.sync.test.data.TestValues;
 
 public class DeleteTest extends AbstractDatastoreOperationTest {
 

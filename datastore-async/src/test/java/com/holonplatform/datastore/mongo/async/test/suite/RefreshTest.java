@@ -15,33 +15,33 @@
  */
 package com.holonplatform.datastore.mongo.async.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_BYT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_CHR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_ENM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.A_STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BGD;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BOOL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.BYT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_ENM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_LNG;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.C_STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.DBL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ENM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.FLT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.INT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LDAT;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LNG;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTM;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.LTMS;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.NBL;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_BYT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_CHR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_ENM;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_INT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.BGD;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.BOOL;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.BYT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.C_ENM;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.C_INT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.C_LNG;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.C_STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.DAT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.DBL;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ENM;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.FLT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LDAT;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LNG;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTM;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTMS;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.NBL;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SHR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -55,8 +55,8 @@ import org.junit.Test;
 
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.mongo.core.test.data.EnumValue;
-import com.holonplatform.datastore.mongo.core.test.data.TestValues;
+import com.holonplatform.datastore.mongo.async.test.data.EnumValue;
+import com.holonplatform.datastore.mongo.async.test.data.TestValues;
 
 public class RefreshTest extends AbstractDatastoreOperationTest {
 

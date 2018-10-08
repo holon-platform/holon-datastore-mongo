@@ -15,9 +15,9 @@
  */
 package com.holonplatform.datastore.mongo.reactor.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;

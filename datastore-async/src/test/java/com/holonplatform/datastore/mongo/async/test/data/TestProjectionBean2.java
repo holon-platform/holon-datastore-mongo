@@ -1,26 +1,26 @@
-package com.holonplatform.datastore.mongo.core.test.data;
+package com.holonplatform.datastore.mongo.async.test.data;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import com.holonplatform.core.beans.DataPath;
-import com.holonplatform.core.beans.Identifier;
 
-public class TestProjectionBean implements Serializable {
+public class TestProjectionBean2 implements Serializable {
 
 	private static final long serialVersionUID = 7323766007354763956L;
 
-	@Identifier
-	private String id;
+	@DataPath("_id")
+	private BigInteger code;
 
 	@DataPath("str")
 	private String text;
 
-	public String getId() {
-		return id;
+	public BigInteger getCode() {
+		return code;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setCode(BigInteger code) {
+		this.code = code;
 	}
 
 	public String getText() {

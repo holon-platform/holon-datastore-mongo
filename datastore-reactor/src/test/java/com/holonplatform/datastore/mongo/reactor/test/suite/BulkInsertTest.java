@@ -15,11 +15,11 @@
  */
 package com.holonplatform.datastore.mongo.reactor.test.suite;
 
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.ID4;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET4;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID4;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET4;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;

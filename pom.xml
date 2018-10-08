@@ -11,7 +11,7 @@
 
 	<groupId>com.holon-platform.mongo</groupId>
 	<artifactId>holon-datastore-mongo-root</artifactId>
-	<version>5.2.0-SNAPSHOT</version>
+	<version>5.2.0-alpha2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -63,7 +63,7 @@
 		<!-- Holon JSON -->
 		<holon.json.version>5.2.0-alpha2-SNAPSHOT</holon.json.version>
 		<!-- Holon Reactor -->
-		<holon.reactor.version>5.2.0-SNAPSHOT</holon.reactor.version>
+		<holon.reactor.version>5.2.0-alpha2-SNAPSHOT</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
 		<mongo.driver.core.version>3.8.2</mongo.driver.core.version>

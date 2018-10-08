@@ -1,4 +1,4 @@
-# Holon platform Project Reactor integration
+# Holon platform MongoDB Datastore
 
 This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the Java MongoDB driver for data access and manipulation.
 

@@ -155,7 +155,7 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 					context.getConfiguration(), context.getValues());
 
 			// check if the identifier property has to be updated with the document ids values
-			List<CompletableFuture<UpdateResult>> operations = new ArrayList<>(insertedIds.size());
+			final List<CompletableFuture<UpdateResult>> operations = new ArrayList<>(insertedIds.size());
 			if (!insertedIds.isEmpty()) {
 				MongoOperations.getPropertyDocumentIdFieldName(context.getContext()).ifPresent(fieldName -> {
 					for (ObjectId insertedId : insertedIds) {
@@ -172,6 +172,7 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 													updateOperation.complete(ur);
 												}
 											});
+									operations.add(updateOperation);
 								});
 					}
 				});

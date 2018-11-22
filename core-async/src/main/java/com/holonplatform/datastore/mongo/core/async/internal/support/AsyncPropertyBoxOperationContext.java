@@ -28,8 +28,6 @@ import com.mongodb.async.client.MongoCollection;
 
 /**
  * Async {@link PropertyBox} operation context.
- * 
- * @param <C> Context type
  *
  * @since 5.2.0
  */

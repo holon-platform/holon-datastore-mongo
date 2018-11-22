@@ -59,11 +59,11 @@
 		<bintray.package>holon-datastore-mongo</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.2.0-alpha2-SNAPSHOT</holon.core.version>
+		<holon.core.version>5.2.0-alpha2</holon.core.version>
 		<!-- Holon JSON -->
-		<holon.json.version>5.2.0-alpha2-SNAPSHOT</holon.json.version>
+		<holon.json.version>5.2.0-alpha2</holon.json.version>
 		<!-- Holon Reactor -->
-		<holon.reactor.version>5.2.0-alpha2-SNAPSHOT</holon.reactor.version>
+		<holon.reactor.version>5.2.0-alpha2</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
 		<mongo.driver.core.version>3.8.2</mongo.driver.core.version>

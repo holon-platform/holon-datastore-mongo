@@ -1,11 +1,27 @@
 # Holon platform MongoDB Datastore
 
-This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the Java MongoDB driver for data access and manipulation.
+This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the [MongoDB Java driver](https://mongodb.github.io/mongo-java-driver) for data access and manipulation.
+
+The following interaction models are supported: 
+
+* __Synchronous__ interaction, using the `holon-datastore-mongo-sync` artifact.
+* __Asynchronous__ interaction, using the `holon-datastore-mongo-async` artifact.
+* __Reactive__ interaction, using the `holon-datastore-mongo-reactor` artifact and the [Project Reactor](https://projectreactor.io) library.
 
 See the [Datastore API documentation](https://docs.holon-platform.com/current/reference/holon-core.html#Datastore) for information about the Holon Platform `Datastore` API.
 
+A full __Spring__ and __Spring Boot__ integration is provided, which includes auto-configuration facilities and a set of _starters_ to quickly setup project dependencies.
+
+Just like any other platform module, this artifact is part of the [Holon Platform](https://holon-platform.com) ecosystem, but can be also used as a _stand-alone_ library.
+
+See [Getting started](#getting-started) and the [platform documentation](https://docs.holon-platform.com/current/reference) for further details.
+
 > THIS MODULE IS UNDER DEVELOPMENT.
 > The module documentation and usage guide will be available when the first stable release will be published.
+
+## At-a-glance overview
+
+TBD
 
 ## Code structure
 

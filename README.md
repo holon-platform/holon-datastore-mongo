@@ -1,4 +1,4 @@
-# Holon platform MongoDB Datastore
+# Holon platform MongoDB Datastore module
 
 This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the [MongoDB Java driver](https://mongodb.github.io/mongo-java-driver) for data access and manipulation.
 
@@ -18,10 +18,6 @@ See [Getting started](#getting-started) and the [platform documentation](https:/
 
 > THIS MODULE IS UNDER DEVELOPMENT.
 > The module documentation and usage guide will be available when the first stable release will be published.
-
-## At-a-glance overview
-
-TBD
 
 ## Code structure
 

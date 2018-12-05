@@ -36,9 +36,9 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveBulkUpdate;
 import com.holonplatform.reactor.datastore.operation.ReactiveBulkUpdate;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -116,33 +116,17 @@ public class ReactiveMongoBulkUpdate extends AbstractReactiveBulkUpdate {
 			final Bson update = MongoOperations.getUpdateExpression(context.getContext(),
 					(BulkUpdateOperationConfiguration) context.getConfiguration());
 			// check client session available
-			return context.getContext().getClientSession().map(session -> {
-				return Mono.<AsyncOperationResultContext<MongoResolutionContext<ClientSession>>>create(sink -> {
-					context.getCollection().updateMany(session, context.getFilter().orElse(null), update,
-							MongoOperations.getUpdateOptions(context.getConfiguration(), false), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncOperationResultContext.create(context.getContext(),
-											context.getCollection(), context.getConfiguration(),
-											result.getModifiedCount(), OperationType.UPDATE));
-								}
-							});
-				});
-			}).orElseGet(() -> {
-				return Mono.<AsyncOperationResultContext<MongoResolutionContext<ClientSession>>>create(sink -> {
-					context.getCollection().updateMany(context.getFilter().orElse(null), update,
-							MongoOperations.getUpdateOptions(context.getConfiguration(), false), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncOperationResultContext.create(context.getContext(),
-											context.getCollection(), context.getConfiguration(),
-											result.getModifiedCount(), OperationType.UPDATE));
-								}
-							});
-				});
-			});
+			return context.getContext().getClientSession().map(session -> Mono
+					.from(context.getCollection().updateMany(session, context.getFilter().orElse(null), update,
+							MongoOperations.getUpdateOptions(context.getConfiguration(), false)))
+					.map(result -> AsyncOperationResultContext.create(context.getContext(), context.getCollection(),
+							context.getConfiguration(), result.getModifiedCount(), OperationType.UPDATE)))
+					.orElseGet(() -> Mono
+							.from(context.getCollection().updateMany(context.getFilter().orElse(null), update,
+									MongoOperations.getUpdateOptions(context.getConfiguration(), false)))
+							.map(result -> AsyncOperationResultContext.create(context.getContext(),
+									context.getCollection(), context.getConfiguration(), result.getModifiedCount(),
+									OperationType.UPDATE)));
 		}).map(context -> {
 			// result
 			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(context.getAffectedCount())

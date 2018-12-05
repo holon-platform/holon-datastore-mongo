@@ -18,6 +18,7 @@ package com.holonplatform.datastore.mongo.reactor.internal.operation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -39,19 +40,16 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.reactor.datastore.internal.operation.ReactiveQueryAdapterQuery;
 import com.holonplatform.reactor.datastore.operation.ReactiveQuery;
 import com.holonplatform.reactor.datastore.operation.ReactiveQueryAdapter;
-import com.mongodb.async.AsyncBatchCursor;
-import com.mongodb.async.client.AggregateIterable;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.DistinctIterable;
-import com.mongodb.async.client.FindIterable;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.AggregatePublisher;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.DistinctPublisher;
+import com.mongodb.reactivestreams.client.FindPublisher;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -133,7 +131,7 @@ public class ReactiveMongoQuery implements ReactiveQueryAdapter<QueryConfigurati
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	@SuppressWarnings({ "resource", "deprecation", "unchecked" })
+	@SuppressWarnings({ "resource", "unchecked" })
 	private static <R> Flux<R> count(QueryOperationContext<R> queryContext) {
 		return Mono.fromSupplier(() -> {
 			// check filter
@@ -145,107 +143,20 @@ public class ReactiveMongoQuery implements ReactiveQueryAdapter<QueryConfigurati
 
 			return filter;
 		}).flatMap(filter -> {
-
-			// check driver version
-			final MongoVersion version = MongoDriverInfo.getMongoVersion();
-			final boolean backwardMode = version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
-					&& version.getDriverMinorVersion() < 8;
-
 			// session
 			final ClientSession cs = queryContext.getResolutionContext().getClientSession().orElse(null);
-
-			// count
-			if (backwardMode) {
-				if (filter != null) {
-					if (cs != null) {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().count(cs, filter, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					} else {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().count(filter, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					}
+			// check filter
+			if (filter != null) {
+				if (cs != null) {
+					return Mono.from(queryContext.getCollection().countDocuments(cs, filter));
 				} else {
-					if (cs != null) {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().count(cs, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					} else {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().count((result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					}
+					return Mono.from(queryContext.getCollection().countDocuments(filter));
 				}
 			} else {
-				if (filter != null) {
-					if (cs != null) {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().countDocuments(cs, filter, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					} else {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().countDocuments(filter, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					}
+				if (cs != null) {
+					return Mono.from(queryContext.getCollection().countDocuments(cs));
 				} else {
-					if (cs != null) {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().countDocuments(cs, (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					} else {
-						return Mono.<Long>create(sink -> {
-							queryContext.getCollection().countDocuments((result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-								}
-							});
-						});
-					}
+					return Mono.from(queryContext.getCollection().countDocuments());
 				}
 			}
 		}).map(r -> (R) r).flux();
@@ -259,59 +170,25 @@ public class ReactiveMongoQuery implements ReactiveQueryAdapter<QueryConfigurati
 	 * @return The operation result
 	 */
 	private static <R> Flux<R> find(QueryOperationContext<R> queryContext) {
-		return Mono.fromSupplier(() -> {
-			// converter
-			final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
-					queryContext.getResultType());
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
+				queryContext.getResultType());
 
-			final FindIterable<Document> fi = queryContext.getResolutionContext().getClientSession()
-					.map(cs -> queryContext.getCollection().find(cs)).orElse(queryContext.getCollection().find());
+		// find
+		final FindPublisher<Document> fi = queryContext.getResolutionContext().getClientSession()
+				.map(cs -> queryContext.getCollection().find(cs)).orElse(queryContext.getCollection().find());
 
-			// configure
-			Optional<Bson> projection = MongoOperations.configure(queryContext.getQuery(),
-					new AsyncFindOperationConfigurator(fi));
+		// configure
+		Optional<Bson> projection = MongoOperations.configure(queryContext.getQuery(),
+				new AsyncFindOperationConfigurator(fi));
 
-			// trace
-			queryContext.trace("FIND query", () -> MongoOperations.traceQuery(queryContext.getResolutionContext(),
-					queryContext.getQuery(), projection.orElse(null)));
+		// trace
+		queryContext.trace("FIND query", () -> MongoOperations.traceQuery(queryContext.getResolutionContext(),
+				queryContext.getQuery(), projection.orElse(null)));
 
-			return fi.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document));
-		}).flatMap(i -> {
-			return Mono.<AsyncBatchCursor<R>>create(sink -> {
-				i.batchCursor((cursor, error) -> {
-					if (error != null) {
-						sink.error(error);
-					} else {
-						sink.success(cursor);
-					}
-				});
-			});
-		}).flatMapMany(c -> {
-			return Flux.<R>create(sink -> {
-				List<R> results = Collections.emptyList();
-				while (results != null) {
-					Mono<List<R>> batch = Mono.<List<R>>create(ms -> {
-						c.tryNext((result, error) -> {
-							if (error != null) {
-								ms.error(error);
-							} else {
-								ms.success(result);
-							}
-						});
-					});
-					results = batch.doOnError(t -> sink.error(t)).block();
-					if (results != null) {
-						results.forEach(r -> {
-							if (r != null) {
-								sink.next(r);
-							}
-						});
-					}
-				}
-				sink.complete();
-			});
-		});
-
+		// map to Flux
+		return mapResults(Flux.from(fi),
+				document -> documentConverter.convert(queryContext.getResolutionContext(), document));
 	}
 
 	/**
@@ -327,60 +204,29 @@ public class ReactiveMongoQuery implements ReactiveQueryAdapter<QueryConfigurati
 			return find(queryContext);
 		}
 
-		return Mono.fromSupplier(() -> {
+		// distinct field name
+		final String fieldName = queryContext.getQuery().getDistinctFieldName().get();
 
-			// distinct field name
-			final String fieldName = queryContext.getQuery().getDistinctFieldName().get();
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
+				queryContext.getResultType());
 
-			// converter
-			final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
-					queryContext.getResultType());
+		// distinct
+		@SuppressWarnings("unchecked")
+		final DistinctPublisher<R> fi = queryContext.getResolutionContext().getClientSession().map(
+				cs -> queryContext.getCollection().distinct(cs, fieldName, (Class<R>) queryContext.getResultType()))
+				.orElse(queryContext.getCollection().distinct(fieldName, (Class<R>) queryContext.getResultType()));
 
-			@SuppressWarnings("unchecked")
-			final DistinctIterable<R> fi = queryContext.getResolutionContext().getClientSession().map(
-					cs -> queryContext.getCollection().distinct(cs, fieldName, (Class<R>) queryContext.getResultType()))
-					.orElse(queryContext.getCollection().distinct(fieldName, (Class<R>) queryContext.getResultType()));
+		// configure
+		MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));
 
-			// configure
-			MongoOperations.configure(queryContext.getQuery(), new AsyncDistinctOperationConfigurator(fi));
+		// trace
+		queryContext.trace("DISTINCT query on [" + fieldName + "]",
+				() -> MongoOperations.traceQuery(queryContext.getResolutionContext(), queryContext.getQuery(), null));
 
-			// trace
-			queryContext.trace("DISTINCT query on [" + fieldName + "]", () -> MongoOperations
-					.traceQuery(queryContext.getResolutionContext(), queryContext.getQuery(), null));
-
-			return fi.map(value -> new Document(Collections.singletonMap(fieldName, value)))
-					.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document));
-		}).flatMap(i -> {
-			return Mono.<AsyncBatchCursor<R>>create(sink -> {
-				i.batchCursor((cursor, error) -> {
-					if (error != null) {
-						sink.error(error);
-					} else {
-						sink.success(cursor);
-					}
-				});
-			});
-		}).flatMapMany(c -> {
-			return Flux.<R>create(sink -> {
-				List<R> results = Collections.emptyList();
-				while (results != null) {
-					Mono<List<R>> batch = Mono.<List<R>>create(ms -> {
-						c.tryNext((result, error) -> {
-							if (error != null) {
-								ms.error(error);
-							} else {
-								ms.success(result);
-							}
-						});
-					});
-					results = batch.doOnError(t -> sink.error(t)).block();
-					if (results != null) {
-						results.forEach(r -> sink.next(r));
-					}
-				}
-				sink.complete();
-			});
-		});
+		// map to Flux
+		return mapResults(Flux.from(fi).map(value -> new Document(Collections.singletonMap(fieldName, value))),
+				document -> documentConverter.convert(queryContext.getResolutionContext(), document));
 	}
 
 	/**
@@ -391,58 +237,44 @@ public class ReactiveMongoQuery implements ReactiveQueryAdapter<QueryConfigurati
 	 */
 	private static <R> Flux<R> aggregate(QueryOperationContext<R> queryContext) {
 
-		return Mono.fromSupplier(() -> {
+		// converter
+		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
+				queryContext.getResultType());
 
-			// converter
-			final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
-					queryContext.getResultType());
+		// aggregation pipeline
+		final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(queryContext.getQuery());
 
-			// aggregation pipeline
-			final List<Bson> pipeline = MongoOperations.buildAggregationPipeline(queryContext.getQuery());
+		// trace
+		queryContext.trace("Aggregation pipeline",
+				() -> MongoOperations.traceAggregationPipeline(queryContext.getResolutionContext(), pipeline));
 
-			// trace
-			queryContext.trace("Aggregation pipeline",
-					() -> MongoOperations.traceAggregationPipeline(queryContext.getResolutionContext(), pipeline));
+		// iterable
+		final AggregatePublisher<Document> ai = queryContext.getResolutionContext().getClientSession()
+				.map(cs -> queryContext.getCollection().aggregate(cs, pipeline))
+				.orElse(queryContext.getCollection().aggregate(pipeline));
 
-			// iterable
-			final AggregateIterable<Document> ai = queryContext.getResolutionContext().getClientSession()
-					.map(cs -> queryContext.getCollection().aggregate(cs, pipeline))
-					.orElse(queryContext.getCollection().aggregate(pipeline));
+		// configure
+		MongoOperations.configure(queryContext.getQuery(), new AsyncAggregateOperationConfigurator(ai));
 
-			// configure
-			MongoOperations.configure(queryContext.getQuery(), new AsyncAggregateOperationConfigurator(ai));
+		// map to Flux
+		return mapResults(Flux.from(ai),
+				document -> documentConverter.convert(queryContext.getResolutionContext(), document));
+	}
 
-			return ai.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document));
-		}).flatMap(i -> {
-			return Mono.<AsyncBatchCursor<R>>create(sink -> {
-				i.batchCursor((cursor, error) -> {
-					if (error != null) {
-						sink.error(error);
-					} else {
-						sink.success(cursor);
-					}
-				});
-			});
-		}).flatMapMany(c -> {
-			return Flux.<R>create(sink -> {
-				List<R> results = Collections.emptyList();
-				while (results != null) {
-					Mono<List<R>> batch = Mono.<List<R>>create(ms -> {
-						c.tryNext((result, error) -> {
-							if (error != null) {
-								ms.error(error);
-							} else {
-								ms.success(result);
-							}
-						});
-					});
-					results = batch.doOnError(t -> sink.error(t)).block();
-					if (results != null) {
-						results.forEach(r -> sink.next(r));
-					}
-				}
-				sink.complete();
-			});
+	/**
+	 * Map the results, discarding <code>null</code> values.
+	 * @param <R> Result type
+	 * @param results The results to map
+	 * @param mapper The mapper function
+	 * @return The mapped results
+	 */
+	private static <R> Flux<R> mapResults(Flux<Document> results, Function<Document, R> mapper) {
+		return results.flatMap(document -> {
+			R result = mapper.apply(document);
+			if (result != null) {
+				return Flux.just(result);
+			}
+			return Flux.<R>empty();
 		});
 	}
 

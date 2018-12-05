@@ -30,7 +30,7 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.spring.MongoDatastoreConfigProperties;
 import com.holonplatform.datastore.mongo.spring.internal.MongoAsyncDatastoreRegistrar;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
-import com.mongodb.async.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClient;
 
 /**
  * Registrar for MongoDB async {@link Datastore} beans registration.

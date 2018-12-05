@@ -48,12 +48,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletionException;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.async.test.data.EnumValue;
 import com.holonplatform.datastore.mongo.async.test.data.TestValues;
@@ -132,7 +132,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 		assertEquals(1, count);
 	}
 
-	@Test(expected = CompletionException.class)
+	@Test(expected = DataAccessException.class)
 	public void testRefreshMissingId() {
 
 		getDatastore().refresh(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR).build()).toCompletableFuture()

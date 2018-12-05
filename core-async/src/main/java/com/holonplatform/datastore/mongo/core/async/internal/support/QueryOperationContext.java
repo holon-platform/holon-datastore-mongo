@@ -21,8 +21,8 @@ import org.bson.Document;
 
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
 
 /**
  * Query operation context.

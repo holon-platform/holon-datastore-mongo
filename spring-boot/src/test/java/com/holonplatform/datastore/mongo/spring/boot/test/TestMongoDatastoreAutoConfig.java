@@ -62,8 +62,8 @@ public class TestMongoDatastoreAutoConfig extends AbstractMongoSpringBootTest {
 		}
 
 		@Bean(name = "mongoClientAsync")
-		public com.mongodb.async.client.MongoClient mongoClientAsync() {
-			return com.mongodb.async.client.MongoClients
+		public com.mongodb.reactivestreams.client.MongoClient mongoClientAsync() {
+			return com.mongodb.reactivestreams.client.MongoClients
 					.create(MongoClientSettings.builder()
 							.applyToClusterSettings(
 									builder -> builder.hosts(Arrays.asList(new ServerAddress("localhost", 12345))))

@@ -32,8 +32,8 @@ import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.spring.EnableMongoAsyncDatastore;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
-import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoClients;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestEnableMongoAsyncDatastore.Config.class)

@@ -19,9 +19,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.internal.tx.AbstractMongoTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 /**
  * Default {@link AsyncMongoTransaction} implementation.
@@ -115,25 +116,13 @@ public class DefaultAsyncMongoTransaction extends AbstractMongoTransaction<Clien
 		}
 
 		// commit
-		return CompletableFuture.supplyAsync(() -> {
+		return CompletableFutureSubscriber.fromPublisher(getSession().commitTransaction()).thenAccept(r -> {
+			// set as completed
+			setCompleted();
+			// log
+			LOGGER.debug(() -> "MongoDB transaction [" + this + "] committed");
+		}).thenApply(r -> Boolean.TRUE);
 
-			final CompletableFuture<Boolean> operation = new CompletableFuture<>();
-
-			getSession().commitTransaction((result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(Boolean.TRUE);
-
-					// set as completed
-					setCompleted();
-
-					LOGGER.debug(() -> "MongoDB transaction [" + this + "] committed");
-				}
-			});
-
-			return operation.join();
-		});
 	}
 
 	/*
@@ -156,25 +145,13 @@ public class DefaultAsyncMongoTransaction extends AbstractMongoTransaction<Clien
 		}
 
 		// rollback
-		return CompletableFuture.supplyAsync(() -> {
-
-			final CompletableFuture<Void> operation = new CompletableFuture<>();
-
-			getSession().abortTransaction((result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(null);
-
-					// set as completed
-					setCompleted();
-
-					LOGGER.debug(() -> "MongoDB transaction [" + this + "] rolled back");
-				}
-			});
-
-			return operation.join();
+		return CompletableFutureSubscriber.fromPublisher(getSession().abortTransaction()).thenAccept(r -> {
+			// set as completed
+			setCompleted();
+			// log
+			LOGGER.debug(() -> "MongoDB transaction [" + this + "] rolled back");
 		});
+
 	}
 
 }

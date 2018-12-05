@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
@@ -29,6 +28,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkUpdateOperationConfiguration;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncOperationResultContext;
@@ -37,9 +37,9 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * Mongo {@link AsyncBulkUpdate} implementation.
@@ -79,69 +79,45 @@ public class AsyncMongoBulkUpdate extends AbstractAsyncBulkUpdate {
 	 */
 	@Override
 	public CompletionStage<OperationResult> execute() {
-		return CompletableFuture.supplyAsync(() -> {
 
-			// configuration
-			final BulkUpdateOperationConfiguration configuration = getConfiguration();
-			// validate
-			configuration.validate();
+		// configuration
+		final BulkUpdateOperationConfiguration configuration = getConfiguration();
+		// validate
+		configuration.validate();
 
-			// context
-			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
-			context.addExpressionResolvers(configuration.getExpressionResolvers());
+		// context
+		final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
+		context.addExpressionResolvers(configuration.getExpressionResolvers());
 
-			// filter
-			final Optional<Bson> filter = configuration.getFilter()
-					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+		// filter
+		final Optional<Bson> filter = configuration.getFilter()
+				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 
-			// resolve collection name
-			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
-					.getName();
-			// get and configure collection
-			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						configuration);
-			});
-
-			// update expression
-			final Bson update = MongoOperations.getUpdateExpression(context, configuration);
-
-			// trace
-			context.trace("Update documents", MongoOperations.traceUpdate(context, filter, update));
-
-			// prepare
-			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
-
-			// update
-			if (context.getClientSession().isPresent()) {
-				collection.updateMany(context.getClientSession().get(), filter.orElse(null), update,
-						MongoOperations.getUpdateOptions(configuration, false), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(AsyncOperationResultContext.create(context, collection,
-										configuration, result.getModifiedCount(), OperationType.UPDATE));
-							}
-						});
-			} else {
-				collection.updateMany(filter.orElse(null), update,
-						MongoOperations.getUpdateOptions(configuration, false), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(AsyncOperationResultContext.create(context, collection,
-										configuration, result.getModifiedCount(), OperationType.UPDATE));
-							}
-						});
-			}
-			return operation.join();
-		}).thenApply(context -> {
-
-			// result
-			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(context.getAffectedCount())
-					.build();
-
+		// resolve collection name
+		final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class).getName();
+		// get and configure collection
+		final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+					configuration);
 		});
+
+		// update expression
+		final Bson update = MongoOperations.getUpdateExpression(context, configuration);
+
+		return context.getClientSession()
+				.map(session -> CompletableFutureSubscriber.fromPublisher(collection.updateMany(session,
+						filter.orElse(null), update, MongoOperations.getUpdateOptions(configuration, false))))
+				.orElseGet(() -> CompletableFutureSubscriber.fromPublisher(collection.updateMany(filter.orElse(null),
+						update, MongoOperations.getUpdateOptions(configuration, false))))
+				.thenApply(result -> AsyncOperationResultContext.create(context, collection, configuration,
+						result.getModifiedCount(), OperationType.UPDATE))
+				.thenApply(ctx -> {
+					// trace
+					ctx.trace("Update documents", MongoOperations.traceUpdate(context, filter, update));
+					// result
+					return OperationResult.builder().type(OperationType.UPDATE).affectedCount(ctx.getAffectedCount())
+							.build();
+				});
 	}
 
 }

@@ -35,7 +35,6 @@ import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoSav
 import com.holonplatform.datastore.mongo.async.internal.operations.AsyncMongoUpdate;
 import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore;
-import com.mongodb.async.client.ClientSession;
 
 /**
  * Default {@link AsyncMongoDatastore} implementation.
@@ -168,21 +167,10 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 		// configuration
 		final TransactionConfiguration cfg = (configuration != null) ? configuration
 				: TransactionConfiguration.getDefault();
-
-		return CompletableFuture.supplyAsync(() -> {
-			final CompletableFuture<ClientSession> operation = new CompletableFuture<>();
-			// start a client session
-			checkClient().startSession((result, error) -> {
-				if (error != null) {
-					operation.completeExceptionally(error);
-				} else {
-					operation.complete(result);
-				}
-			});
-			return operation.join();
-		}).thenApply(s -> {
+		
+		return CompletableFutureSubscriber.fromPublisher(checkClient().startSession()).thenApply(session -> {
 			// create a new transaction
-			return getTransactionFactory().createTransaction(s, cfg);
+			return getTransactionFactory().createTransaction(session, cfg);
 		}).thenApply(tx -> {
 			// start transaction
 			try {

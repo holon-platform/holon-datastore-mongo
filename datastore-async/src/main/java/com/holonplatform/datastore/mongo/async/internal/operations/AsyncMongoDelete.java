@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
@@ -30,6 +29,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.property.Property;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncPropertyBoxOperationResultContext;
@@ -37,10 +37,10 @@ import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * MongoDB {@link AsyncDelete}.
@@ -80,78 +80,51 @@ public class AsyncMongoDelete extends AbstractAsyncDelete {
 	 */
 	@Override
 	public CompletionStage<OperationResult> execute() {
-		return CompletableFuture.supplyAsync(() -> {
 
-			// configuration
-			final PropertyBoxOperationConfiguration configuration = getConfiguration();
-			// validate
-			configuration.validate();
+		// configuration
+		final PropertyBoxOperationConfiguration configuration = getConfiguration();
+		// validate
+		configuration.validate();
 
-			// build context
-			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
-					configuration.getValue());
-			context.addExpressionResolvers(configuration.getExpressionResolvers());
+		// build context
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
+				configuration.getValue());
+		context.addExpressionResolvers(configuration.getExpressionResolvers());
 
-			// resolve collection name
-			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
-					.getName();
-			// get and configure collection
-			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						configuration);
-			});
-
-			// id property
-			final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(
-					() -> new DataAccessException("Cannot perform a DELETE operation: missing document id property"
-							+ " for value [" + configuration.getValue() + "]"));
-			// document id
-			final ObjectId id = context.getDocumentIdResolver().encode(configuration.getValue().getValue(idProperty));
-			if (id == null) {
-				throw new DataAccessException(
-						"Cannot perform a DELETE operation: missing document id value for property [" + idProperty
-								+ "]");
-			}
-
-			// prepare
-			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
-
-			// delete
-			if (context.getClientSession().isPresent()) {
-				collection.deleteOne(context.getClientSession().get(), Filters.eq(id),
-						MongoOperations.getDeleteOptions(configuration), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-										configuration, result.getDeletedCount(), OperationType.DELETE,
-										configuration.getValue(), null, id));
-							}
-						});
-			} else {
-				collection.deleteOne(Filters.eq(id), MongoOperations.getDeleteOptions(configuration),
-						(result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-										configuration, result.getDeletedCount(), OperationType.DELETE,
-										configuration.getValue(), null, id));
-							}
-						});
-			}
-
-			// join the future
-			return operation.join();
-		}).thenApply(context -> {
-
-			// trace
-			context.trace("Deleted document", "Deleted document id: " + context.getDocumentId().orElse(null));
-
-			// operation result
-			return OperationResult.builder().type(OperationType.DELETE).affectedCount(context.getAffectedCount())
-					.build();
+		// resolve collection name
+		final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class).getName();
+		// get and configure collection
+		final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+					configuration);
 		});
+
+		// id property
+		final Property<?> idProperty = context.getDocumentIdProperty().orElseThrow(
+				() -> new DataAccessException("Cannot perform a DELETE operation: missing document id property"
+						+ " for value [" + configuration.getValue() + "]"));
+		// document id
+		final ObjectId id = context.getDocumentIdResolver().encode(configuration.getValue().getValue(idProperty));
+		if (id == null) {
+			throw new DataAccessException(
+					"Cannot perform a DELETE operation: missing document id value for property [" + idProperty + "]");
+		}
+
+		return context.getClientSession()
+				.map(session -> CompletableFutureSubscriber.fromPublisher(
+						collection.deleteOne(session, Filters.eq(id), MongoOperations.getDeleteOptions(configuration))))
+				.orElseGet(() -> CompletableFutureSubscriber.fromPublisher(
+						collection.deleteOne(Filters.eq(id), MongoOperations.getDeleteOptions(configuration))))
+				.thenApply(result -> AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
+						result.getDeletedCount(), OperationType.DELETE, configuration.getValue(), null, id))
+				.thenApply(ctx -> {
+					// trace
+					context.trace("Deleted document", "Deleted document id: " + ctx.getDocumentId().orElse(null));
+
+					// operation result
+					return OperationResult.builder().type(OperationType.DELETE).affectedCount(ctx.getAffectedCount())
+							.build();
+				});
 	}
 
 }

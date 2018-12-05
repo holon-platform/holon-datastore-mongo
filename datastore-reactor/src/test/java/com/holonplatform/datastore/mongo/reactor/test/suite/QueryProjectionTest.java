@@ -487,4 +487,15 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 
 	}
 
+	@Test
+	public void testCountNone() {
+
+		final Mono<Long> op = getDatastore().query(TARGET).filter(STR.eq("--xxx---xxxx---xxx")).count()
+				.doOnSuccess(r -> {
+					assertNotNull(r);
+				});
+
+		StepVerifier.create(op).expectNext(0L).expectComplete().verify();
+	}
+
 }

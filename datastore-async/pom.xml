@@ -61,11 +61,11 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- MongoDB asynchronous Java driver -->
+		<!-- MongoDB reactive Java driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-async</artifactId>
-			<version>${mongo.driver.async.version}</version>
+			<artifactId>mongodb-driver-reactivestreams</artifactId>
+			<version>${mongo.driver.reactive.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

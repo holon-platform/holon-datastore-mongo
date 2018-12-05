@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +33,8 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.query.QueryDefinition;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureStreamSubscriber;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncAggregateOperationConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncDistinctOperationConfigurator;
@@ -46,15 +47,13 @@ import com.holonplatform.datastore.mongo.core.document.DocumentConverter;
 import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
-import com.mongodb.async.client.AggregateIterable;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.DistinctIterable;
-import com.mongodb.async.client.FindIterable;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.AggregatePublisher;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.DistinctPublisher;
+import com.mongodb.reactivestreams.client.FindPublisher;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * MongoDB {@link AsyncQueryAdapter}.
@@ -144,7 +143,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 	 * @param queryContext Operation context
 	 * @return The operation result
 	 */
-	@SuppressWarnings({ "unchecked", "deprecation", "resource" })
+	@SuppressWarnings("unchecked")
 	private static <R> CompletableFuture<Stream<R>> count(QueryOperationContext<R> queryContext) {
 
 		// check filter
@@ -154,96 +153,25 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		// trace
 		queryContext.trace("COUNT query", "Filter: \n" + DocumentSerializer.getDefault().toJson(filter));
 
-		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
-
-		// check driver version
-		final MongoVersion version = MongoDriverInfo.getMongoVersion();
-		final boolean backwardMode = version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
-				&& version.getDriverMinorVersion() < 8;
-
-		// session
-		final ClientSession cs = queryContext.getResolutionContext().getClientSession().orElse(null);
-
-		// count
-		if (backwardMode) {
+		// check session
+		return queryContext.getResolutionContext().getClientSession().map(session -> {
 			if (filter != null) {
-				if (cs != null) {
-					queryContext.getCollection().count(cs, filter, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				} else {
-					queryContext.getCollection().count(filter, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				}
+				return CompletableFutureSubscriber
+						.fromPublisher(queryContext.getCollection().countDocuments(session, filter))
+						.thenApply(result -> Stream.of((R) result));
 			} else {
-				if (cs != null) {
-					queryContext.getCollection().count(cs, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				} else {
-					queryContext.getCollection().count((result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				}
+				return CompletableFutureSubscriber.fromPublisher(queryContext.getCollection().countDocuments(session))
+						.thenApply(result -> Stream.of((R) result));
 			}
-		} else {
+		}).orElseGet(() -> {
 			if (filter != null) {
-				if (cs != null) {
-					queryContext.getCollection().countDocuments(cs, filter, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				} else {
-					queryContext.getCollection().countDocuments(filter, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				}
+				return CompletableFutureSubscriber.fromPublisher(queryContext.getCollection().countDocuments(filter))
+						.thenApply(result -> Stream.of((R) result));
 			} else {
-				if (cs != null) {
-					queryContext.getCollection().countDocuments(cs, (result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				} else {
-					queryContext.getCollection().countDocuments((result, error) -> {
-						if (error != null) {
-							operation.completeExceptionally(error);
-						} else {
-							operation.complete(Stream.of((R) result));
-						}
-					});
-				}
+				return CompletableFutureSubscriber.fromPublisher(queryContext.getCollection().countDocuments())
+						.thenApply(result -> Stream.of((R) result));
 			}
-		}
-
-		return operation;
+		});
 	}
 
 	/**
@@ -258,7 +186,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		final DocumentConverter<R> documentConverter = MongoOperations.getAndCheckConverter(queryContext.getQuery(),
 				queryContext.getResultType());
 
-		final FindIterable<Document> fi = queryContext.getResolutionContext().getClientSession()
+		final FindPublisher<Document> fi = queryContext.getResolutionContext().getClientSession()
 				.map(cs -> queryContext.getCollection().find(cs)).orElse(queryContext.getCollection().find());
 
 		// configure
@@ -269,21 +197,10 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		queryContext.trace("FIND query", () -> MongoOperations.traceQuery(queryContext.getResolutionContext(),
 				queryContext.getQuery(), projection.orElse(null)));
 
-		// documents
-		final List<Document> documents = new ArrayList<>();
+		// execute and map
+		return CompletableFutureStreamSubscriber.fromPublisher(fi).thenApply(documents -> documents
+				.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document)));
 
-		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
-		// execute query
-		fi.forEach(document -> documents.add(document), (result, error) -> {
-			if (error != null) {
-				operation.completeExceptionally(error);
-			} else {
-				operation.complete(documents.stream()
-						// apply converter
-						.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document)));
-			}
-		});
-		return operation;
 	}
 
 	/**
@@ -306,7 +223,7 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				queryContext.getResultType());
 
 		@SuppressWarnings("unchecked")
-		final DistinctIterable<R> fi = queryContext.getResolutionContext().getClientSession().map(
+		final DistinctPublisher<R> fi = queryContext.getResolutionContext().getClientSession().map(
 				cs -> queryContext.getCollection().distinct(cs, fieldName, (Class<R>) queryContext.getResultType()))
 				.orElse(queryContext.getCollection().distinct(fieldName, (Class<R>) queryContext.getResultType()));
 
@@ -317,24 +234,11 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 		queryContext.trace("DISTINCT query on [" + fieldName + "]",
 				() -> MongoOperations.traceQuery(queryContext.getResolutionContext(), queryContext.getQuery(), null));
 
-		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
-
-		// documents
-		final List<Document> documents = new ArrayList<>();
-
-		// execute query
-		fi.forEach(value -> documents.add(new Document(Collections.singletonMap(fieldName, value))),
-				(result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
-					} else {
-						operation.complete(documents.stream()
-								// apply converter
-								.map(document -> documentConverter.convert(queryContext.getResolutionContext(),
-										document)));
-					}
-				});
-		return operation;
+		// execute and map
+		return CompletableFutureStreamSubscriber.fromPublisher(fi)
+				.thenApply(values -> values.map(value -> new Document(Collections.singletonMap(fieldName, value))))
+				.thenApply(documents -> documents
+						.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document)));
 	}
 
 	/**
@@ -357,28 +261,16 @@ public class AsyncMongoQuery implements AsyncQueryAdapter<QueryConfiguration> {
 				() -> MongoOperations.traceAggregationPipeline(queryContext.getResolutionContext(), pipeline));
 
 		// iterable
-		final AggregateIterable<Document> ai = queryContext.getResolutionContext().getClientSession()
+		final AggregatePublisher<Document> ai = queryContext.getResolutionContext().getClientSession()
 				.map(cs -> queryContext.getCollection().aggregate(cs, pipeline))
 				.orElse(queryContext.getCollection().aggregate(pipeline));
 
 		// configure
 		MongoOperations.configure(queryContext.getQuery(), new AsyncAggregateOperationConfigurator(ai));
 
-		// documents
-		final List<Document> documents = new ArrayList<>();
-
-		final CompletableFuture<Stream<R>> operation = new CompletableFuture<>();
-		// execute query
-		ai.forEach(document -> documents.add(document), (result, error) -> {
-			if (error != null) {
-				operation.completeExceptionally(error);
-			} else {
-				operation.complete(documents.stream()
-						// apply converter
-						.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document)));
-			}
-		});
-		return operation;
+		// execute and map
+		return CompletableFutureStreamSubscriber.fromPublisher(ai).thenApply(documents -> documents
+				.map(document -> documentConverter.convert(queryContext.getResolutionContext(), document)));
 	}
 
 }

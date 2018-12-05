@@ -24,8 +24,8 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.datastore.mongo.core.context.MongoContext;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
 
 /**
  * Async operation context.

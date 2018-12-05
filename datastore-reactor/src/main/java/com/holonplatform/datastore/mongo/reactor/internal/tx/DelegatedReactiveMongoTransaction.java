@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.reactor.internal.tx;
 
 import com.holonplatform.datastore.mongo.core.internal.tx.AbstractDelegatedMongoTransaction;
 import com.holonplatform.datastore.mongo.reactor.tx.ReactiveMongoTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 import reactor.core.publisher.Mono;
 

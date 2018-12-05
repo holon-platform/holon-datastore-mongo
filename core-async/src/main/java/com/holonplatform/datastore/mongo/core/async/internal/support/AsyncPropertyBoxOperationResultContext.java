@@ -25,8 +25,8 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.operation.commons.DatastoreOperationConfiguration;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
 
 /**
  * {@link AsyncOperationResultContext} for operations which involve a {@link PropertyBox} value.

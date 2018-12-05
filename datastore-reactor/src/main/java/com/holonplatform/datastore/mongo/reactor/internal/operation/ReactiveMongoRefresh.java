@@ -36,10 +36,10 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveRefresh;
 import com.holonplatform.reactor.datastore.operation.ReactiveRefresh;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -120,31 +120,14 @@ public class ReactiveMongoRefresh extends AbstractReactiveRefresh {
 			final ObjectId id = ctx.getDocumentId().orElseThrow(
 					() -> new DataAccessException("Cannot perform a REFRESH operation: missing document id value"));
 			// check client session available
-			return ctx.getContext().getClientSession().map(session -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().find(session, Filters.eq(id)).first((result, error) -> {
-						if (error != null) {
-							sink.error(error);
-						} else {
-							sink.success(
-									AsyncPropertyBoxOperationResultContext.create(ctx.getContext(), ctx.getCollection(),
-											ctx.getConfiguration(), 1L, OperationType.UPDATE, ctx.getValue(), result));
-						}
-					});
-				});
-			}).orElseGet(() -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().find(Filters.eq(id)).first((result, error) -> {
-						if (error != null) {
-							sink.error(error);
-						} else {
-							sink.success(
-									AsyncPropertyBoxOperationResultContext.create(ctx.getContext(), ctx.getCollection(),
-											ctx.getConfiguration(), 1L, OperationType.UPDATE, ctx.getValue(), result));
-						}
-					});
-				});
-			});
+			return ctx.getContext().getClientSession().map(session -> Mono
+					.from(ctx.getCollection().find(session, Filters.eq(id)).first())
+					.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(), ctx.getCollection(),
+							ctx.getConfiguration(), 1L, OperationType.UPDATE, ctx.getValue(), result)))
+					.orElseGet(() -> Mono.from(ctx.getCollection().find(Filters.eq(id)).first())
+							.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+									ctx.getCollection(), ctx.getConfiguration(), 1L, OperationType.UPDATE,
+									ctx.getValue(), result)));
 		}).map(context -> {
 			// check document
 			final Document document = context.getDocument()

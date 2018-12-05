@@ -39,11 +39,11 @@ import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveBulkInsert;
 import com.holonplatform.reactor.datastore.operation.ReactiveBulkInsert;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -121,29 +121,14 @@ public class ReactiveMongoBulkInsert extends AbstractReactiveBulkInsert {
 			final List<Document> documents = context.getValues().stream().map(v -> v.getDocument())
 					.collect(Collectors.toList());
 			// check client session available
-			return context.getContext().getClientSession().map(session -> {
-				return Mono.<AsyncMultiPropertyBoxOperationResultContext>create(sink -> {
-					context.getCollection().insertMany(session, documents,
-							MongoOperations.getInsertManyOptions(context.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(context);
-								}
-							});
-				});
-			}).orElseGet(() -> {
-				return Mono.<AsyncMultiPropertyBoxOperationResultContext>create(sink -> {
-					context.getCollection().insertMany(documents,
-							MongoOperations.getInsertManyOptions(context.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(context);
-								}
-							});
-				});
-			});
+			return context.getContext().getClientSession()
+					.map(session -> Mono.from(context.getCollection().insertMany(session, documents,
+							MongoOperations.getInsertManyOptions(context.getConfiguration()))).map(
+									result -> context))
+					.orElseGet(() -> Mono
+							.from(context.getCollection().insertMany(documents,
+									MongoOperations.getInsertManyOptions(context.getConfiguration())))
+							.map(result -> context));
 		}).flatMap(context -> {
 
 			// check inserted keys
@@ -154,24 +139,16 @@ public class ReactiveMongoBulkInsert extends AbstractReactiveBulkInsert {
 			if (!insertedIds.isEmpty()) {
 				final String fieldName = MongoOperations.getPropertyDocumentIdFieldName(context.getContext())
 						.orElse(null);
-
 				if (fieldName != null) {
 					final List<Mono<UpdateResult>> updates = new ArrayList<>(insertedIds.size());
 					for (ObjectId insertedId : insertedIds) {
 						MongoOperations.getIdUpdateDocument(context.getContext(), insertedId, fieldName)
 								.ifPresent(toUpdate -> {
-									updates.add(Mono.<UpdateResult>create(sink -> {
-										context.getCollection().updateOne(Filters.eq(insertedId),
-												toUpdate.getUpdateDocument(), (ur, error) -> {
-													if (error != null) {
-														sink.error(error);
-													} else {
-														sink.success(ur);
-														context.trace("Updated identifier property value",
-																toUpdate.getUpdateDocument());
-													}
-												});
-									}));
+									updates.add(Mono.from(context.getCollection().updateOne(Filters.eq(insertedId),
+											toUpdate.getUpdateDocument())).doOnSuccess(s -> {
+												context.trace("Updated identifier property value",
+														toUpdate.getUpdateDocument());
+											}));
 								});
 					}
 					if (!updates.isEmpty()) {
@@ -179,13 +156,12 @@ public class ReactiveMongoBulkInsert extends AbstractReactiveBulkInsert {
 					}
 				}
 			}
-
 			return Mono.just(context);
 		}).map(context -> {
 			// trace
 			context.trace("Inserted documents",
 					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
-
+			// result
 			return OperationResult.builder().type(OperationType.INSERT).affectedCount(context.getAffectedCount())
 					.build();
 		});

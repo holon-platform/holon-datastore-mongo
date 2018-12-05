@@ -17,9 +17,9 @@ package com.holonplatform.datastore.mongo.core.async.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityContext;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * Asynchronous MongoDB Datastore {@link DatastoreCommodityContext}.

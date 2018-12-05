@@ -65,11 +65,11 @@
 		<holon.reactor.version>5.2.0-alpha2</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
-		<mongo.driver.core.version>3.8.2</mongo.driver.core.version>
+		<mongo.driver.core.version>3.9.1</mongo.driver.core.version>
 		<!-- MongoDB Java driver (synchronous) -->
-		<mongo.driver.sync.version>3.8.2</mongo.driver.sync.version>
-		<!-- MongoDB Java driver (asynchronous) -->
-		<mongo.driver.async.version>3.8.2</mongo.driver.async.version>
+		<mongo.driver.sync.version>3.9.1</mongo.driver.sync.version>
+		<!-- MongoDB Java driver (reactive) -->
+		<mongo.driver.reactive.version>1.10.0</mongo.driver.reactive.version>
 
 		<!-- Embedded MongoDB for test -->
 		<embed.mongo.version>2.1.1</embed.mongo.version>

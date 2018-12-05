@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -79,11 +81,11 @@
 			<artifactId>reactor-core</artifactId>
 		</dependency>
 
-		<!-- MongoDB asynchronous Java driver -->
+		<!-- MongoDB reactive Java driver -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-async</artifactId>
-			<version>${mongo.driver.async.version}</version>
+			<artifactId>mongodb-driver-reactivestreams</artifactId>
+			<version>${mongo.driver.reactive.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

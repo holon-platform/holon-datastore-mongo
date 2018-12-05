@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.mongo.async.internal.operations;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.bson.Document;
@@ -29,6 +28,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkDeleteOperationConfiguration;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncOperationResultContext;
@@ -37,9 +37,9 @@ import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * Mongo {@link AsyncBulkDelete} implementation.
@@ -79,72 +79,43 @@ public class AsyncMongoBulkDelete extends AbstractAsyncBulkDelete {
 	 */
 	@Override
 	public CompletionStage<OperationResult> execute() {
-		return CompletableFuture.supplyAsync(() -> {
 
-			// configuration
-			final BulkDeleteOperationConfiguration configuration = getConfiguration();
-			// validate
-			configuration.validate();
+		// configuration
+		final BulkDeleteOperationConfiguration configuration = getConfiguration();
+		// validate
+		configuration.validate();
 
-			// context
-			final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
-			context.addExpressionResolvers(configuration.getExpressionResolvers());
+		// context
+		final MongoResolutionContext<ClientSession> context = MongoResolutionContext.create(operationContext);
+		context.addExpressionResolvers(configuration.getExpressionResolvers());
 
-			// filter
-			final Optional<Bson> filter = configuration.getFilter()
-					.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
+		// filter
+		final Optional<Bson> filter = configuration.getFilter()
+				.map(f -> context.resolveOrFail(f, BsonExpression.class).getValue());
 
-			// resolve collection name
-			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
-					.getName();
-			// get and configure collection
-			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						configuration);
-			});
-
-			// prepare
-			final CompletableFuture<AsyncOperationResultContext<?>> operation = new CompletableFuture<>();
-
-			// delete
-			if (context.getClientSession().isPresent()) {
-				collection.deleteMany(context.getClientSession().get(), filter.orElse(null),
-						MongoOperations.getDeleteOptions(configuration), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								
-								// trace
-								context.trace("Deleted documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
-								
-								operation.complete(AsyncOperationResultContext.create(context, collection,
-										configuration, result.getDeletedCount(), OperationType.DELETE));
-							}
-						});
-			} else {
-				collection.deleteMany(filter.orElse(null), MongoOperations.getDeleteOptions(configuration),
-						(result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								// trace
-								context.trace("Deleted documents - filter", filter.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
-								
-								operation.complete(AsyncOperationResultContext.create(context, collection,
-										configuration, result.getDeletedCount(), OperationType.DELETE));
-							}
-						});
-			}
-
-			// join the future
-			return operation.join();
-		}).thenApply(context -> {
-
-			// return result
-			return OperationResult.builder().type(OperationType.DELETE).affectedCount(context.getAffectedCount())
-					.build();
-
+		// resolve collection name
+		final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class).getName();
+		// get and configure collection
+		final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+					configuration);
 		});
+
+		return context.getClientSession()
+				.map(session -> CompletableFutureSubscriber.fromPublisher(collection.deleteMany(session,
+						filter.orElse(null), MongoOperations.getDeleteOptions(configuration))))
+				.orElseGet(() -> CompletableFutureSubscriber.fromPublisher(
+						collection.deleteMany(filter.orElse(null), MongoOperations.getDeleteOptions(configuration))))
+				.thenApply(result -> AsyncOperationResultContext.create(context, collection, configuration,
+						result.getDeletedCount(), OperationType.DELETE))
+				.thenApply(ctx -> {
+					// trace
+					context.trace("Deleted documents - filter",
+							ctx.getFilter().map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+					// result
+					return OperationResult.builder().type(OperationType.DELETE).affectedCount(ctx.getAffectedCount())
+							.build();
+				});
 	}
 
 }

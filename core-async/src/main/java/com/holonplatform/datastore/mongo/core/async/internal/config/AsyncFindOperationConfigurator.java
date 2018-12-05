@@ -21,8 +21,8 @@ import org.bson.conversions.Bson;
 
 import com.holonplatform.datastore.mongo.core.internal.operation.FindOperationConfigurator;
 import com.mongodb.CursorType;
-import com.mongodb.async.client.FindIterable;
 import com.mongodb.client.model.Collation;
+import com.mongodb.reactivestreams.client.FindPublisher;
 
 /**
  * Default {@link FindOperationConfigurator} implementation.
@@ -31,9 +31,9 @@ import com.mongodb.client.model.Collation;
  */
 public class AsyncFindOperationConfigurator implements FindOperationConfigurator {
 
-	private final FindIterable<?> iterable;
+	private final FindPublisher<?> iterable;
 
-	public AsyncFindOperationConfigurator(FindIterable<?> iterable) {
+	public AsyncFindOperationConfigurator(FindPublisher<?> iterable) {
 		super();
 		this.iterable = iterable;
 	}

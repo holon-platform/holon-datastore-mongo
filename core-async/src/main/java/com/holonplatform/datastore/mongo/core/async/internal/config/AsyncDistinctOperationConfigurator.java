@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import org.bson.conversions.Bson;
 
 import com.holonplatform.datastore.mongo.core.internal.operation.DistinctOperationConfigurator;
-import com.mongodb.async.client.DistinctIterable;
 import com.mongodb.client.model.Collation;
+import com.mongodb.reactivestreams.client.DistinctPublisher;
 
 /**
  * Default {@link DistinctOperationConfigurator} implementation.
@@ -30,9 +30,9 @@ import com.mongodb.client.model.Collation;
  */
 public class AsyncDistinctOperationConfigurator implements DistinctOperationConfigurator {
 
-	private final DistinctIterable<?> iterable;
+	private final DistinctPublisher<?> iterable;
 
-	public AsyncDistinctOperationConfigurator(DistinctIterable<?> iterable) {
+	public AsyncDistinctOperationConfigurator(DistinctPublisher<?> iterable) {
 		super();
 		this.iterable = iterable;
 	}

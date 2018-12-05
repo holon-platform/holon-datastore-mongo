@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.reactor.internal.tx;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.datastore.mongo.core.internal.tx.AbstractMongoTransaction;
 import com.holonplatform.datastore.mongo.reactor.tx.ReactiveMongoTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 import reactor.core.publisher.Mono;
 
@@ -116,19 +116,9 @@ public class DefaultReactiveMongoTransaction extends AbstractMongoTransaction<Cl
 		}
 
 		// commit
-		return Mono.<Boolean>create(sink -> {
-			getSession().commitTransaction((result, error) -> {
-				if (error != null) {
-					sink.error(error);
-				} else {
-					// set as completed
-					setCompleted();
-
-					LOGGER.debug(() -> "MongoDB transaction [" + this + "] committed");
-
-					sink.success(Boolean.TRUE);
-				}
-			});
+		return Mono.from(getSession().commitTransaction()).map(r -> {
+			setCompleted();
+			return Boolean.TRUE;
 		});
 	}
 
@@ -152,19 +142,8 @@ public class DefaultReactiveMongoTransaction extends AbstractMongoTransaction<Cl
 		}
 
 		// rollback
-		return Mono.<Void>create(sink -> {
-			getSession().abortTransaction((result, error) -> {
-				if (error != null) {
-					sink.error(error);
-				} else {
-					// set as completed
-					setCompleted();
-
-					LOGGER.debug(() -> "MongoDB transaction [" + this + "] committed");
-
-					sink.success();
-				}
-			});
+		return Mono.from(getSession().abortTransaction()).doOnSuccess(s -> {
+			setCompleted();
 		});
 	}
 

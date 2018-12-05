@@ -35,10 +35,9 @@ import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveBulkDelete;
 import com.holonplatform.reactor.datastore.operation.ReactiveBulkDelete;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
-import com.mongodb.client.result.DeleteResult;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -106,35 +105,25 @@ public class ReactiveMongoBulkDelete extends AbstractReactiveBulkDelete {
 			return AsyncOperationContext.create(context, collection, configuration, filter.orElse(null));
 		}).flatMap(context -> {
 			// check client session available
-			return context.getContext().getClientSession().map(session -> {
-				return Mono.<DeleteResult>create(sink -> {
-					context.getCollection().deleteMany(session, context.getFilter().orElse(null),
-							MongoOperations.getDeleteOptions(context.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-									// trace
-									context.trace("Deleted documents - filter",
-											context.getFilter().map(f -> operationContext.toJson(f)).orElse("[NONE]"));
-								}
-							});
-				});
-			}).orElseGet(() -> {
-				return Mono.<DeleteResult>create(sink -> {
-					context.getCollection().deleteMany(context.getFilter().orElse(null),
-							MongoOperations.getDeleteOptions(context.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(result);
-									// trace
-									context.trace("Deleted documents - filter",
-											context.getFilter().map(f -> operationContext.toJson(f)).orElse("[NONE]"));
-								}
-							});
-				});
-			});
+			return context
+					.getContext().getClientSession().map(
+							session -> Mono
+									.from(context.getCollection().deleteMany(session, context.getFilter().orElse(null),
+											MongoOperations.getDeleteOptions(context.getConfiguration())))
+									.doOnSuccess(r -> {
+										// trace
+										context.trace("Deleted documents - filter", context.getFilter()
+												.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+									}))
+					.orElseGet(
+							() -> Mono
+									.from(context.getCollection().deleteMany(context.getFilter().orElse(null),
+											MongoOperations.getDeleteOptions(context.getConfiguration())))
+									.doOnSuccess(r -> {
+										// trace
+										context.trace("Deleted documents - filter", context.getFilter()
+												.map(f -> operationContext.toJson(f)).orElse("[NONE]"));
+									}));
 		}).map(r -> OperationResult.builder().type(OperationType.DELETE).affectedCount(r.getDeletedCount()).build());
 	}
 

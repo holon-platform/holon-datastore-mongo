@@ -42,8 +42,8 @@ import com.holonplatform.datastore.mongo.spring.boot.test.config.ConfigCheckComm
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
-import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoClients;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
 
 @SpringBootTest
 @DirtiesContext

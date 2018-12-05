@@ -24,7 +24,7 @@ import com.holonplatform.core.datastore.transaction.TransactionStatus;
 import com.holonplatform.datastore.mongo.async.internal.tx.DefaultAsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.async.internal.tx.DelegatedAsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 /**
  * Asynchronous MongoDB {@link Transaction}.

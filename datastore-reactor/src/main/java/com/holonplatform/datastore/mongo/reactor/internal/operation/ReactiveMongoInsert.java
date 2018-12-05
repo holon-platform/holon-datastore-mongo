@@ -38,11 +38,10 @@ import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations
 import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveInsert;
 import com.holonplatform.reactor.datastore.operation.ReactiveInsert;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.result.UpdateResult;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -113,33 +112,17 @@ public class ReactiveMongoInsert extends AbstractReactiveInsert {
 					document);
 		}).flatMap(ctx -> {
 			// check client session available
-			return ctx.getContext().getClientSession().map(session -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().insertOne(session, ctx.requireDocument(),
-							MongoOperations.getInsertOneOptions(ctx.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-											ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
-											ctx.getValue(), ctx.requireDocument()));
-								}
-							});
-				});
-			}).orElseGet(() -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().insertOne(ctx.requireDocument(),
-							MongoOperations.getInsertOneOptions(ctx.getConfiguration()), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-											ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
-											ctx.getValue(), ctx.requireDocument()));
-								}
-							});
-				});
-			});
+			return ctx.getContext().getClientSession().map(session -> Mono
+					.from(ctx.getCollection().insertOne(session, ctx.requireDocument(),
+							MongoOperations.getInsertOneOptions(ctx.getConfiguration())))
+					.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(), ctx.getCollection(),
+							ctx.getConfiguration(), 1, OperationType.INSERT, ctx.getValue(), ctx.requireDocument())))
+					.orElseGet(() -> Mono
+							.from(ctx.getCollection().insertOne(ctx.requireDocument(),
+									MongoOperations.getInsertOneOptions(ctx.getConfiguration())))
+							.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+									ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
+									ctx.getValue(), ctx.requireDocument())));
 		}).flatMap(ctx -> {
 
 			// trace
@@ -159,18 +142,9 @@ public class ReactiveMongoInsert extends AbstractReactiveInsert {
 			final IdUpdateDocument toUpdate = (!insertedId.isPresent()) ? null
 					: MongoOperations.getIdUpdateDocument(ctx.getContext(), insertedId.get()).orElse(null);
 			if (insertedId.isPresent() && toUpdate != null) {
-				Mono<UpdateResult> upd = Mono.<UpdateResult>create(sink -> {
-					ctx.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument(),
-							(ur, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(ur);
-									ctx.trace("Updated identifier property value", toUpdate.getUpdateDocument());
-								}
-							});
-				});
-				return upd.map(x -> result);
+				return Mono
+						.from(ctx.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument()))
+						.map(x -> result);
 			}
 
 			return Mono.just(result);

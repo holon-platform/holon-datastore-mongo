@@ -22,7 +22,7 @@ import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
 import com.holonplatform.datastore.mongo.reactor.internal.tx.DefaultReactiveMongoTransaction;
 import com.holonplatform.datastore.mongo.reactor.internal.tx.DelegatedReactiveMongoTransaction;
 import com.holonplatform.reactor.datastore.transaction.ReactiveTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 import reactor.core.publisher.Mono;
 

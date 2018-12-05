@@ -25,7 +25,7 @@ import com.holonplatform.datastore.mongo.core.context.MongoContext;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
-import com.mongodb.async.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoCollection;
 
 /**
  * Helper class to configure the Mongo Datastore operations.

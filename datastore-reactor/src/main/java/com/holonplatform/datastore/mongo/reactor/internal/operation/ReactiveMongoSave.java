@@ -41,10 +41,10 @@ import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogg
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveSave;
 import com.holonplatform.reactor.datastore.operation.ReactiveSave;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -128,33 +128,19 @@ public class ReactiveMongoSave extends AbstractReactiveSave {
 						.resolveOrFail(PropertyBoxValue.create(ctx.getValue()), DocumentValue.class).getValue();
 
 				// check client session available
-				return ctx.getContext().getClientSession().map(session -> {
-					return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-						ctx.getCollection().insertOne(session, document,
-								MongoOperations.getInsertOneOptions(ctx.getConfiguration()), (result, error) -> {
-									if (error != null) {
-										sink.error(error);
-									} else {
-										sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-												ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
-												ctx.getValue(), document));
-									}
-								});
-					});
-				}).orElseGet(() -> {
-					return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-						ctx.getCollection().insertOne(document,
-								MongoOperations.getInsertOneOptions(ctx.getConfiguration()), (result, error) -> {
-									if (error != null) {
-										sink.error(error);
-									} else {
-										sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-												ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
-												ctx.getValue(), document));
-									}
-								});
-					});
-				});
+				return ctx.getContext().getClientSession()
+						.map(session -> Mono
+								.from(ctx.getCollection().insertOne(session, document,
+										MongoOperations.getInsertOneOptions(ctx.getConfiguration())))
+								.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+										ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
+										ctx.getValue(), document)))
+						.orElseGet(() -> Mono
+								.from(ctx.getCollection().insertOne(document,
+										MongoOperations.getInsertOneOptions(ctx.getConfiguration())))
+								.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+										ctx.getCollection(), ctx.getConfiguration(), 1, OperationType.INSERT,
+										ctx.getValue(), document)));
 			} else {
 				// build context (for update)
 				final MongoDocumentContext<ClientSession> upsertContext = MongoDocumentContext
@@ -165,43 +151,35 @@ public class ReactiveMongoSave extends AbstractReactiveSave {
 						.resolveOrFail(PropertyBoxValue.create(ctx.getValue()), DocumentValue.class).getValue();
 
 				// upsert
-				return ctx.getContext().getClientSession().map(session -> {
-					return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-						ctx.getCollection().updateOne(session, Filters.eq(id), document,
-								MongoOperations.getUpdateOptions(ctx.getConfiguration(), true), (result, error) -> {
-									if (error != null) {
-										sink.error(error);
-									} else {
-										// check insert
-										final BsonValue upsertedId = result.getUpsertedId();
-										final long affected = (upsertedId != null) ? 1
-												: MongoOperations.getAffectedCount(result);
-										sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-												ctx.getCollection(), ctx.getConfiguration(), affected,
-												(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
-												ctx.getValue(), document, upsertedId));
-									}
-								});
-					});
-				}).orElseGet(() -> {
-					return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-						ctx.getCollection().updateOne(Filters.eq(id), document,
-								MongoOperations.getUpdateOptions(ctx.getConfiguration(), true), (result, error) -> {
-									if (error != null) {
-										sink.error(error);
-									} else {
-										// check insert
-										final BsonValue upsertedId = result.getUpsertedId();
-										final long affected = (upsertedId != null) ? 1
-												: MongoOperations.getAffectedCount(result);
-										sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-												ctx.getCollection(), ctx.getConfiguration(), affected,
-												(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
-												ctx.getValue(), document, upsertedId));
-									}
-								});
-					});
-				});
+				return ctx
+						.getContext().getClientSession().map(
+								session -> Mono
+										.from(ctx.getCollection().updateOne(session, Filters.eq(id), document,
+												MongoOperations.getUpdateOptions(ctx.getConfiguration(), true)))
+										.map(result -> {
+											// check insert
+											final BsonValue upsertedId = result.getUpsertedId();
+											final long affected = (upsertedId != null) ? 1
+													: MongoOperations.getAffectedCount(result);
+											return AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+													ctx.getCollection(), ctx.getConfiguration(), affected,
+													(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+													ctx.getValue(), document, upsertedId);
+										}))
+						.orElseGet(
+								() -> Mono
+										.from(ctx.getCollection().updateOne(Filters.eq(id), document,
+												MongoOperations.getUpdateOptions(ctx.getConfiguration(), true)))
+										.map(result -> {
+											// check insert
+											final BsonValue upsertedId = result.getUpsertedId();
+											final long affected = (upsertedId != null) ? 1
+													: MongoOperations.getAffectedCount(result);
+											return AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+													ctx.getCollection(), ctx.getConfiguration(), affected,
+													(upsertedId != null) ? OperationType.INSERT : OperationType.UPDATE,
+													ctx.getValue(), document, upsertedId);
+										}));
 			}
 		}).map(context -> {
 

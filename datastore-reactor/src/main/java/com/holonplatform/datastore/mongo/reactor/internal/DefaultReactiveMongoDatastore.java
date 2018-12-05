@@ -33,7 +33,6 @@ import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMong
 import com.holonplatform.datastore.mongo.reactor.internal.operation.ReactiveMongoUpdate;
 import com.holonplatform.datastore.mongo.reactor.tx.ReactiveMongoTransaction;
 import com.holonplatform.reactor.datastore.transaction.ReactiveTransactionalOperation;
-import com.mongodb.async.client.ClientSession;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -117,37 +116,29 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 		final TransactionConfiguration cfg = (configuration != null) ? configuration
 				: TransactionConfiguration.getDefault();
 
-		return Mono.<ClientSession>create(sink -> {
-			// start client session
-			checkClient().startSession((result, error) -> {
-				if (error != null) {
-					sink.error(error);
-				} else {
-					sink.success(result);
-				}
-			});
-		}).map(s -> getTransactionFactory().createTransaction(s, cfg)).map(tx -> {
-			// start transaction
-			try {
-				tx.start();
-			} catch (TransactionException e) {
-				// ensure session finalization
-				try {
-					tx.getSession().close();
-				} catch (Exception re) {
-					LOGGER.warn("Transaction failed to start but the transaction session cannot be closed", re);
-				}
-				// propagate
-				throw e;
-			}
-			return tx;
-		}).map(tx -> {
-			// set as current transaction
-			CURRENT_TRANSACTION.set(tx);
-			// log
-			LOGGER.debug(() -> "MongoDB transaction [" + tx + "] created and setted as current transaction");
-			return tx;
-		});
+		return Mono.from(checkClient().startSession())
+				.map(session -> getTransactionFactory().createTransaction(session, cfg)).map(tx -> {
+					// start transaction
+					try {
+						tx.start();
+					} catch (TransactionException e) {
+						// ensure session finalization
+						try {
+							tx.getSession().close();
+						} catch (Exception re) {
+							LOGGER.warn("Transaction failed to start but the transaction session cannot be closed", re);
+						}
+						// propagate
+						throw e;
+					}
+					return tx;
+				}).map(tx -> {
+					// set as current transaction
+					CURRENT_TRANSACTION.set(tx);
+					// log
+					LOGGER.debug(() -> "MongoDB transaction [" + tx + "] created and setted as current transaction");
+					return tx;
+				});
 	}
 
 	/**

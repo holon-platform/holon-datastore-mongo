@@ -19,7 +19,7 @@ import java.util.concurrent.CompletionStage;
 
 import com.holonplatform.datastore.mongo.async.tx.AsyncMongoTransaction;
 import com.holonplatform.datastore.mongo.core.internal.tx.AbstractDelegatedMongoTransaction;
-import com.mongodb.async.client.ClientSession;
+import com.mongodb.reactivestreams.client.ClientSession;
 
 /**
  * An {@link AsyncMongoTransaction} which delegates its operations to another transaction.

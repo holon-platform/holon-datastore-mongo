@@ -29,6 +29,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncPropertyBoxOperationResultContext;
@@ -39,10 +40,10 @@ import com.holonplatform.datastore.mongo.core.expression.DocumentValue;
 import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.core.internal.support.IdUpdateDocument;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * MongoDB {@link AsyncInsert}.
@@ -82,94 +83,65 @@ public class AsyncMongoInsert extends AbstractAsyncInsert {
 	 */
 	@Override
 	public CompletionStage<OperationResult> execute() {
-		return CompletableFuture.supplyAsync(() -> {
 
-			// configuration
-			final PropertyBoxOperationConfiguration configuration = getConfiguration();
-			// validate
-			configuration.validate();
+		// configuration
+		final PropertyBoxOperationConfiguration configuration = getConfiguration();
+		// validate
+		configuration.validate();
 
-			// build context
-			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
-					configuration.getValue());
-			context.addExpressionResolvers(configuration.getExpressionResolvers());
+		// build context
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
+				configuration.getValue());
+		context.addExpressionResolvers(configuration.getExpressionResolvers());
 
-			// resolve collection name
-			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
-					.getName();
-			// get and configure collection
-			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						configuration);
-			});
+		// resolve collection name
+		final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class).getName();
+		// get and configure collection
+		final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+					configuration);
+		});
 
-			// prepare
-			final CompletableFuture<AsyncPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
+		// document to insert
+		final Document document = context
+				.resolveOrFail(PropertyBoxValue.create(configuration.getValue()), DocumentValue.class).getValue();
 
-			// document to insert
-			final Document document = context
-					.resolveOrFail(PropertyBoxValue.create(configuration.getValue()), DocumentValue.class).getValue();
+		return context.getClientSession()
+				.map(session -> CompletableFutureSubscriber.fromPublisher(
+						collection.insertOne(session, document, MongoOperations.getInsertOneOptions(configuration))))
+				.orElseGet(() -> CompletableFutureSubscriber.fromPublisher(
+						collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration))))
+				.thenApply(result -> AsyncPropertyBoxOperationResultContext.create(context, collection, configuration,
+						1, OperationType.INSERT, configuration.getValue(), document))
+				.thenApply(ctx -> {
+					// trace
+					ctx.trace("Inserted document", ctx.requireDocument());
+					// build operation result
+					final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
+							.affectedCount(1);
 
-			// insert
-			if (context.getClientSession().isPresent()) {
-				collection.insertOne(context.getClientSession().get(), document,
-						MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-										configuration, 1, OperationType.INSERT, configuration.getValue(), document));
-							}
-						});
-			} else {
-				collection.insertOne(document, MongoOperations.getInsertOneOptions(configuration), (result, error) -> {
-					if (error != null) {
-						operation.completeExceptionally(error);
+					// check inserted keys
+					Optional<ObjectId> insertedId = MongoOperations.checkInsertedKeys(builder, ctx.getContext(),
+							ctx.getConfiguration(), ctx.requireDocument(), ctx.getValue());
+
+					final OperationResult result = builder.build();
+
+					CompletableFuture<OperationResult> operation;
+					// check if the identifier property has to be updated with the document id value
+					final IdUpdateDocument toUpdate = (!insertedId.isPresent()) ? null
+							: MongoOperations.getIdUpdateDocument(ctx.getContext(), insertedId.get()).orElse(null);
+					if (insertedId.isPresent() && toUpdate != null) {
+						operation = CompletableFutureSubscriber.fromPublisher(ctx.getCollection()
+								.updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument()))
+								.thenApply(ur -> {
+									ctx.trace("Updated identifier property value", toUpdate.getUpdateDocument());
+									return result;
+								});
 					} else {
-						operation.complete(AsyncPropertyBoxOperationResultContext.create(context, collection,
-								configuration, 1, OperationType.INSERT, configuration.getValue(), document));
+						operation = CompletableFuture.completedFuture(result);
 					}
+					return operation.join();
 				});
-			}
-
-			// join the future
-			return operation.join();
-		}).thenApply(context -> {
-
-			// trace
-			context.trace("Inserted document", context.requireDocument());
-			// build operation result
-			final OperationResult.Builder builder = OperationResult.builder().type(OperationType.INSERT)
-					.affectedCount(1);
-
-			final CompletableFuture<OperationResult> operation = new CompletableFuture<>();
-
-			// check inserted keys
-			Optional<ObjectId> insertedId = MongoOperations.checkInsertedKeys(builder, context.getContext(),
-					context.getConfiguration(), context.requireDocument(), context.getValue());
-
-			final OperationResult result = builder.build();
-
-			// check if the identifier property has to be updated with the document id value
-			final IdUpdateDocument toUpdate = (!insertedId.isPresent()) ? null
-					: MongoOperations.getIdUpdateDocument(context.getContext(), insertedId.get()).orElse(null);
-			if (insertedId.isPresent() && toUpdate != null) {
-				context.getCollection().updateOne(Filters.eq(insertedId.get()), toUpdate.getUpdateDocument(),
-						(ur, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								// TODO ensure unique index
-								context.trace("Updated identifier property value", toUpdate.getUpdateDocument());
-								operation.complete(result);
-							}
-						});
-			} else {
-				operation.complete(result);
-			}
-
-			return operation.join();
-		}).thenApply(result -> result);
 	}
 
 }

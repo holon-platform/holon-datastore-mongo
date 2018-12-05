@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import org.bson.conversions.Bson;
 
 import com.holonplatform.datastore.mongo.core.internal.operation.AggregateOperationConfigurator;
-import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.client.model.Collation;
+import com.mongodb.reactivestreams.client.AggregatePublisher;
 
 /**
  * Default {@link AggregateOperationConfigurator} implementation.
@@ -30,9 +30,9 @@ import com.mongodb.client.model.Collation;
  */
 public class AsyncAggregateOperationConfigurator implements AggregateOperationConfigurator {
 
-	private final AggregateIterable<?> iterable;
+	private final AggregatePublisher<?> iterable;
 
-	public AsyncAggregateOperationConfigurator(AggregateIterable<?> iterable) {
+	public AsyncAggregateOperationConfigurator(AggregatePublisher<?> iterable) {
 		super();
 		this.iterable = iterable;
 	}

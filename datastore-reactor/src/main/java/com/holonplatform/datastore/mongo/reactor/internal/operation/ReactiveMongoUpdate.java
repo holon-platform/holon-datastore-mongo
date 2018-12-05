@@ -37,10 +37,10 @@ import com.holonplatform.datastore.mongo.core.expression.PropertyBoxValue;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.reactor.datastore.internal.operation.AbstractReactiveUpdate;
 import com.holonplatform.reactor.datastore.operation.ReactiveUpdate;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import reactor.core.publisher.Mono;
 
@@ -126,35 +126,19 @@ public class ReactiveMongoUpdate extends AbstractReactiveUpdate {
 			final ObjectId id = ctx.getDocumentId().orElseThrow(
 					() -> new DataAccessException("Cannot perform a UPDATE operation: missing document id value"));
 			// check client session available
-			return ctx.getContext().getClientSession().map(session -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().updateOne(session, Filters.eq(id), ctx.requireDocument(),
-							MongoOperations.getUpdateOptions(ctx.getConfiguration(), false), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-											ctx.getCollection(), ctx.getConfiguration(),
-											MongoOperations.getAffectedCount(result), OperationType.UPDATE,
-											ctx.getValue(), ctx.requireDocument()));
-								}
-							});
-				});
-			}).orElseGet(() -> {
-				return Mono.<AsyncPropertyBoxOperationResultContext>create(sink -> {
-					ctx.getCollection().updateOne(Filters.eq(id), ctx.requireDocument(),
-							MongoOperations.getUpdateOptions(ctx.getConfiguration(), false), (result, error) -> {
-								if (error != null) {
-									sink.error(error);
-								} else {
-									sink.success(AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
-											ctx.getCollection(), ctx.getConfiguration(),
-											MongoOperations.getAffectedCount(result), OperationType.UPDATE,
-											ctx.getValue(), ctx.requireDocument()));
-								}
-							});
-				});
-			});
+			return ctx.getContext().getClientSession().map(session -> Mono
+					.from(ctx.getCollection().updateOne(session, Filters.eq(id), ctx.requireDocument(),
+							MongoOperations.getUpdateOptions(ctx.getConfiguration(), false)))
+					.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(), ctx.getCollection(),
+							ctx.getConfiguration(), MongoOperations.getAffectedCount(result), OperationType.UPDATE,
+							ctx.getValue(), ctx.requireDocument())))
+					.orElseGet(() -> Mono
+							.from(ctx.getCollection().updateOne(Filters.eq(id), ctx.requireDocument(),
+									MongoOperations.getUpdateOptions(ctx.getConfiguration(), false)))
+							.map(result -> AsyncPropertyBoxOperationResultContext.create(ctx.getContext(),
+									ctx.getCollection(), ctx.getConfiguration(),
+									MongoOperations.getAffectedCount(result), OperationType.UPDATE, ctx.getValue(),
+									ctx.requireDocument())));
 		}).map(context -> {
 			// trace
 			context.trace("Updated document", context.requireDocument());

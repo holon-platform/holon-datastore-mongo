@@ -24,10 +24,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.CompletionException;
-
 import org.junit.Test;
 
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.core.DocumentWriteOption;
@@ -105,7 +104,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 		assertEquals(2, count);
 	}
 
-	@Test(expected = CompletionException.class)
+	@Test(expected = InvalidExpressionException.class)
 	public void testBulkInsertNoValues() {
 
 		getDatastore().bulkInsert(TARGET, SET1).execute().toCompletableFuture().join();

@@ -33,6 +33,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.commons.BulkInsertOperationConfiguration;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.datastore.mongo.async.internal.CompletableFutureSubscriber;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.internal.config.AsyncMongoCollectionConfigurator;
 import com.holonplatform.datastore.mongo.core.async.internal.support.AsyncMultiPropertyBoxOperationResultContext;
@@ -41,11 +42,11 @@ import com.holonplatform.datastore.mongo.core.context.MongoOperationContext;
 import com.holonplatform.datastore.mongo.core.expression.CollectionName;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.core.internal.support.ResolvedDocument;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoCollection;
-import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * Mongo {@link AsyncBulkInsert} implementation.
@@ -85,113 +86,76 @@ public class AsyncMongoBulkInsert extends AbstractAsyncBulkInsert {
 	 */
 	@Override
 	public CompletionStage<OperationResult> execute() {
-		return CompletableFuture.supplyAsync(() -> {
 
-			// configuration
-			final BulkInsertOperationConfiguration configuration = getConfiguration();
-			// validate
-			configuration.validate();
+		// configuration
+		final BulkInsertOperationConfiguration configuration = getConfiguration();
+		// validate
+		configuration.validate();
 
-			// property set
-			final PropertySet<?> propertySet = configuration.getPropertySet()
-					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
+		// property set
+		final PropertySet<?> propertySet = configuration.getPropertySet()
+				.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 
-			// resolution context
-			final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext,
-					propertySet);
-			context.addExpressionResolvers(configuration.getExpressionResolvers());
+		// resolution context
+		final MongoDocumentContext<ClientSession> context = MongoDocumentContext.create(operationContext, propertySet);
+		context.addExpressionResolvers(configuration.getExpressionResolvers());
 
-			// resolve collection name
-			final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class)
-					.getName();
-			// get and configure collection
-			final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
-				return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
-						configuration);
-			});
-
-			// encode documents
-			final List<ResolvedDocument> documentValues = MongoOperations.resolveDocumentValues(context,
-					configuration.getValues());
-
-			// documents to insert
-			final List<Document> documents = documentValues.stream().map(v -> v.getDocument())
-					.collect(Collectors.toList());
-
-			// prepare
-			final CompletableFuture<AsyncMultiPropertyBoxOperationResultContext> operation = new CompletableFuture<>();
-
-			// insert
-			if (context.getClientSession().isPresent()) {
-				collection.insertMany(context.getClientSession().get(), documents,
-						MongoOperations.getInsertManyOptions(configuration), (result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(
-										AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
-												configuration, documents.size(), OperationType.INSERT, documentValues));
-							}
-						});
-			} else {
-				collection.insertMany(documents, MongoOperations.getInsertManyOptions(configuration),
-						(result, error) -> {
-							if (error != null) {
-								operation.completeExceptionally(error);
-							} else {
-								operation.complete(
-										AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
-												configuration, documents.size(), OperationType.INSERT, documentValues));
-							}
-						});
-			}
-
-			// join the future
-			return operation.join();
-		}).thenCompose(context -> {
-
-			// check inserted keys
-			List<ObjectId> insertedIds = MongoOperations.checkInsertedKeys(context.getContext(),
-					context.getConfiguration(), context.getValues());
-
-			// check if the identifier property has to be updated with the document ids values
-			final List<CompletableFuture<UpdateResult>> operations = new ArrayList<>(insertedIds.size());
-			if (!insertedIds.isEmpty()) {
-				MongoOperations.getPropertyDocumentIdFieldName(context.getContext()).ifPresent(fieldName -> {
-					for (ObjectId insertedId : insertedIds) {
-						MongoOperations.getIdUpdateDocument(context.getContext(), insertedId, fieldName)
-								.ifPresent(toUpdate -> {
-									final CompletableFuture<UpdateResult> updateOperation = new CompletableFuture<>();
-									context.getCollection().updateOne(Filters.eq(insertedId),
-											toUpdate.getUpdateDocument(), (ur, error) -> {
-												if (error != null) {
-													updateOperation.completeExceptionally(error);
-												} else {
-													context.trace("Updated identifier property value",
-															toUpdate.getUpdateDocument());
-													updateOperation.complete(ur);
-												}
-											});
-									operations.add(updateOperation);
-								});
-					}
-				});
-			}
-
-			if (!operations.isEmpty()) {
-				return CompletableFuture.allOf(operations.toArray(new CompletableFuture[operations.size()]))
-						.thenApply(x -> context);
-			}
-			return CompletableFuture.completedFuture(context);
-		}).thenApply(context -> {
-
-			// trace
-			context.trace("Inserted documents",
-					context.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
-
-			return OperationResult.builder().type(OperationType.INSERT).affectedCount(context.getAffectedCount())
-					.build();
+		// resolve collection name
+		final String collectionName = context.resolveOrFail(configuration.getTarget(), CollectionName.class).getName();
+		// get and configure collection
+		final MongoCollection<Document> collection = operationContext.withDatabase(database -> {
+			return AsyncMongoCollectionConfigurator.configureWrite(database.getCollection(collectionName), context,
+					configuration);
 		});
+
+		// encode documents
+		final List<ResolvedDocument> documentValues = MongoOperations.resolveDocumentValues(context,
+				configuration.getValues());
+
+		// documents to insert
+		final List<Document> documents = documentValues.stream().map(v -> v.getDocument()).collect(Collectors.toList());
+
+		return context.getClientSession()
+				.map(session -> CompletableFutureSubscriber.fromPublisher(
+						collection.insertMany(session, documents, MongoOperations.getInsertManyOptions(configuration))))
+				.orElseGet(() -> CompletableFutureSubscriber.fromPublisher(
+						collection.insertMany(documents, MongoOperations.getInsertManyOptions(configuration))))
+				.thenApply(result -> AsyncMultiPropertyBoxOperationResultContext.create(context, collection,
+						configuration, documents.size(), OperationType.INSERT, documentValues))
+				.thenCompose(ctx -> {
+					// check inserted keys
+					List<ObjectId> insertedIds = MongoOperations.checkInsertedKeys(ctx.getContext(),
+							ctx.getConfiguration(), ctx.getValues());
+					// check if the identifier property has to be updated with the document ids values
+					final List<CompletableFuture<UpdateResult>> operations = new ArrayList<>(insertedIds.size());
+					if (!insertedIds.isEmpty()) {
+						MongoOperations.getPropertyDocumentIdFieldName(ctx.getContext()).ifPresent(fieldName -> {
+							for (ObjectId insertedId : insertedIds) {
+								MongoOperations.getIdUpdateDocument(ctx.getContext(), insertedId, fieldName)
+										.ifPresent(toUpdate -> {
+											operations.add(CompletableFutureSubscriber.fromPublisher(ctx.getCollection()
+													.updateOne(Filters.eq(insertedId), toUpdate.getUpdateDocument()))
+													.thenApply(ur -> {
+														context.trace("Updated identifier property value",
+																toUpdate.getUpdateDocument());
+														return ur;
+													}));
+										});
+							}
+						});
+					}
+					if (!operations.isEmpty()) {
+						return CompletableFuture.allOf(operations.toArray(new CompletableFuture[operations.size()]))
+								.thenApply(x -> ctx);
+					}
+					return CompletableFuture.completedFuture(ctx);
+				}).thenApply(ctx -> {
+					// trace
+					ctx.trace("Inserted documents",
+							ctx.getValues().stream().map(v -> v.getDocument()).collect(Collectors.toList()));
+					return OperationResult.builder().type(OperationType.INSERT).affectedCount(ctx.getAffectedCount())
+							.build();
+				});
 	}
 
 }

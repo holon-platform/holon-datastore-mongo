@@ -23,9 +23,9 @@ import com.holonplatform.datastore.mongo.core.MongoDatastoreBuilder;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.core.async.config.AsyncMongoDatastoreCommodityFactory;
 import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
-import com.mongodb.async.client.ClientSession;
-import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.reactivestreams.client.ClientSession;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 
 /**
  * MongoDB asynchronous Datastore implementations base interface.

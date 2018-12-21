@@ -1,0 +1,236 @@
+[[MongoDatastore]]
+== MongoDB Datastore
+
+The link:https://www.mongodb.com[MongoDB^] Datastore API is available in three implementations:
+
+* A *synchronous* implementation, which is the reference implementation of the Holon Platform link:{coreapidir}/com/holonplatform/core/datastore/Datastore.html[Datastore^] API: See <<SyncMongoDatastore>>.
+
+* An *asynchronous* implementation, which is the reference implementation of the Holon Platform link:{coreapidir}/com/holonplatform/async/datastore/AsyncDatastore.html[AsyncDatastore^] API: See <<AsyncMongoDatastore>>.
+
+* An *reactive* implementation, which is the reference implementation of the Holon Platform link:{reactorapidir}/com/holonplatform/reactor/datastore/ReactiveDatastore.html[ReactiveDatastore^] API: See <<ReactiveMongoDatastore>>.
+
+[[SyncMongoDatastore]]
+=== Synchronous MongoDB Datastore
+
+The `holon-datastore-mongo-sync` artifact provides the *synchronous* MongoDB `Datastore` API implementation.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-datastore-mongo-sync</artifactId>
+<version>{revnumber}</version>
+----
+
+The link:{apidir}/com/holonplatform/datastore/mongo/sync/MongoDatastore.html[MongoDatastore^] interface represents the synchronous MongoDB Datastore API implementation, extending the link:{coreapidir}/com/holonplatform/core/datastore/Datastore.html[Datastore^] API.
+
+NOTE: A synchronous link:https://mongodb.github.io/mongo-java-driver[MongoDB Java driver^] is required in classpath in order for the datastore to work.
+
+The `MongoDatastore` API, besides the standard `Datastore` API operations, provides a `builder()` method which can be used to create and configure a `MongoDatastore` API istance.
+
+A `com.mongodb.client.MongoClient` reference is required for the `MongoDatastore` instance setup.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleSyncMongoDatastore.java[tag=builder1,indent=0]
+----
+<1> Obtain a builder to configure and create a new `MongoDatastore` instance
+<2> Set the MongoDB client to use
+
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `MongoDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
+
+To reach the goal of a complete abstraction from the persistence store technology and the persistence model, the core `Datastore` API interface should be used by your application code, instead of the specific `MongoDatastore` API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleSyncMongoDatastore.java[tag=builder2,indent=0]
+----
+<1> Obtain a builder to configure and create a new `MongoDatastore` instance and expose it as a  `Datastore` API type 
+<2> Set the MongoDB client to use
+
+[[AsyncMongoDatastore]]
+=== Asynchronous MongoDB Datastore
+
+The `holon-datastore-mongo-async` artifact provides the *asynchronous* MongoDB `AsyncDatastore` API implementation.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-datastore-mongo-async</artifactId>
+<version>{revnumber}</version>
+----
+
+The link:{apidir}/com/holonplatform/datastore/mongo/async/AsyncMongoDatastore.html[AsyncMongoDatastore^] interface represents the asynchronous MongoDB Datastore API implementation, extending the link:{coreapidir}/com/holonplatform/async/datastore/AsyncDatastore.html[AsyncDatastore^] API.
+
+NOTE: An asynchronous link:https://mongodb.github.io/mongo-java-driver[MongoDB Java driver^] is required in classpath in order for the datastore to work.
+
+The `AsyncMongoDatastore` API, besides the standard `AsyncDatastore` API operations, provides a `builder()` method which can be used to create and configure an `AsyncMongoDatastore` API istance.
+
+A `com.mongodb.reactivestreams.client.MongoClient` reference is required for the `AsyncMongoDatastore` instance setup.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMongoDatastore.java[tag=builder1,indent=0]
+----
+<1> Obtain a builder to configure and create a new `AsyncMongoDatastore` instance
+<2> Set the MongoDB client to use
+
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the `AsyncDatastore` API interface should be used instead of the specific `AsyncMongoDatastore` API by your application code. This way, the concrete `AsyncDatastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
+
+To reach the goal of a complete abstraction from the persistence store technology and the persistence model, the `AsyncDatastore` API interface should be used by your application code, instead of the specific `AsyncMongoDatastore` API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMongoDatastore.java[tag=builder2,indent=0]
+----
+<1> Obtain a builder to configure and create a new `AsyncMongoDatastore` instance and expose it as a  `AsyncDatastore` API type 
+<2> Set the MongoDB client to use
+
+[[ReactiveMongoDatastore]]
+=== Reactive MongoDB Datastore
+
+The `holon-datastore-mongo-reactor` artifact provides the *reactive* MongoDB `AsyncDatastore` API implementation, using the link:https://projectreactor.io[Project Reactor^] `Mono` and `Flux` to provide and handle the datastore operations results.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-datastore-mongo-reactor</artifactId>
+<version>{revnumber}</version>
+----
+
+The link:{apidir}/com/holonplatform/datastore/mongo/reactor/ReactiveMongoDatastore.html[ReactiveMongoDatastore^] interface represents the asynchronous MongoDB Datastore API implementation, extending the link:{reactorapidir}/com/holonplatform/reactor/datastore/ReactiveDatastore.html[ReactiveDatastore^] API.
+
+NOTE: A reactive link:https://mongodb.github.io/mongo-java-driver[MongoDB Java driver^] is required in classpath in order for the datastore to work.
+
+The `ReactiveMongoDatastore` API, besides the standard `ReactiveDatastore` API operations, provides a `builder()` method which can be used to create and configure a `ReactiveMongoDatastore` API istance.
+
+A `com.mongodb.reactivestreams.client.MongoClient` reference is required for the `ReactiveMongoDatastore` instance setup.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiveMongoDatastore.java[tag=builder1,indent=0]
+----
+<1> Obtain a builder to configure and create a new `ReactiveMongoDatastore` instance
+<2> Set the MongoDB client to use
+
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the `ReactiveDatastore` API interface should be used instead of the specific `ReactiveMongoDatastore` API by your application code. This way, the concrete `ReactiveDatastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
+
+To reach the goal of a complete abstraction from the persistence store technology and the persistence model, the `ReactiveDatastore` API interface should be used by your application code, instead of the specific `ReactiveMongoDatastore` API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiveMongoDatastore.java[tag=builder2,indent=0]
+----
+<1> Obtain a builder to configure and create a new `ReactiveMongoDatastore` instance and expose it as a  `ReactiveDatastore` API type 
+<2> Set the MongoDB client to use
+
+[[MongoDBDatastoreConfiguration]]
+=== MongoDB Datastore configuration
+
+Regardless of the actual implementation, each MongoDB Datastore provides a set of configuration options, described below.
+
+==== Database name
+
+A MongoDB Datastore is *always bound to a single MongoDB database*, so the the database name configuration is required to build a MongoDB Datastore instance.
+
+Each builder provides a `database(String database)` method to set the *database name* to which the MongoDB Datastore is bound.
+
+Example:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=dbname,indent=0]
+----
+<1> Obtain a builder to configure and create a new MongoDB Datastore (in this example, a synchronous `MongoDatastore` implementation)
+<2> Set the MongoDB client to use
+<3> Set the database name to use
+
+==== Common MongoDB Datastore configuration options
+
+A set of common configuration options are available from the MongoDB Datastore builder, regardless of the actual implementation used.
+
+These common configuration options allows to:
+
+* Configure the default *read preference* to use.
+* Configure the default *read concern* to use.
+* Configure the default *write concern* to use.
+* Add a new bson `Codec`.
+* Add a new bson `CodecProvider`.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=config1,indent=0]
+----
+<1> Set the default read preference
+<2> Set the default read concern
+<3> Set the default write concern
+<4> Add a new bson `Codec`
+<5> Add a new bson `CodecProvider`
+
+==== `Enum` codec strategy
+
+By default, *enumeration* type document field values are mapped to a Java `Enum` class using a *name based* matching strategy.
+
+An *ordinal based* matching strategy is also available, using the `Enum` ordinal position to map an enumeration type document field value to a Java `Enum` class.
+
+The enumeration codec strategies are listed in the link:{apidir}/com/holonplatform/datastore/mongo/core/document/EnumCodecStrategy.html[EnumCodecStrategy^] enumeration and the strategy to use can be configured using the MongoDB Datastore builder `enumCodecStrategy` method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=config2,indent=0]
+----
+<1> Set the enumeration codec strategy to `ORDINAL`
+
+==== Common Datastore API configuration options
+
+Every MongoDB Datastore builder, regardless of the actual implementation, extends the core Datastore builder API, which provides the common Datastore configuration settings listed below.
+
+|===
+|Builder method |Arguments |Description
+
+|`dataContextId`
+|The _data context id_ `String` value
+|Set the _data context id_ to which the Datastore is bound. Can be used, for example, to declare configuration properties for multiple Datastore instances.
+
+|`traceEnabled`
+|`true` or `false`
+|Whether to enable Datastore operations _tracing_. When enabled, the MongoDB Datastore will log the JSON representation of the documents involved in the performed datastore operations.
+
+|`configuration`
+|A `DatastoreConfigProperties` instance
+|Set the `DatastoreConfigProperties` type configuration property set instance to use in order to read the Datastore configuration properties. See the link:holon-core.html#DatastoreConfiguration[Datastore configuration^] documentation section for details. This configuration properties can be used as an alternative for the programmatic configuration performed with the previous builder methods. 
+|===
+
+Example:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=config3,indent=0]
+----
+<1> Set a _data context id_ for the Datastore
+<2> Activate operations _tracing_ in log
+
+The configuration properties can also be provided through an external configuration property source, using the properties provided by the link:{coreapidir}/com/holonplatform/core/datastore/DatastoreConfigProperties.html[DatastoreConfigProperties^] property set.
+
+For example, supposing to have a properties file named `datastore.properties` like this:
+
+[source, text]
+----
+holon.datastore.trace=true
+----
+
+We can use it as configuration property source to enable the Datastore _tracing_ mode:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=config4,indent=0]
+----
+<1> Use the `datastore.properties` file as configuration property source
+
+[[DocumentsMapping]]
+=== Property model and MongoDB documents mapping
+
+TBD
+

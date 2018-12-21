@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -58,7 +60,7 @@
 	</build>
 
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>com.holon-platform.mongo</groupId>
 			<artifactId>holon-datastore-mongo-sync</artifactId>
@@ -69,7 +71,26 @@
 			<artifactId>holon-datastore-mongo-async</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-reactor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- drivers -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-sync</artifactId>
+			<version>${mongo.driver.sync.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-reactivestreams</artifactId>
+			<version>${mongo.driver.reactive.version}</version>
+			<optional>true</optional>
+		</dependency>
+
 	</dependencies>
 
 </project>

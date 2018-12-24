@@ -79,10 +79,6 @@ See link:index.html#obtain-the-platform-artifacts[Obtain the platform artifacts]
 
 include::_datastore.adoc[]
 
-include::_async-datastore.adoc[]
-
-include::_reactive-datastore.adoc[]
-
 include::_spring.adoc[]
 
 == Loggers

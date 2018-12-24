@@ -15,8 +15,16 @@
  */
 package com.holonplatform.datastore.mongo.examples;
 
+import java.math.BigInteger;
+
+import org.bson.types.ObjectId;
+
+import com.holonplatform.core.property.ListPathProperty;
+import com.holonplatform.core.property.NumericProperty;
+import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBoxProperty;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.core.property.SetPathProperty;
 import com.holonplatform.core.property.StringProperty;
 
 @SuppressWarnings("unused")
@@ -42,6 +50,60 @@ public class ExampleMapping {
 
 		static final PropertySet<?> SUBJECT = PropertySet.of(NAME, ADDRESS);
 		// end::mapping2[]
+	}
+
+	private interface Mapping3 {
+		// tag::mapping3[]
+		static final StringProperty NAME = StringProperty.create("name");
+
+		static final ListPathProperty<String> SKILLS = ListPathProperty.create("skills", String.class); // <1>
+		static final SetPathProperty<EnumValue> QUALIFICATIONS = SetPathProperty.create("qualifications",
+				EnumValue.class); // <2>
+
+		static final PropertySet<?> SUBJECT = PropertySet.of(NAME, SKILLS, QUALIFICATIONS);
+		// end::mapping3[]
+	}
+
+	private interface Mapping4 {
+		// tag::mapping4[]
+		static final PathProperty<ObjectId> ID = PathProperty.create("_id", ObjectId.class);
+		// end::mapping4[]
+	}
+
+	private interface Mapping5 {
+		// tag::mapping5[]
+		static final StringProperty ID = StringProperty.create("_id");
+		// end::mapping5[]
+	}
+
+	private interface Mapping6 {
+		// tag::mapping6[]
+		static final NumericProperty<BigInteger> ID = NumericProperty.bigIntegerType("_id");
+		// end::mapping6[]
+	}
+
+	private interface Mapping7 {
+		// tag::mapping7[]
+		static final StringProperty ID = StringProperty.create("my_document_id");
+		static final StringProperty NAME = StringProperty.create("name");
+
+		static final PropertySet<?> SUBJECT = PropertySet.builderOf(ID, NAME).identifier(ID).build(); // <1>
+		// end::mapping7[]
+	}
+
+	private interface Mapping8 {
+		// tag::mapping8[]
+		static final StringProperty ID = StringProperty.create("_id");
+		static final StringProperty NAME = StringProperty.create("name");
+
+		static final PropertySet<?> SUBJECT = PropertySet.of(ID, NAME); // <1>
+		// end::mapping8[]
+	}
+
+	private static enum EnumValue {
+
+		FIRST, SECOND, THIRD;
+
 	}
 
 }

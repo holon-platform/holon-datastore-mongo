@@ -159,10 +159,64 @@ The `SUBJECT` property set will be mapped into a _Document_ with the same schema
 * A `name` String type node at root level.
 * A nested `address` document with the `street` and `city` String type nodes.
 
+==== Multi value document nodes
+
+Multi value (array) MongoDB Document nodes can be represented using a `Collection` type property. 
+
+The standard link:{coreapidir}/com/holonplatform/core/property/SetPathProperty.html[SetPathProperty^] and link:{coreapidir}/com/holonplatform/core/property/ListPathProperty.html[ListPathProperty^] types can be used to represent a `Set` or `List` type collection of values.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping3,indent=0]
+----
+<1> Will be mapped into an array type Document node value and represented as a Java `List`
+<2> Will be mapped into an array type Document node value and represented as a Java `Set`
+
 [[DocumentId]]
 === Document id
 
-TBD
+The MongoDB Datastore supports three data types to represent a *Document id* and to map it to a property:
+
+*1:* The standard `org.bson.types.ObjectId` BSON type:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping4,indent=0]
+----
+
+*2:* The `String` type:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping5,indent=0]
+----
+
+*1:* The `BigInteger` type:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping6,indent=0]
+----
+
+The MongoDB Datastore will perform all the suitable conversions, if required, during the document mapping into and from a `PropertyBox` type.
+
+Regarding the *document id naming strategy*, the following options can be used:
+
+*1:* If a _single_ property is declared as property set identifier and its type is one of the valid document id types (see before), it is used as document id. In this scenario, the property name is irrelevant and *any path name can be used*.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping7,indent=0]
+----
+<1> The `my_document_id` named property will be used as document id, because it is explicitly declared as property set _identifier_
+
+*2:* Otherwise, if a property with the default `_id` name is available in the propert set and its type is one of the valid document id types (see before), that property is used as document id.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping.java[tag=mapping8,indent=0]
+----
+<1> The `_id` String type property will be used as document id, because it is named with the default `_id` name and its type is a valid document id type
 
 [[SyncMongoDatastore]]
 === Synchronous MongoDB Datastore

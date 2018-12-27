@@ -86,7 +86,7 @@ public interface ModelTest {
 			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, C_STR, C_INT, C_ENM, C_LNG, NBL, VRT);
 
 	public static final PathProperty<EnumValue> ENM2 = PathProperty.create("enm2", EnumValue.class)
-			.configuration(EnumCodecStrategy.CONFIG_PROPERTY, EnumCodecStrategy.ORDINAL);
+			.withConfiguration(EnumCodecStrategy.CONFIG_PROPERTY, EnumCodecStrategy.ORDINAL);
 
 	public static final PropertySet<?> SET2 = PropertySet.of(ID, ENM2);
 

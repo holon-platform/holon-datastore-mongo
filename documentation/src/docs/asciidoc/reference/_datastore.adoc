@@ -218,6 +218,19 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMapping
 ----
 <1> The `_id` String type property will be used as document id, because it is named with the default `_id` name and its type is a valid document id type
 
+NOTE: When a document id property name different form the standard `_id` is used, the MongoDB Datastore _save_, _insert_ and _update_ operations will always include a `_id` document attribute anyway and its value will be synchonized with the property value declared as document id.
+
+[[DatabaseCollections]]
+=== Database collections
+
+For each Datastore operation, the target database *collection name* must be specified using the `DataTarget` representation, providing the collection name as data target name.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=target,indent=0]
+----
+<1> Declare a `DataTarget` for the `my_collection` database collection name
+
 [[SyncMongoDatastore]]
 === Synchronous MongoDB Datastore
 
@@ -256,6 +269,36 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleSyncMon
 ----
 <1> Obtain a builder to configure and create a new `MongoDatastore` instance and expose it as a  `Datastore` API type 
 <2> Set the MongoDB client to use
+
+For example, given the following property model declaration:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleModel.java[tag=model,indent=0]
+----
+<1> Document id property using the standard `_id` name and `String` as value type
+<2> A `String` type document property declation which maps the `name` document attribute
+<3> Property set declaration including the `ID` and `NAME` properties. The `ID` property is explicitly declared as the identifier property, even if in this case it would not have been necessary because the `ID` property is mapped to the standard `_id` document id attribute name.
+<4> Data target declation using the `my_collection` database collection name
+
+Below an example of some datastore operations using the _synchronous_ MongoDB Datastore API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleSyncMongoDatastore.java[tag=ops,indent=0]
+----
+<1> Build a MongoDB `Datastore` bound to the `test` database name
+<2> Save (insert if not present or update otherwise) given `PropertyBox` value in the `my_collection` database collection name (using the `TARGET` declaration)
+<3> Get the auto-generated document id value, mapped to the `ID` property declaration
+<4> Insert given value using the `BRING_BACK_GENERATED_IDS` default write option
+<5> The auto-generated document id value will be setted in the provided `PropertyBox` value, bound to the `ID` property
+<6> Update given value
+<7> Delete the value
+<8> Perform a _count_ query on the `my_collection` database collection, providing some filters
+<9> Perform a query on the `my_collection` database collection, providing a filter and a sort declaration and projecting the query results as a stream of `PropertyBox` values
+<10> Perform a query to obtain a single value of the `ID` property, if available
+<11> Perform a _bulk_ update
+<12> Perform a _bulk_ delete
 
 [[AsyncMongoDatastore]]
 === Asynchronous MongoDB Datastore
@@ -296,6 +339,27 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMo
 <1> Obtain a builder to configure and create a new `AsyncMongoDatastore` instance and expose it as a  `AsyncDatastore` API type 
 <2> Set the MongoDB client to use
 
+The `AsyncDatastore` API uses the `java.util.concurrent.CompletionStage` interface to provide the asynchronous operation results.
+
+Below an example of some datastore operations using the _asynchronous_ MongoDB Datastore API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMongoDatastore.java[tag=ops,indent=0]
+----
+<1> Build a MongoDB `AsyncDatastore` bound to the `test` database name
+<2> Save (insert if not present or update otherwise) given `PropertyBox` value in the `my_collection` database collection name (using the `TARGET` declaration)
+<3> Get the auto-generated document id value, mapped to the `ID` property declaration
+<4> Insert given value using the `BRING_BACK_GENERATED_IDS` default write option
+<5> The auto-generated document id value will be setted in the provided `PropertyBox` value, bound to the `ID` property
+<6> Update given value
+<7> Delete the value
+<8> Perform a _count_ query on the `my_collection` database collection, providing some filters
+<9> Perform a query on the `my_collection` database collection, providing a filter and a sort declaration and projecting the query results as a stream of `PropertyBox` values
+<10> Perform a query to obtain a single value of the `ID` property, if available
+<11> Perform a _bulk_ update
+<12> Perform a _bulk_ delete
+
 [[ReactiveMongoDatastore]]
 === Reactive MongoDB Datastore
 
@@ -334,3 +398,24 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiv
 ----
 <1> Obtain a builder to configure and create a new `ReactiveMongoDatastore` instance and expose it as a  `ReactiveDatastore` API type 
 <2> Set the MongoDB client to use
+
+The `ReactiveDatastore` API uses the Project Reactor `reactor.core.publisher.Mono` and `reactor.core.publisher.Flux` objects to provide the operation results.
+
+Below an example of some datastore operations using the _reactive_ MongoDB Datastore API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiveMongoDatastore.java[tag=ops,indent=0]
+----
+<1> Build a MongoDB `ReactiveDatastore` bound to the `test` database name
+<2> Save (insert if not present or update otherwise) given `PropertyBox` value in the `my_collection` database collection name (using the `TARGET` declaration)
+<3> Get the auto-generated document id value, mapped to the `ID` property declaration
+<4> Insert given value using the `BRING_BACK_GENERATED_IDS` default write option
+<5> The auto-generated document id value will be setted in the provided `PropertyBox` value, bound to the `ID` property
+<6> Update given value
+<7> Delete the value
+<8> Perform a _count_ query on the `my_collection` database collection, providing some filters
+<9> Perform a query on the `my_collection` database collection, providing a filter and a sort declaration and projecting the query results as a Flux of `PropertyBox` values
+<10> Perform a query to obtain a single value of the `ID` property, if available
+<11> Perform a _bulk_ update
+<12> Perform a _bulk_ delete

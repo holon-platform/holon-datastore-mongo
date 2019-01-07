@@ -18,6 +18,7 @@ package com.holonplatform.datastore.mongo.examples;
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
 
+import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
@@ -74,7 +75,15 @@ public class ExampleMongoDatastore {
 		// end::config4[]
 	}
 
+	// tag::target[]
+	final static DataTarget<?> TARGET = DataTarget.named("my_collection"); // <1>
+	// end::target[]
+
 	private static com.mongodb.client.MongoClient getMongoClient() {
+		return null;
+	}
+
+	private static MongoDatastore getMongoDatastore() {
 		return null;
 	}
 

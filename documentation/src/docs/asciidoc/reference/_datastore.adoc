@@ -547,4 +547,118 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDa
 ----
 <1> Get the `MongoDatabase` reference and use it to perform some operations
 
+[[MongoDatastoreExtension]]
+=== Extending the MongoDB Datastore API
 
+[[MongoExpressionResolvers]]
+=== Expression resolvers
+
+The `Datastore` API can be extended using the `ExpressionResolver` API, to add new expression resolution strategies, modify existing ones and to handle new `Expression` types.
+
+NOTE: See the link:holon-core.html#DatastoreExpressionResolverExtension[Datastore API extension] documentation section for details.
+
+==== MongoDB Expression resolvers registration
+
+A new `ExpressionResolver` can be registered in the MongoDB `Datastore` API in two ways:
+
+*1. Using the MongoDB `Datastore` API instance:*
+
+An `ExpressionResolver` can be registered either using the `Datastore` _builder_ API at Datastore configuration time:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expreg1,indent=0]
+----
+<1> Register a new `ExpressionResolver`
+
+Or using the `Datastore` API itself, which extends the `ExpressionResolverSupport` API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expreg2,indent=0]
+----
+<1> Register and new `ExpressionResolver`
+
+NOTE: The same registration options are available for the `AsyncDatastore` and `ReactiveDatastore` API and builders.
+
+*2. Automatic registration using _Java service extensions_:*
+
+The MongoDB Datastore implementatons support `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/mongo/core/config/MongoDatastoreExpressionResolver.html[MongoDatastoreExpressionResolver^] base type and the default _Java service extensions_ modality.
+
+To automatically register an `ExpressionResolver` this way, a class implementing `MongoDatastoreExpressionResolver` has to be created and its fully qualified name must be specified in a file named `com.holonplatform.datastore.mongo.core.config.MongoDatastoreExpressionResolver`, placed in the `META-INF/services` folder in classpath.
+
+When this registration method is used, the expression resolvers defined this way will be registered for *any MongoDB Datastore API instance*.
+
+==== Specific expression resolvers registration
+
+All the default `Datastore` API operations supports *operation specific* expression resolvers registration, through the `ExpressionResolverSupport` API.
+
+An `ExpressionResolver` registered for a specific `Datastore` API operation execution will be available only for the execution of that operation, and will be ignored by any other `Datastore` API operation.
+
+For example, to register an expression resolver only for a single `Query` execution, the `Query` builder API can be used:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expreg3,indent=0]
+----
+<1> Register an expression resolver only for the specific `Query` operation definition
+
+==== Expression resolvers priority
+
+According to the standard convention, the `javax.annotation.Priority` annotation can be used on `ExpressionResolver` classes to indicate in what order the expression resolvers bound to the same _type resolution pair_ (i.e. the expression type handled by a resolver and the target expression type into which it will be resolved) must be applied.
+
+The less is the `javax.annotation.Priority` number assigned to a resolver, the higher will be it's priority order.
+
+All the default MongoDB Datastore expression resolvers have the _minimum_ priority order, allowing to override their behavior and resolution strategies with custom expression resolvers with a higher assigned priority order (i.e. a priority number less then `Integer.MAX_VALUE`).
+
+==== Expression validation
+
+The internal MongoDB Datastore _BSON composer engine_ will perform *validation* on any `Expression` instance to resolve and each corresponding resolved `Expression` instance, using the default expression `validate()` method.
+
+So the `validate()` method can be used to implement custom expression validation logic and throw an `InvalidExpressionException` when validation fails.
+
+==== MongoDB Datastore expressions
+
+Besides the standard link:holon-core.html#DatastoreExpressionResolverExtension[Datastore API expressions], such as `DataTarget`, `QueryFilter` and `QuerySort`, which can be used to extend the `Datastore` API with new expression implementations and new resolution strategies, the MongoDB `Datastore` API can be extended using a set of *specific BSON resolution expressions*, used by the internal _BSON composer engine_ to implement the resolution and composition strategy to obtain the BSON expressions and document mappings from the `Datastore` API meta-language expressions.
+
+These expressions are available from the `com.holonplatform.datastore.mongo.core.expression` package of the `holon-datastore-mongo-core` artifact.
+
+The link:{apidir}/com/holonplatform/datastore/mongo/core/expression/BsonExpression.html[BsonExpression^] is the expression which represents a _BSON expression part_, used to compose the actual BSON statement which will be executed using the MongoDB Java driver.
+
+The `BsonExpression` type can be used to directly resolve an abstract `Datastore` API expression into a BSON statement part.
+
+For example, supposing to have a `IdIs` class which represents a `QueryFilter` expression type to represent the expression _"the `_id` column name value is equal to a given ObjectId type value"_:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expres1,indent=0]
+----
+
+We want to create an `ExpressionResolver` class to resolve the `IdIs` expression directly into a *BSON epression*, using the `BsonExpression` type. Using the convenience `create` method of the `ExpressionResolver` API, we can do it in the following way:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expres2,indent=0]
+----
+<1> Expression type to resolve
+<2> Target expression type
+<3> Expression resolution logic: since we resolve the `IdIs` expression directly into a `BsonExpression` type, the BSON filter representation is provided
+
+After the `ExpressionResolver` is registered in the `Datastore` API, the new `IdIs` expression can be used in the `Datastore` API operations which support the `QueryFilter` expression type just like any other filter expression. For example, in a `Query` expression:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=expres3,indent=0]
+----
+<1> Register the new expression resolver
+<2> Use the `IdIs` expression in a query definition
+
+Other expression types are used to represent the elements of a query or a Datastore operation. These expression types often represent an _intermediate_ expression type, between the highest abstract layer (i.e. an expression of the `Datastore` API meta-language) and the final BSON expression representation.
+
+An example is the link:{apidir}/com/holonplatform/datastore/mongo/core/expression/BsonProjection.html[BsonProjection^] to represent a query projection.
+
+==== MongoDB Expression resolution context
+
+The MongoDB Datastore APIs make available an extension of the standard expression `ResolutionContext`, to provide a set of configuration attributes and BSON resolution context specific operations. 
+
+This resolution context extension is represented by the link:{apidir}/com/holonplatform/datastore/mongo/core/context/MongoResolutionContext.html[MongoResolutionContext^] API.

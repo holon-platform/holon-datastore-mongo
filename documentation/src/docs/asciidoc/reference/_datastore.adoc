@@ -522,7 +522,7 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMo
 
 The `isTransactional()` or `requireTransactional()` methods of the `ReactiveDatastore` API can be used to obtain the _transactional_ API which can be used for transactions management.
 
-The link:{coreapidir}/com/holonplatform/reactor/datastore/transaction/ReactiveTransaction.html[ReactiveTransaction^] interface is used as transaction representation and provides methods to inspect the transaction status and perform the *commit* and *rollback* operations.
+The link:{reactorapidir}/com/holonplatform/reactor/datastore/transaction/ReactiveTransaction.html[ReactiveTransaction^] interface is used as transaction representation and provides methods to inspect the transaction status and perform the *commit* and *rollback* operations.
 
 [source, java]
 ----
@@ -532,3 +532,19 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiv
 <2> Commit the transaction
 <3> Obtain the `ReactiveTransactional` API to execute the Datastore operation within a transaction and return a value
 <4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
+
+=== Using the `MongoDatabaseHandler` for a direct database access
+
+The link:{apidir}/com/holonplatform/datastore/mongo/core/MongoDatabaseHandler.html[MongoDatabaseHandler^] API can be used obtain a direct reference to the `MongoDatabase` object which represents the Mongo database configured for the current Datastore implementation.
+
+The `MongoDatabase` reference can be used to perform database operations with the MongoDB Java driver directly, using BSON expressions and outside of the standard Datastore API operations.
+
+Each specific MongoDB datastore implementation provides the `MongoDatabaseHandler` support, using a consistent `MongoDatabase` reference type.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=handler,indent=0]
+----
+<1> Get the `MongoDatabase` reference and use it to perform some operations
+
+

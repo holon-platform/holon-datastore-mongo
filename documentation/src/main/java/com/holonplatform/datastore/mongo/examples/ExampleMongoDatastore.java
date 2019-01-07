@@ -144,6 +144,17 @@ public class ExampleMongoDatastore {
 		// end::bsonsort[]
 	}
 
+	public void handler() {
+		// tag::handler[]
+		MongoDatastore datastore = getMongoDatastore();
+
+		long count = datastore.withDatabase(db -> { // <1>
+			db.createCollection("test");
+			return db.getCollection("test").countDocuments();
+		});
+		// end::handler[]
+	}
+
 	private static PropertyBox buildPropertyBoxValue() {
 		return null;
 	}

@@ -56,6 +56,7 @@
 			<groupId>com.holon-platform.mongo</groupId>
 			<artifactId>holon-datastore-mongo-reactor</artifactId>
 			<version>${project.version}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- MongoDB core Java driver -->

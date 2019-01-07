@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Import;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.async.AsyncMongoDatastore;
 import com.holonplatform.datastore.mongo.spring.boot.internal.MongoAsyncDatastoreAutoConfigurationRegistrar;
+import com.holonplatform.datastore.mongo.spring.boot.internal.MongoReactiveDatastoreAutoConfigurationRegistrar;
 import com.holonplatform.datastore.mongo.spring.boot.internal.MongoSyncDatastoreAutoConfigurationRegistrar;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 import com.holonplatform.spring.EnableDatastoreConfiguration;
@@ -54,10 +55,21 @@ public class MongoDatastoreAutoConfiguration {
 	 * Async
 	 */
 	@Configuration
-	@ConditionalOnClass(name = "com.mongodb.async.client.MongoClient")
+	@ConditionalOnClass(name = "com.mongodb.reactivestreams.client.MongoClient")
 	@ConditionalOnMissingBean(AsyncMongoDatastore.class)
 	@Import(MongoAsyncDatastoreAutoConfigurationRegistrar.class)
 	static class MongoAsyncDatastoreConfiguration {
+
+	}
+
+	/**
+	 * Reactive
+	 */
+	@Configuration
+	@ConditionalOnClass(name = { "com.mongodb.reactivestreams.client.MongoClient", "reactor.core.publisher.Mono" })
+	@ConditionalOnMissingBean(type = "com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore")
+	@Import(MongoReactiveDatastoreAutoConfigurationRegistrar.class)
+	static class MongoReactiveDatastoreConfiguration {
 
 	}
 

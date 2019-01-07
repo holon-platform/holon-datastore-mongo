@@ -230,5 +230,98 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDa
 <2> Configure the second MongoDB Datastore using `two` as _data context id_: by default the bean named `mongoClient_two` will be used as `MongoClient`
 <3> A specific `Datastore` type bean reference can be obtained using the _data context id_ as *qualifier*
 
+[[MongoDatastoreSpringBoot]]
+== Spring Boot integration
 
+The `holon-datastore-mongo-spring-boot` artifact provides integration with https://projects.spring.io/spring-boot[Spring Boot^] for MongoDB Datastores *auto-configuration*.
 
+To enable the Spring Boot MongoDB Datastore auto-configuration features, the following artifact must be included in your project dependencies:
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-datastore-mongo-spring-boot</artifactId>
+<version>{revnumber}</version>
+----
+
+The MongoDB Datastore auto-configuration class support the configuration of the three available MongoDB Datastore implementations:
+
+=== Synchronous MongoDB Datastore
+
+A synchronous MongoDB `Datastore` is auto-configured only when:
+
+* A `MongoDatastore` type bean is not already available from the Spring application context.
+* A valid `com.mongodb.client.MongoClient` type bean is available from the Spring application context.
+
+=== Asynchronous MongoDB Datastore
+
+An asynchronous MongoDB `AsyncDatastore` is auto-configured only when:
+
+* A `AsyncMongoDatastore` type bean is not already available from the Spring application context.
+* A valid `com.mongodb.reactivestreams.client.MongoClient` type bean is available from the Spring application context.
+
+=== Reactive MongoDB Datastore
+
+A reactive MongoDB `ReactiveDatastore` is auto-configured only when:
+
+* A `ReactiveMongoDatastore` type bean is not already available from the Spring application context.
+* A valid `com.mongodb.reactivestreams.client.MongoClient` type bean is available from the Spring application context.
+* The `holon-datastore-mongo-reactor` artifact (and the Project Reactor core library) is available from classpath.
+
+=== MongoDB Datastore configuration
+
+The Spring Boot application properties can be used to configure the MongoDB Datastore beans, for example:
+
+.application.yml
+[source, yaml]
+----
+holon: 
+  datastore:
+    trace: true
+  mongo:
+    database: test
+----
+
+See <<SpringConfigurationProperties>>.
+
+=== Disabling the MongoDB Datastore auto-configuration feature
+
+To disable this auto-configuration feature the link:{apidir}/com/holonplatform/datastore/mongo/spring/boot/MongoDatastoreAutoConfiguration.html[MongoDatastoreAutoConfiguration^] class can be excluded:
+
+[source, java]
+----
+@EnableAutoConfiguration(exclude={MongoDatastoreAutoConfiguration.class})
+----
+
+[[MongoDatastoreSpringBootStarters]]
+=== Spring Boot starters
+
+The following _starter_ artifacts are available to provide a quick project configuration setup using Maven dependency system:
+
+*1.* *Default MongoDB Datastore starter* provides the dependencies to the Holon MongoDB Datastore Spring Boot integration artifact `holon-datastore-mongo-spring-boot` and the synchronous and asynchronous MongoDB Datastore implementations.
+
+The *MongoDB Java driver* library is included in the starters dependencies.
+
+Furthermore, the following additional dependencies are provided:
+
+* The link:holon-core.html#SpringBoot[Holon Platform Core Module Spring Boot integration^] base starter (`holon-starter`).
+* The base Spring Boot starter (`spring-boot-starter`), see the link:https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using-boot-starter[Spring Boot starters documentation^] for details.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-starter-mongo-datastore</artifactId>
+<version>{revnumber}</version>
+----
+
+*2.* *Reactive MongoDB Datastore starter* provides the same dependencies as the default MongoDB Datastore starter, adding the `holon-datastore-mongo-reactor` artifact to provide the reactive MongoDB Datastore implementation and auto-configuration.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-starter-mongo-datastore-reactor</artifactId>
+<version>{revnumber}</version>
+----

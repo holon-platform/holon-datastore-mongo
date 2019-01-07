@@ -23,10 +23,16 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.DatastoreCommodity;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
+import com.holonplatform.datastore.mongo.core.MongoDatabaseHandler;
 import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
+import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
+import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
 @SuppressWarnings({ "unused", "serial" })
@@ -107,6 +113,55 @@ public class ExampleMongoDatastoreExtension {
 
 		Query query = datastore.query().filter(new IdIs(new ObjectId("xxxx"))); // <2>
 		// end::expres3[]
+	}
+
+	// tag::commodity[]
+	interface MyCommodity extends DatastoreCommodity { // <1>
+
+		void createCollection(String name);
+
+	}
+
+	class MyCommodityImpl implements MyCommodity { // <2>
+
+		private final MongoDatabaseHandler<MongoDatabase> databaseHandler;
+
+		public MyCommodityImpl(MongoDatabaseHandler<MongoDatabase> databaseHandler) {
+			super();
+			this.databaseHandler = databaseHandler;
+		}
+
+		@Override
+		public void createCollection(String name) {
+			databaseHandler.withDatabase(db -> {
+				db.createCollection(name);
+			});
+		}
+
+	}
+
+	class MyCommodityFactory implements SyncMongoDatastoreCommodityFactory<MyCommodity> { // <3>
+
+		@Override
+		public Class<? extends MyCommodity> getCommodityType() {
+			return MyCommodity.class;
+		}
+
+		@Override
+		public MyCommodity createCommodity(SyncMongoDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new MyCommodityImpl(context);
+		}
+
+	}
+	// end::commodity[]
+
+	public void commodityFactory() {
+		// tag::factoryreg[]
+		Datastore datastore = MongoDatastore.builder() //
+				.withCommodity(new MyCommodityFactory()) // <1>
+				.build();
+		// end::factoryreg[]
 	}
 
 }

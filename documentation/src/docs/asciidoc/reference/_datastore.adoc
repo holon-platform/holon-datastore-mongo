@@ -662,3 +662,52 @@ An example is the link:{apidir}/com/holonplatform/datastore/mongo/core/expressio
 The MongoDB Datastore APIs make available an extension of the standard expression `ResolutionContext`, to provide a set of configuration attributes and BSON resolution context specific operations. 
 
 This resolution context extension is represented by the link:{apidir}/com/holonplatform/datastore/mongo/core/context/MongoResolutionContext.html[MongoResolutionContext^] API.
+
+[[CommodityFactories]]
+=== Commodity factories
+
+The MongoDB `Datastore` API supports _Datastore commodities_ registration using a suitable commodity factory type, which is specific for each MongoDB datastore implementation:
+
+* For the *synchronous* `Datastore` implementation, the link:{apidir}/com/holonplatform/datastore/mongo/sync/config/SyncMongoDatastoreCommodityFactory.html[SyncMongoDatastoreCommodityFactory^] type.
+
+* For the *asynchronous* `AsyncDatastore` and the *reactive* `ReactiveDatastore` implementation, the link:{apidir}/com/holonplatform/datastore/mongo/sync/config/AsyncMongoDatastoreCommodityFactory.html[AsyncMongoDatastoreCommodityFactory^] type.
+
+NOTE: See the link:holon-core.html#DatastoreCommodities[Datastore commodities definition and registration^] documentation section to learn how the _Datastore commodity_ architecture can be used to provide extensions to the default `Datastore` API.
+
+These commodity factory types provide a specialized link:{apidir}/com/holonplatform/datastore/mongo/core/config/MongoDatastoreCommodityContext.html[MongoDatastoreCommodityContext^] API extension as commodity context, to make available a set of MongoDB specific configuration attributes and references, for example:
+
+* The current database name and reference.
+* The current client session, if available.
+* The current codec registry.
+* The default read preference, read concern and write concern.
+* The available _expression resolvers_.
+
+Furthermore, it makes available some API methods to interact with the underlying database, such as the `withDatabase(MongoDatabaseOperation operation)` method.
+
+Example: definition of a commodity which provides a method to create a database collection:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=commodity,indent=0]
+----
+<1> Datastore commodity API
+<2> Commodity implementation
+<3> Commodity factory implementation
+
+A Datastore commodity factory class which extends the `SyncMongoDatastoreCommodityFactory` or the  `AsyncMongoDatastoreCommodityFactory` interface can be registered in a MongoDB Datastore in two ways:
+
+*1. Direct registration using the MongoDB Datastore API builder:*
+
+The MongoDB Datastore APIs supports the commodity factory registration using the `withCommodity` builder method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreExtension.java[tag=factoryreg,indent=0]
+----
+<1> Register the `MyCommodityFactory` commodity factory in given Datastore implementation
+
+*2. Automatic registration using the  _Java service extensions_:*
+
+To automatically register an commodity factory using the standard _Java service extensions_ based method, a class implementing either `SyncMongoDatastoreCommodityFactory` or `AsyncMongoDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityFactory` or `com.holonplatform.datastore.mongo.async.config.AsyncMongoDatastoreCommodityFactory`,  placed in the `META-INF/services` folder of the classpath.
+
+When this registration method is used, the commodity factories defined this way will be registered for *any MongoDB Datastore API instance*.

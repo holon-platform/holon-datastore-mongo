@@ -15,11 +15,22 @@
  */
 package com.holonplatform.datastore.mongo.examples;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
+import org.bson.types.ObjectId;
 
+import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
+import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.property.PathProperty;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.property.StringProperty;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 import com.mongodb.ReadConcern;
@@ -78,6 +89,39 @@ public class ExampleMongoDatastore {
 	// tag::target[]
 	final static DataTarget<?> TARGET = DataTarget.named("my_collection"); // <1>
 	// end::target[]
+
+	public void ids1() {
+		// tag::ids1[]
+		final PathProperty<ObjectId> ID = PathProperty.create("_id", ObjectId.class);
+
+		Datastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+		PropertyBox value = buildPropertyBoxValue();
+
+		OperationResult result = datastore.insert(DataTarget.named("my_collection"), value); // <1>
+
+		Optional<ObjectId> idValue = result.getInsertedKey(ID); // <2>
+		idValue = result.getFirstInsertedKey(ObjectId.class); // <3>
+		// end::ids1[]
+	}
+
+	public void ids2() {
+		// tag::ids2[]
+		final StringProperty ID = StringProperty.create("_id"); // <1>
+		final PathProperty<String> TEXT = PathProperty.create("text", String.class);
+
+		Datastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+
+		PropertyBox value = PropertyBox.builder(ID, TEXT).set(TEXT, "test").build(); // <2>
+
+		datastore.insert(DataTarget.named("my_collection"), value, DefaultWriteOption.BRING_BACK_GENERATED_IDS); // <3>
+
+		String idValue = value.getValue(ID); // <4>
+		// end::ids2[]
+	}
+
+	private static PropertyBox buildPropertyBoxValue() {
+		return null;
+	}
 
 	private static com.mongodb.client.MongoClient getMongoClient() {
 		return null;

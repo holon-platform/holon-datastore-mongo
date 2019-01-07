@@ -447,3 +447,88 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiv
 <10> Perform a query to obtain a single value of the `ID` property, if available
 <11> Perform a _bulk_ update
 <12> Perform a _bulk_ delete
+
+[[CustomFilterSort]]
+=== Custom BSON filters and sorts
+
+The MongoDB Datastore APIs support custom *BSON* filters and sorts expressions, i.e. `QueryFilter` and `QuerySort` type expressions for which the *BSON expression* that represents the filtering and sorting conditions is directly provided.
+
+==== BsonFilter
+
+The link:{apidir}/com/holonplatform/datastore/mongo/core/BsonFilter.html[BsonFilter^] interface is a `QueryFilter` implementation to provide the query restrictions using a *BSON expression*, and it can be used just like any other `QueryFilter` implementation in query definitions.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=bsonfilter,indent=0]
+----
+<1> Use `BsonFilter` to provide a BSON filter expression that matches all documents where the value of the  `my_field` field is an array of the specified size (3)
+
+==== BsonSort
+
+The link:{apidir}/com/holonplatform/datastore/mongo/core/BsonSort.html[BsonSort^] interface is a `QuerySort` implementation to provide the query sort using a *BSON expression*, and it can be used just like any other `QuerySort` implementation in query definitions.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastore.java[tag=bsonsort,indent=0]
+----
+<1>  Use `BsonSort` to provide a BSON sort specification for a descending sort on the `my_field` field
+
+[[Transactions]]
+=== Transactions management
+
+The MongoDB Datastore API implementations support *transactions* management, if transaction support is available from the concrete MongoDB database engine.
+
+IMPORTANT: The multi-document ACID transactions support is available since the *version 4.0* of MongoDB platform and the MongoDB Java driver version *3.8 or higher* is required. 
+
+The transactions management operations are made available using:
+
+* The link:{coreapidir}/com/holonplatform/core/datastore/transaction/Transactional.html[Transactional^] API for the *synchronous* MongoDB Datastore implementation.
+
+* The link:{coreapidir}/com/holonplatform/async/datastore/transaction/AsyncTransactional.html[AsyncTransactional^] API for the *asynchronous* MongoDB Datastore implementation.
+
+* The link:{reactorapidir}/com/holonplatform/reactor/datastore/transaction/ReactiveTransactional.html[ReactiveTransactional^] API for the *reactive* MongoDB Datastore implementation.
+
+==== Synchronous transactions management
+
+The `isTransactional()` or `requireTransactional()` methods of the `Datastore` API can be used to obtain the _transactional_ API which can be used for transactions management.
+
+The link:{coreapidir}/com/holonplatform/core/datastore/transaction/Transaction.html[Transaction^] interface is used as transaction representation and provides methods to inspect the transaction status and perform the *commit* and *rollback* operations.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleSyncMongoDatastore.java[tag=transactional,indent=0]
+----
+<1> Obtain the `Transactional` API to execute one or more Datastore operation within a transaction
+<2> Commit the transaction
+<3> Obtain the `Transactional` API to execute the Datastore operation within a transaction and return a value
+<4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
+
+==== Asynchronous transactions management
+
+The `isTransactional()` or `requireTransactional()` methods of the `AsyncDatastore` API can be used to obtain the _transactional_ API which can be used for transactions management.
+
+The link:{coreapidir}/com/holonplatform/async/datastore/transaction/AsyncTransaction.html[AsyncTransaction^] interface is used as transaction representation and provides methods to inspect the transaction status and perform the *commit* and *rollback* operations.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleAsyncMongoDatastore.java[tag=transactional,indent=0]
+----
+<1> Obtain the `AsyncTransactional` API to execute one or more Datastore operation within a transaction
+<2> Commit the transaction
+<3> Obtain the `AsyncTransactional` API to execute the Datastore operation within a transaction and return a value
+<4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
+
+==== Reactive transactions management
+
+The `isTransactional()` or `requireTransactional()` methods of the `ReactiveDatastore` API can be used to obtain the _transactional_ API which can be used for transactions management.
+
+The link:{coreapidir}/com/holonplatform/reactor/datastore/transaction/ReactiveTransaction.html[ReactiveTransaction^] interface is used as transaction representation and provides methods to inspect the transaction status and perform the *commit* and *rollback* operations.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleReactiveMongoDatastore.java[tag=transactional,indent=0]
+----
+<1> Obtain the `ReactiveTransactional` API to execute one or more Datastore operation within a transaction
+<2> Commit the transaction
+<3> Obtain the `ReactiveTransactional` API to execute the Datastore operation within a transaction and return a value
+<4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred

@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
@@ -79,7 +80,28 @@ public class ExampleSyncMongoDatastore {
 		// end::ops[]
 	}
 
+	public void transactional() {
+		PropertyBox value = null;
+
+		// tag::transactional[]
+		final Datastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+
+		datastore.requireTransactional().withTransaction(tx -> { // <1>
+			datastore.save(TARGET, value);
+			tx.commit(); // <2>
+		});
+
+		OperationResult result = datastore.requireTransactional().withTransaction(tx -> { // <3>
+			return datastore.save(TARGET, value);
+		}, TransactionConfiguration.withAutoCommit()); // <4>
+		// end::transactional[]
+	}
+
 	private static com.mongodb.client.MongoClient getMongoClient() {
+		return null;
+	}
+
+	private static Datastore getMongoDatastore() {
 		return null;
 	}
 

@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.mongo.reactor.ReactiveMongoDatastore;
 import com.holonplatform.reactor.datastore.ReactiveDatastore;
@@ -90,6 +91,27 @@ public class ExampleReactiveMongoDatastore {
 			long affected = r.getAffectedCount();
 		});
 		// end::ops[]
+	}
+
+	public void transactional() {
+		PropertyBox value = null;
+
+		// tag::transactional[]
+		final ReactiveDatastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+
+		Flux<Boolean> committed = datastore.requireTransactional().withTransaction(tx -> { // <1>
+			datastore.save(TARGET, value);
+			return tx.commit().flux(); // <2>
+		});
+
+		Flux<OperationResult> result = datastore.requireTransactional().withTransaction(tx -> { // <3>
+			return datastore.save(TARGET, value).flux();
+		}, TransactionConfiguration.withAutoCommit()); // <4>
+		// end::transactional[]
+	}
+
+	private static ReactiveDatastore getMongoDatastore() {
+		return null;
 	}
 
 	private static com.mongodb.reactivestreams.client.MongoClient getMongoClient() {

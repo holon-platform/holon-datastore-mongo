@@ -15,14 +15,13 @@
  */
 package com.holonplatform.datastore.mongo.examples;
 
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.types.ObjectId;
 
-import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -31,11 +30,15 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.StringProperty;
+import com.holonplatform.datastore.mongo.core.BsonFilter;
+import com.holonplatform.datastore.mongo.core.BsonSort;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.sync.MongoDatastore;
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 
 @SuppressWarnings("unused")
 public class ExampleMongoDatastore {
@@ -117,6 +120,28 @@ public class ExampleMongoDatastore {
 
 		String idValue = value.getValue(ID); // <4>
 		// end::ids2[]
+	}
+
+	public void bsonfilter() {
+		// tag::bsonfilter[]
+		Datastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+
+		long count = datastore.query(DataTarget.named("my_collection"))
+				.filter(BsonFilter.create(Filters.size("my_field", 3))) // <1>
+				.count();
+		// end::bsonfilter[]
+	}
+
+	private static final StringProperty MY_PROPERTY = StringProperty.create("myp");
+
+	public void bsonsort() {
+		// tag::bsonsort[]
+		Datastore datastore = getMongoDatastore(); // build or obtain a MongoDB Datastore
+
+		Stream<String> values = datastore.query(DataTarget.named("my_collection"))
+				.sort(BsonSort.create(Sorts.descending("my_field"))) // <1>
+				.stream(MY_PROPERTY);
+		// end::bsonsort[]
 	}
 
 	private static PropertyBox buildPropertyBoxValue() {

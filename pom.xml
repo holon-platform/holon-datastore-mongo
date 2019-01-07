@@ -62,7 +62,7 @@
 		<!-- Holon JSON -->
 		<holon.json.version>5.2.0-rc2</holon.json.version>
 		<!-- Holon Reactor -->
-		<holon.reactor.version>5.2.0-rc2</holon.reactor.version>
+		<holon.reactor.version>5.2.0-rc3-SNAPSHOT</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
 		<mongo.driver.core.version>3.9.1</mongo.driver.core.version>

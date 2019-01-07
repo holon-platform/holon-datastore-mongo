@@ -159,19 +159,19 @@ The configuration property prefix is `holon.datastore` and the following propert
 |Boolean (`true` / `false`)
 |Mark the MongoDB Datastore bean as _primary_ candidate for dependency injection when more than one definition is available.
 
-|_holon.datastore.jdbc._ *read-preference*
+|_holon.datastore.mongo._ *read-preference*
 |A valid `String` which identifies one of the names listed in the `MongoReadPreference` enumeration.
 |Set the default read preference to use.
 
-|_holon.datastore.jdbc._ *read-concern*
+|_holon.datastore.mongo._ *read-concern*
 |A valid `String` which identifies one of the names listed in the `MongoReadConcern` enumeration.
 |Set the default read concern to use.
 
-|_holon.datastore.jdbc._ *write-concern*
+|_holon.datastore.mongo._ *write-concern*
 |A valid `String` which identifies one of the names listed in the `MongoWriteConcern` enumeration.
 |Set the default write concern to use.
 
-|_holon.datastore.jdbc._ *enum-codec-strategy*
+|_holon.datastore.mongo._ *enum-codec-strategy*
 |A valid `String` which identifies one of the names listed in the `EnumCodecStrategy` enumeration.
 |The enumeration type values codec strategy to use. See <<EnumCodecStrategy>>.
 |===
@@ -211,3 +211,24 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDa
 When a Mongo Datastore bean is configured using one of the available annotations (`@EnableMongoDatastore`, `@EnableMongoAsyncDatastore`, `@EnableMongoReactiveDatastore`), the Datastore extension and configuration using the Spring context is automatically enabled.
 
 When one of the available annotation is not used to configure the MongoDB datastore bean, the Datastore extension and configuration support can be explicitly enabled using the `@EnableDatastoreConfiguration` annotation on Spring configuration classes.
+
+=== Multiple MongoDB Datastores configuration
+
+When more than one MongoDB Datastore bean has to be configured using the `@Enable*` annotations, the `dataContextId` attribute can be used to assign a different *data context id* to each MongoDB Datastore bean definition, in order to:
+
+* Provide different sets of configuration properties using the same Spring environment.
+
+* Provide a default _name pattern matching strategy_ with the `MongoClient` bean definition to use for each MongoDB Datastore to configure: if not directly specified with the `mongoClientReference()` attribute, the `MongoClient` bean definition to use for each MongoDB Datastore will be detected in Spring context using the bean name pattern: `mongoClient_{datacontextid}` where `{datacontextid}` is equal to the `dataContextId` attribute of the annotation.
+
+When a _data context id_ is defined, a Spring *qualifier* named the same as the _data context id_ will be associated to the generated MongoDB Datastore bean definitions, and such qualifier can be later used to obtain the right MongoDB Datastore instance through dependency injection.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring5.java[tag=config,indent=0]
+----
+<1> Configure the first MongoDB Datastore using `one` as _data context id_: by default the bean named `mongoClient_one` will be used as `MongoClient`
+<2> Configure the second MongoDB Datastore using `two` as _data context id_: by default the bean named `mongoClient_two` will be used as `MongoClient`
+<3> A specific `Datastore` type bean reference can be obtained using the _data context id_ as *qualifier*
+
+
+

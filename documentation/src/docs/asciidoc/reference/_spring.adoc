@@ -1,0 +1,12 @@
+[[MongoDatastoreSpring]]
+== Spring ecosystem integration
+
+The `holon-datastore-mongo-spring` artifact provides integration with the https://spring.io[Spring^] framework for the MongoDB Datastore APIs.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.mongo</groupId>
+<artifactId>holon-datastore-mongo-spring</artifactId>
+<version>{revnumber}</version>
+----

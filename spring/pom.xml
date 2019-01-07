@@ -49,6 +49,12 @@
 			<artifactId>holon-datastore-mongo-async</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- Reactive Datastore -->
+		<dependency>
+			<groupId>com.holon-platform.mongo</groupId>
+			<artifactId>holon-datastore-mongo-reactor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- MongoDB core Java driver -->
 		<dependency>

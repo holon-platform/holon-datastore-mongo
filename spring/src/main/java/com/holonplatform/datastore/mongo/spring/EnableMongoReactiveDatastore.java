@@ -24,14 +24,14 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.holonplatform.async.datastore.AsyncDatastore;
 import com.holonplatform.core.datastore.DataContextBound;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.enumerations.MongoReadConcern;
 import com.holonplatform.datastore.mongo.core.enumerations.MongoReadPreference;
 import com.holonplatform.datastore.mongo.core.enumerations.MongoWriteConcern;
-import com.holonplatform.datastore.mongo.spring.internal.MongoAsyncDatastoreRegistrar;
+import com.holonplatform.datastore.mongo.spring.internal.MongoReactiveDatastoreRegistrar;
+import com.holonplatform.reactor.datastore.ReactiveDatastore;
 import com.holonplatform.spring.EnableDatastoreConfiguration;
 import com.holonplatform.spring.PrimaryMode;
 import com.mongodb.ReadConcern;
@@ -39,7 +39,7 @@ import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 
 /**
- * Annotation to be used on Spring Configuration classes to setup an asynchronous MongoDB {@link AsyncDatastore}.
+ * Annotation to be used on Spring Configuration classes to setup a reactive MongoDB {@link ReactiveDatastore}.
  *
  * @since 5.2.0
  */
@@ -47,14 +47,14 @@ import com.mongodb.WriteConcern;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import(MongoAsyncDatastoreRegistrar.class)
+@Import(MongoReactiveDatastoreRegistrar.class)
 @EnableDatastoreConfiguration
-public @interface EnableMongoAsyncDatastore {
+public @interface EnableMongoReactiveDatastore {
 
 	/**
 	 * Default Datastore registration bean name.
 	 */
-	public static final String DEFAULT_DATASTORE_BEAN_NAME = "mongoAsyncDatastore";
+	public static final String DEFAULT_DATASTORE_BEAN_NAME = "mongoReactiveDatastore";
 
 	/**
 	 * Optional data context id to use to discriminate Datastores when more than one persistence source is configured,

@@ -52,6 +52,7 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDa
 <4> Add a new bson `Codec`
 <5> Add a new bson `CodecProvider`
 
+[[EnumCodecStrategy]]
 ==== `Enum` codec strategy
 
 By default, *enumeration* type document field values are mapped to a Java `Enum` class using a *name based* matching strategy.

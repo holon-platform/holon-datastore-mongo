@@ -10,3 +10,204 @@ _Maven coordinates_:
 <artifactId>holon-datastore-mongo-spring</artifactId>
 <version>{revnumber}</version>
 ----
+
+[[EnableDatastore]]
+=== Enable a MongoDB Datastore bean
+
+A set of Spring configuration class annotations are provided to enable a MongoDB datastore implementation and make it available as a Spring bean.
+
+==== Synchronous MongoDB Datastore
+
+For the *synchronous* `Datastore` implementation, the link:{apidir}/com/holonplatform/datastore/mongo/spring/EnableMongoDatastore.html[EnableMongoDatastore^] annotation can be used on a Spring configuration class.
+
+To enable a MongoDB `Datastore` bean the following preconditions must be met:
+
+* A synchronous MongoDB `com.mongodb.client.MongoClient` type bean must be available. By default, the `mongoClient` bean name is used to detect the MongoClient bean reference. The client reference bean name can be changed using the `mongoClientReference()` annotation attribute.
+
+* A database name must be specified using the `database()` annotation attribute.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring1.java[tag=enablesync,indent=0]
+----
+<1> Use `test` as database name
+<2> MongoClient bean definition
+<3> A synchronous `Datastore` bean is configured and available from Spring context
+
+==== Asynchronous MongoDB Datastore
+
+For the *asynchronous* `AsyncDatastore` implementation, the link:{apidir}/com/holonplatform/datastore/mongo/spring/EnableMongoAsyncDatastore.html[EnableMongoAsyncDatastore^] annotation can be used on a Spring configuration class.
+
+To enable a MongoDB `AsyncDatastore` bean the following preconditions must be met:
+
+* An asynchronous MongoDB `com.mongodb.reactivestreams.client.MongoClient` type bean must be available. By default, the `mongoClient` bean name is used to detect the MongoClient bean reference. The client reference bean name can be changed using the `mongoClientReference()` annotation attribute.
+
+* A database name must be specified using the `database()` annotation attribute.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring1.java[tag=enableasync,indent=0]
+----
+<1> Use `test` as database name
+<2> MongoClient bean definition
+<3> An asynchronous `AsyncDatastore` bean is configured and available from Spring context
+
+==== Reactive MongoDB Datastore
+
+For the *reactive* `ReactiveDatastore` implementation, the link:{apidir}/com/holonplatform/datastore/mongo/spring/EnableMongoReactiveDatastore.html[EnableMongoReactiveDatastore^] annotation can be used on a Spring configuration class.
+
+To enable a MongoDB `ReactiveDatastore` bean the following preconditions must be met:
+
+* An asynchronous MongoDB `com.mongodb.reactivestreams.client.MongoClient` type bean must be available. By default, the `mongoClient` bean name is used to detect the MongoClient bean reference. The client reference bean name can be changed using the `mongoClientReference()` annotation attribute.
+
+* A database name must be specified using the `database()` annotation attribute.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring1.java[tag=enablereactive,indent=0]
+----
+<1> Use `test` as database name
+<2> MongoClient bean definition
+<3> A reactive `ReactiveDatastore` bean is configured and available from Spring context
+
+[[EnableDatastoreConfiguration]]
+=== MongoDB Datastore bean configuration
+
+All the annotations described above to enable a MongoDB Datastore bean provide a set of configuration options, which can be setted using the annotations attributes.
+
+==== MongoClient bean name
+
+By default, the `mongoClient` bean name is used to detect the `MongoClient` bean reference to use and bind to the MongoDB Datastore implementation. The client reference bean name can be changed using the `mongoClientReference()` annotation attribute.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring1.java[tag=clientref,indent=0]
+----
+<1> The `syncMongoClient` bean name is used to enable the synchronous `Datastore` bean
+<2> The `asyncMongoClient` bean name is used to enable the asynchronous `AsyncDatastore` bean
+
+==== Enum codec strategy
+
+The enumeration type value codec strategy can be configured using the `enumCodecStrategy()` annotation attribute. See <<EnumCodecStrategy>> for details.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring3.java[tag=enums,indent=0]
+----
+<1> Set `ORDINAL` as enumeration codec strategy
+
+==== Mongo database configuration
+
+The following annotation attributes can be used to set the default read preference, read concern and write concern to use:
+
+* The `readPreference()` annotation attribute can be use to set the default *read preference*.
+* The `readConcern()` annotation attribute can be use to set the default *read concern*.
+* The `writeConcern()` annotation attribute can be use to set the default *write concern*.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring3.java[tag=prefs,indent=0]
+----
+<1> Set the default read preference
+<2> Set the default read concern
+<3> Set the default write concern
+
+==== Primary mode
+
+Each annotation provides a `primary()` attribute which can be used to control the _primary mode_ of the MongoDB Datastore bean registration.
+
+If the _primary mode_ is set to `PrimaryMode.TRUE`, the `Datastore` bean created with the corresponding annotation will be marked as *primary* in the Spring application context, meaning that will be the one provided by Spring in case of multiple available candidates, when no specific bean name or qualifier is specified in the dependency injection declaration.
+
+TIP: This behaviour is similar to the one obtained with the Spring `@Primary` annotation at bean definition time.
+
+By default, the _primary mode_ is set to `PrimaryMode.AUTO`, meaning that the registred MongoDB Datastore bean will be marked as *primary* only when the `MongoClient` bean to which is bound is registered as primary candidate bean.
+
+[[SpringConfigurationProperties]]
+==== MongoDB Datastore configuration properties
+
+When a Mongo Datastore bean is configured using one of the available annotations (`@EnableMongoDatastore`, `@EnableMongoAsyncDatastore`, `@EnableMongoReactiveDatastore`), the Spring environment is automatically used as configuration properties source.
+
+This way, many Datastore configuration settings can be provided using a configuration property with the proper name and value.
+
+The supported configuration properties are:
+
+*1. The standard Datastore configuration properties*, avaible from the link:{coreapidir}/com/holonplatform/core/datastore/DatastoreConfigProperties.html[DatastoreConfigProperties^] property set (See link:holon-core#DatastoreConfiguration[Datastore configuration^]).
+
+The configuration property prefix is `holon.datastore` and the following properties are available:
+
+.Datastore configuration properties
+|===
+|Name |Type |Meaning
+
+|_holon.datastore._ *trace*
+|Boolean (`true` / `false`)
+|Enable/disable Datastore operations _tracing_.
+
+|===
+
+*2. An additional set of properties*, provided by the link:{apidir}/com/holonplatform/datastore/mongo/spring/MongoDatastoreConfigProperties.html[MongoDatastoreConfigProperties^] property set, which can be used as an alternative for the annotations attributes described in the previous sections.
+
+.MongoDB Datastore configuration properties
+|===
+|Name |Type |Meaning
+
+|_holon.datastore.mongo._ *database*
+|`String`
+|Set the database name to which the Datastore is bound.
+
+|_holon.datastore.mongo._ *primary*
+|Boolean (`true` / `false`)
+|Mark the MongoDB Datastore bean as _primary_ candidate for dependency injection when more than one definition is available.
+
+|_holon.datastore.jdbc._ *read-preference*
+|A valid `String` which identifies one of the names listed in the `MongoReadPreference` enumeration.
+|Set the default read preference to use.
+
+|_holon.datastore.jdbc._ *read-concern*
+|A valid `String` which identifies one of the names listed in the `MongoReadConcern` enumeration.
+|Set the default read concern to use.
+
+|_holon.datastore.jdbc._ *write-concern*
+|A valid `String` which identifies one of the names listed in the `MongoWriteConcern` enumeration.
+|Set the default write concern to use.
+
+|_holon.datastore.jdbc._ *enum-codec-strategy*
+|A valid `String` which identifies one of the names listed in the `EnumCodecStrategy` enumeration.
+|The enumeration type values codec strategy to use. See <<EnumCodecStrategy>>.
+|===
+
+Example of Datastore configuration properties:
+
+[source, text]
+----
+holon.datastore.trace=true // <1>
+
+holon.datastore.mongo.database=test // <2>
+holon.datastore.mongo.read-preference=PRIMARY // <3>
+----
+<1> Enable tracing
+<2> Set the database name to `test`
+<3> Set the default read preference to `PRIMARY`
+
+[[SpringDatastoreExtensionConfiguration]]
+==== Datastore extension and configuration using the Spring context
+
+The MongoDB Datastore implementation supports the standard link:holon-core.html#SpringDatastoreConfiguration[Holon Platform Datastore Spring integration^] features for Datastore beans configuration and extension, which includes:
+
+* Datastore *configuration post processing* using  link:{coreapidir}/com/holonplatform/spring/DatastorePostProcessor.html[DatastorePostProcessor^] type beans.
+
+* Datastore *extension* through link:{coreapidir}/com/holonplatform/core/ExpressionResolver.html[ExpressionResolver^] registration using link:{coreapidir}/com/holonplatform/spring/DatastoreResolver.html[DatastoreResolver^] annotated beans.
+
+* Datastore *commodity factory* registration using link:{coreapidir}/com/holonplatform/spring/DatastoreCommodityFactory.html[DatastoreCommodityFactory^] annotated beans.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring4.java[tag=config,indent=0]
+----
+<1> Automatically register a Datastore expression resolver using the `@DatastoreResolver` annotation
+<2> Post process Datastore configuration using a `DatastorePostProcessor` type Spring bean
+<3> Automatically register a Datastore commodity factory using the `@DatastoreCommodityFactory` annotation
+
+When a Mongo Datastore bean is configured using one of the available annotations (`@EnableMongoDatastore`, `@EnableMongoAsyncDatastore`, `@EnableMongoReactiveDatastore`), the Datastore extension and configuration using the Spring context is automatically enabled.
+
+When one of the available annotation is not used to configure the MongoDB datastore bean, the Datastore extension and configuration support can be explicitly enabled using the `@EnableDatastoreConfiguration` annotation on Spring configuration classes.

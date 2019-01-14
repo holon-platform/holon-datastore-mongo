@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.holon-platform.mongo</groupId>
 		<artifactId>holon-datastore-mongo-root</artifactId>
-		<version>5.2.0</version>
+		<version>5.2.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>holon-datastore-mongo-spring-boot</artifactId>

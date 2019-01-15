@@ -1,5 +1,7 @@
 # Holon platform MongoDB Datastore module
 
+> Latest release: [5.2.0](#obtain-the-artifacts)
+
 This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the [MongoDB Java driver](https://mongodb.github.io/mongo-java-driver) for data access and manipulation.
 
 The following interaction models are supported: 
@@ -15,9 +17,6 @@ A full __Spring__ and __Spring Boot__ integration is provided, which includes au
 Just like any other platform module, this artifact is part of the [Holon Platform](https://holon-platform.com) ecosystem, but can be also used as a _stand-alone_ library.
 
 See [Getting started](#getting-started) and the [platform documentation](https://docs.holon-platform.com/current/reference) for further details.
-
-> THIS MODULE IS UNDER DEVELOPMENT.
-> The module documentation and usage guide will be available when the first stable release will be published.
 
 ## Code structure
 
@@ -45,7 +44,7 @@ _Maven BOM:_
     <dependency>
         <groupId>com.holon-platform.mongo</groupId>
         <artifactId>holon-datastore-mongo-bom</artifactId>
-        <version>5.2.0-alpha2-SNAPSHOT</version>
+        <version>5.2.0</version>
         <type>pom</type>
         <scope>import</scope>
     </dependency>

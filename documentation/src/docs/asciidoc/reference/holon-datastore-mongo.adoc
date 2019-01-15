@@ -15,8 +15,6 @@ Copyright © 2016-2018
 
 _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
 
-WARNING: This documentation section is under development.
-
 == Introduction
 
 The *MongoDB Datastore* is the link:https://www.mongodb.com[MongoDB^] reference implementation of the Holon Platform link:{coreapidir}/com/holonplatform/core/datastore/Datastore.html[Datastore^] API. 

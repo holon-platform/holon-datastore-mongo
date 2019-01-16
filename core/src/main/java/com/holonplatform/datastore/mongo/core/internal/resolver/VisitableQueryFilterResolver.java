@@ -16,9 +16,12 @@
 package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -360,10 +363,10 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 		final Object value = context.resolveOrFail(operand, FieldValue.class).getValue();
 		// check document id
 		if (DocumentIdHelper.isDefaultDocumentIdProperty(context, filter.getLeftOperand())) {
-			return context.getDocumentIdResolver().encode(value);
+			return encodeDocumentId(context, value);
 		}
 		if (DocumentIdHelper.isDocumentIdPropertyPath(filter.getLeftOperand())) {
-			return context.getDocumentIdResolver().encode(value);
+			return encodeDocumentId(context, value);
 		}
 		return value;
 	}
@@ -402,6 +405,33 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 			return (Iterable<?>) value;
 		}
 		return Collections.singletonList(value);
+	}
+
+	private static Object encodeDocumentId(MongoResolutionContext<?> context, Object value) {
+		if (value != null) {
+			// collections
+			if (Collection.class.isAssignableFrom(value.getClass())) {
+				final Collection<?> collection = (Collection<?>) value;
+				Collection<Object> values = Set.class.isAssignableFrom(value.getClass())
+						? new HashSet<>(collection.size())
+						: new ArrayList<>(collection.size());
+				for (Object collectionValue : collection) {
+					if (collectionValue != null
+							&& !context.getDocumentIdResolver().isValidDocumentIdType(collectionValue.getClass())) {
+						return value;
+					}
+					final Object encodedValue = context.getDocumentIdResolver().encode(collectionValue);
+					if (encodedValue != null) {
+						values.add(encodedValue);
+					}
+				}
+				return values;
+			}
+			if (context.getDocumentIdResolver().isValidDocumentIdType(value.getClass())) {
+				return context.getDocumentIdResolver().encode(value);
+			}
+		}
+		return value;
 	}
 
 }

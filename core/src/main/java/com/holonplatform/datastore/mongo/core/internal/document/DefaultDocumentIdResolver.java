@@ -156,6 +156,15 @@ public enum DefaultDocumentIdResolver implements DocumentIdResolver {
 		return isValidDocumentIdPropertyType(property);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.mongo.core.document.DocumentIdResolver#isValidDocumentIdType(java.lang.Class)
+	 */
+	@Override
+	public boolean isValidDocumentIdType(Class<?> type) {
+		return type != null && isAdmittedDocumentIdType(type);
+	}
+
 	// ------- internal
 
 	/**

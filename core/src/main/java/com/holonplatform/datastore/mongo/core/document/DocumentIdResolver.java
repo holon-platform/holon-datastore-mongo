@@ -74,9 +74,16 @@ public interface DocumentIdResolver {
 	/**
 	 * Checks if the type of given property is a valid document id type.
 	 * @param property Property to check
-	 * @return <code>true</code> if the type of given property is a valid document id typ, <code>false</code> otherwise
+	 * @return <code>true</code> if the type of given property is a valid document id type, <code>false</code> otherwise
 	 */
 	boolean isValidDocumentIdType(Property<?> property);
+
+	/**
+	 * Checks if the given type is a valid document id type.
+	 * @param type Type to check
+	 * @return <code>true</code> if the given type is a valid document id type, <code>false</code> otherwise
+	 */
+	boolean isValidDocumentIdType(Class<?> type);
 
 	// ------- Default resolver
 

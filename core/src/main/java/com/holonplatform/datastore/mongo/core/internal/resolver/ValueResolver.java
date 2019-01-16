@@ -31,16 +31,13 @@ import org.bson.types.Binary;
 import org.bson.types.Decimal128;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.Path;
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.CalendarUtils;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.mongo.core.context.MongoDocumentContext;
 import com.holonplatform.datastore.mongo.core.context.MongoResolutionContext;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
 import com.holonplatform.datastore.mongo.core.expression.Value;
+import com.holonplatform.datastore.mongo.core.internal.support.DocumentIdHelper;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 
 /**
@@ -81,7 +78,7 @@ public enum ValueResolver implements MongoExpressionResolver<Value, FieldValue> 
 
 		// check type conversion
 		try {
-			Object encoded = exp.getExpression().filter(p -> isDefaultDocumentIdProperty(context, p))
+			Object encoded = exp.getExpression().filter(p -> DocumentIdHelper.isDefaultDocumentIdProperty(context, p))
 					.map(p -> (Object) context.getDocumentIdResolver().encode(value))
 					.orElse(checkType(strategy, temporalType, value));
 
@@ -91,38 +88,6 @@ public enum ValueResolver implements MongoExpressionResolver<Value, FieldValue> 
 		} catch (Exception e) {
 			throw new InvalidExpressionException("Failed to encode value [" + expression.getValue() + "]", e);
 		}
-	}
-
-	/**
-	 * Check if given expression acts as document id property or path and the property/path name id the default "_id"
-	 * name.
-	 * @param context Resolution context
-	 * @param expression The expression to check
-	 * @return <code>true</code> if given property acts as document id property, <code>false</code> otherwise
-	 */
-	private static boolean isDefaultDocumentIdProperty(MongoResolutionContext context, TypedExpression<?> expression) {
-		boolean documentIdProperty = false;
-		if (Property.class.isAssignableFrom(expression.getClass())) {
-			documentIdProperty = MongoDocumentContext.isDocumentContext(context)
-					.map(ctx -> ctx.isDocumentIdProperty((Property) expression)).orElse(false);
-		} else if (Path.class.isAssignableFrom(expression.getClass())) {
-			documentIdProperty = MongoDocumentContext.isDocumentContext(context)
-					.map(ctx -> ctx.isDocumentIdPath((Path) expression).isPresent()).orElse(false);
-		}
-		if (documentIdProperty) {
-			return isDocumentIdPropertyPath(expression);
-		}
-		return false;
-	}
-
-	private static boolean isDocumentIdPropertyPath(TypedExpression<?> expression) {
-		if (Path.class.isAssignableFrom(expression.getClass())) {
-			return MongoDocumentContext.ID_FIELD_NAME.equals(((Path) expression).relativeName());
-		}
-		if (Property.class.isAssignableFrom(expression.getClass())) {
-			return MongoDocumentContext.ID_FIELD_NAME.equals(((Property) expression).getName());
-		}
-		return false;
 	}
 
 	/*

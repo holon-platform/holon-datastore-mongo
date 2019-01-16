@@ -54,6 +54,7 @@ import com.holonplatform.datastore.mongo.core.expression.BsonExpression;
 import com.holonplatform.datastore.mongo.core.expression.BsonFilterExpression;
 import com.holonplatform.datastore.mongo.core.expression.FieldName;
 import com.holonplatform.datastore.mongo.core.expression.FieldValue;
+import com.holonplatform.datastore.mongo.core.internal.support.DocumentIdHelper;
 import com.holonplatform.datastore.mongo.core.resolver.MongoExpressionResolver;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -356,7 +357,15 @@ public enum VisitableQueryFilterResolver implements MongoExpressionResolver<Visi
 			throws InvalidExpressionException {
 		TypedExpression<?> operand = filter.getRightOperand()
 				.orElseThrow(() -> new InvalidExpressionException("Missing right operand in filter [" + filter + "]"));
-		return context.resolveOrFail(operand, FieldValue.class).getValue();
+		final Object value = context.resolveOrFail(operand, FieldValue.class).getValue();
+		// check document id
+		if (DocumentIdHelper.isDefaultDocumentIdProperty(context, filter.getLeftOperand())) {
+			return context.getDocumentIdResolver().encode(value);
+		}
+		if (DocumentIdHelper.isDocumentIdPropertyPath(filter.getLeftOperand())) {
+			return context.getDocumentIdResolver().encode(value);
+		}
+		return value;
 	}
 
 	/**

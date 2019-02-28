@@ -70,6 +70,11 @@
 
 		<!-- Test -->
 		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.holon-platform.mongo</groupId>
 			<artifactId>holon-datastore-mongo-reactor</artifactId>
 			<version>${project.version}</version>

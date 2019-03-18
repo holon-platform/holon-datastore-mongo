@@ -72,7 +72,7 @@
 		<mongo.driver.reactive.version>1.11.0</mongo.driver.reactive.version>
 
 		<!-- Embedded MongoDB for test -->
-		<embed.mongo.version>2.1.1</embed.mongo.version>
+		<embed.mongo.version>2.2.0</embed.mongo.version>
 
 	</properties>
 

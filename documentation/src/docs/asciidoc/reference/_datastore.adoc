@@ -245,7 +245,7 @@ include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDa
 ----
 <1> Perform a _insert_ operation using the `Datastore` API
 <2> Get the document id value using the `ID` property, if available
-<4> Get the first auto-generated document id value
+<3> Get the first auto-generated document id value
 
 The default *BRING_BACK_GENERATED_IDS* `WriteOption` can be provided to the `Datastore` API operation to bring back any auto-generated document id value into the `PropertyBox` instance which was the subject of the operation.
 

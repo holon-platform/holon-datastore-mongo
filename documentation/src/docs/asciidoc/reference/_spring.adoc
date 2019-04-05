@@ -81,7 +81,7 @@ By default, the `mongoClient` bean name is used to detect the `MongoClient` bean
 
 [source, java]
 ----
-include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring1.java[tag=clientref,indent=0]
+include::{examplesdir}/com/holonplatform/datastore/mongo/examples/ExampleMongoDatastoreSpring2.java[tag=clientref,indent=0]
 ----
 <1> The `syncMongoClient` bean name is used to enable the synchronous `Datastore` bean
 <2> The `asyncMongoClient` bean name is used to enable the asynchronous `AsyncDatastore` bean

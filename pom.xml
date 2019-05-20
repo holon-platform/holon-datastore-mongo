@@ -1,10 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.1.2</version>
+		<version>1.1.4</version>
 	</parent>
 
 	<groupId>com.holon-platform.mongo</groupId>
@@ -55,11 +57,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.2.2</holon.core.version>
+		<holon.core.version>5.2.3</holon.core.version>
 		<!-- Holon JSON -->
-		<holon.json.version>5.2.2</holon.json.version>
+		<holon.json.version>5.2.3</holon.json.version>
 		<!-- Holon Reactor -->
-		<holon.reactor.version>5.2.2</holon.reactor.version>
+		<holon.reactor.version>5.2.3</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
 		<mongo.driver.core.version>3.10.1</mongo.driver.core.version>

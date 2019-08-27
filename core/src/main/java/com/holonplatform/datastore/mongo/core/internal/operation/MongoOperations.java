@@ -131,7 +131,7 @@ public class MongoOperations {
 	 * @return Affected elements count
 	 */
 	public static long getAffectedCount(UpdateResult updateResult) {
-		return updateResult.isModifiedCountAvailable() ? Long.valueOf(updateResult.getModifiedCount()).intValue() : 1;
+		return updateResult.getModifiedCount();
 	}
 
 	/**

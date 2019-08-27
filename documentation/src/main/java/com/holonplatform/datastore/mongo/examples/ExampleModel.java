@@ -25,7 +25,7 @@ public class ExampleModel {
 	final static StringProperty ID = StringProperty.create("_id"); // <1>
 	final static StringProperty NAME = StringProperty.create("name"); // <2>
 
-	final static PropertySet<?> SUBJECT = PropertySet.builderOf(ID, NAME).identifier(ID).build(); // <3>
+	final static PropertySet<?> SUBJECT = PropertySet.builderOf(ID, NAME).withIdentifier(ID).build(); // <3>
 
 	final static DataTarget<?> TARGET = DataTarget.named("my_collection"); // <4>
 	// end::model[]

@@ -45,7 +45,7 @@ public class TestDocumentIdResolver {
 		final StringProperty ID = StringProperty.create(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
@@ -60,7 +60,7 @@ public class TestDocumentIdResolver {
 		final NumericProperty<BigInteger> ID = NumericProperty.bigIntegerType(_ID);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
@@ -75,7 +75,7 @@ public class TestDocumentIdResolver {
 		final PathProperty<ObjectId> ID = PathProperty.create(_ID, ObjectId.class);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
@@ -135,7 +135,7 @@ public class TestDocumentIdResolver {
 		final PathProperty<ObjectId> ID = PathProperty.create("theId", ObjectId.class);
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 		Optional<Property<?>> docId = DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 
@@ -168,7 +168,7 @@ public class TestDocumentIdResolver {
 			final PathProperty<Date> ID = PathProperty.create(_ID, Date.class);
 			final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-			final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+			final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 			DocumentIdResolver.getDefault().resolveDocumentIdProperty(SET);
 

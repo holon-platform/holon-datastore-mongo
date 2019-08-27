@@ -33,7 +33,7 @@ public class TestStringIdUT extends AbstractMongoDBTest {
 	private static final StringProperty ID = StringProperty.create("_id");
 	private static final StringProperty TEXT = StringProperty.create("text");
 
-	private static final PropertySet<?> SET = PropertySet.builderOf(ID, TEXT).identifier(ID).build();
+	private static final PropertySet<?> SET = PropertySet.builderOf(ID, TEXT).withIdentifier(ID).build();
 
 	private static final DataTarget<?> TARGET = DataTarget.named("test_string_ids");
 

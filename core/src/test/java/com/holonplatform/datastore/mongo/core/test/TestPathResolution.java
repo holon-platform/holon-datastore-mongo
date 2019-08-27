@@ -83,7 +83,7 @@ public class TestPathResolution {
 		final StringProperty ID = StringProperty.create("code");
 		final BooleanProperty BOOL = BooleanProperty.create("bool");
 
-		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).identifier(ID).build();
+		final PropertySet<?> SET = PropertySet.builderOf(ID, BOOL).withIdentifier(ID).build();
 
 		final MongoResolutionContext<?> ctx = MongoResolutionContext.create(new MongoTestContext());
 		ctx.addExpressionResolver(PathFieldNameResolver.INSTANCE);

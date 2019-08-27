@@ -87,7 +87,7 @@ public class ExampleMapping {
 		static final StringProperty ID = StringProperty.create("my_document_id");
 		static final StringProperty NAME = StringProperty.create("name");
 
-		static final PropertySet<?> SUBJECT = PropertySet.builderOf(ID, NAME).identifier(ID).build(); // <1>
+		static final PropertySet<?> SUBJECT = PropertySet.builderOf(ID, NAME).withIdentifier(ID).build(); // <1>
 		// end::mapping7[]
 	}
 

@@ -92,15 +92,15 @@ public interface ModelTest {
 
 	public static final PathProperty<ObjectId> ID3 = PathProperty.create("code", ObjectId.class);
 
-	public static final PropertySet<?> SET3 = PropertySet.builderOf(ID3, STR).identifier(ID3).build();
+	public static final PropertySet<?> SET3 = PropertySet.builderOf(ID3, STR).withIdentifier(ID3).build();
 
 	public static final StringProperty ID4 = StringProperty.create("code");
 
-	public static final PropertySet<?> SET4 = PropertySet.builderOf(ID4, STR).identifier(ID4).build();
+	public static final PropertySet<?> SET4 = PropertySet.builderOf(ID4, STR).withIdentifier(ID4).build();
 
 	public static final NumericProperty<BigInteger> ID5 = NumericProperty.bigIntegerType("code");
 
-	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR).identifier(ID5).build();
+	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR).withIdentifier(ID5).build();
 
 	// nested
 

@@ -31,7 +31,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.DatastoreOperations;
-import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionNotSupportedException;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractInitializableDatastore;
 import com.holonplatform.core.internal.utils.ObjectUtils;
@@ -40,8 +39,6 @@ import com.holonplatform.datastore.mongo.core.config.MongoDatastoreCommodityCont
 import com.holonplatform.datastore.mongo.core.config.MongoDatastoreExpressionResolver;
 import com.holonplatform.datastore.mongo.core.document.DocumentIdResolver;
 import com.holonplatform.datastore.mongo.core.document.EnumCodecStrategy;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.logger.MongoDatastoreLogger;
 import com.holonplatform.datastore.mongo.core.tx.MongoTransaction;
 import com.holonplatform.datastore.mongo.core.tx.MongoTransactionFactory;
@@ -291,22 +288,6 @@ public abstract class AbstractMongoDatastore<X extends DatastoreCommodityContext
 	public void setTransactionFactory(MongoTransactionFactory<S, TX> transactionFactory) {
 		ObjectUtils.argumentNotNull(transactionFactory, "MongoTransactionFactory must be not null");
 		this.transactionFactory = transactionFactory;
-	}
-
-	/**
-	 * Checks if transactions are supported by the driver version in use.
-	 * @throws TransactionNotSupportedException If transactions are supported by the driver version in use
-	 */
-	protected void checkTransactionSupported() throws TransactionNotSupportedException {
-		final MongoVersion version = MongoDriverInfo.getMongoVersion();
-		if (version.wasDriverVersionDetected()) {
-			if (version.getDriverMajorVersion() < 3
-					|| (version.getDriverMajorVersion() == 3 && version.getDriverMinorVersion() < 8)) {
-				throw new TransactionNotSupportedException(
-						"Transactions are not supported by the MongoDB driver version is use [" + version.toString()
-								+ "]");
-			}
-		}
 	}
 
 	/*

@@ -69,8 +69,9 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.reactor.datastore.transaction.ReactiveTransactional#withTransaction(com.holonplatform.reactor.
+	 * 
+	 * @see com.holonplatform.reactor.datastore.transaction.ReactiveTransactional#
+	 * withTransaction(com.holonplatform.reactor.
 	 * datastore.transaction.ReactiveTransactionalOperation,
 	 * com.holonplatform.core.datastore.transaction.TransactionConfiguration)
 	 */
@@ -91,15 +92,15 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 	}
 
 	/**
-	 * Starts a {@link ReactiveMongoTransaction}. If a local transaction is active, it will be forcedly finalized.
-	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
-	 * @return A {@link Mono} to handle the operation outcome and obtain the {@link ReactiveMongoTransaction} instance
+	 * Starts a {@link ReactiveMongoTransaction}. If a local transaction is active,
+	 * it will be forcedly finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a
+	 *                      default configuration will be used
+	 * @return A {@link Mono} to handle the operation outcome and obtain the
+	 *         {@link ReactiveMongoTransaction} instance
 	 */
 	private Mono<ReactiveMongoTransaction> startTransaction(TransactionConfiguration configuration)
 			throws TransactionException {
-
-		// check supported
-		checkTransactionSupported();
 
 		// check if a current transaction is present
 		getCurrentTransaction().ifPresent(tx -> {
@@ -145,8 +146,8 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 	 * Finalize the given transaction, only if the transaction is new.
 	 * @param tx Transaction to finalize
 	 * @throws TransactionException Error finalizing transaction
-	 * @return A {@link Mono} to handle the operation outcome, with result value <code>true</code> if the transaction
-	 *         was actually finalized
+	 * @return A {@link Mono} to handle the operation outcome, with result value
+	 *         <code>true</code> if the transaction was actually finalized
 	 */
 	private Mono<Boolean> endTransaction(ReactiveMongoTransaction tx) throws TransactionException {
 		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
@@ -170,7 +171,9 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore#getCurrentTransaction()
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.async.internal.
+	 * AbstractAsyncMongoDatastore#getCurrentTransaction()
 	 */
 	@Override
 	protected Optional<ReactiveMongoTransaction> getCurrentTransaction() {
@@ -179,9 +182,9 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
-	 * .ClassLoader)
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.internal.datastore.
+	 * AbstractMongoDatastore#onDatastoreInitialized(java.lang .ClassLoader)
 	 */
 	@Override
 	protected void onDatastoreInitialized(ClassLoader classLoader) {
@@ -191,6 +194,7 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -216,6 +220,7 @@ public class DefaultReactiveMongoDatastore extends AbstractAsyncMongoDatastore<R
 
 		/*
 		 * (non-Javadoc)
+		 * 
 		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#build()
 		 */
 		@Override

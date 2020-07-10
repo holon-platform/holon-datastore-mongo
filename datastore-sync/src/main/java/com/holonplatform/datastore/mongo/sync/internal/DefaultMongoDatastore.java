@@ -90,7 +90,9 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.AbstractDatastore#getCommodityContext()
+	 * 
+	 * @see com.holonplatform.core.internal.datastore.AbstractDatastore#
+	 * getCommodityContext()
 	 */
 	@Override
 	protected SyncMongoDatastoreCommodityContext getCommodityContext() throws CommodityConfigurationException {
@@ -107,7 +109,9 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext#getClient()
+	 * 
+	 * @see com.holonplatform.datastore.mongo.sync.config.
+	 * SyncMongoDatastoreCommodityContext#getClient()
 	 */
 	@Override
 	public MongoClient getClient() {
@@ -131,7 +135,10 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync()
+	 * 
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.context.MongoOperationContext#isAsync(
+	 * )
 	 */
 	@Override
 	public boolean isAsync() {
@@ -140,7 +147,10 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession()
+	 * 
+	 * @see
+	 * com.holonplatform.datastore.mongo.core.context.MongoContext#getClientSession(
+	 * )
 	 */
 	@Override
 	public Optional<ClientSession> getClientSession() {
@@ -149,7 +159,9 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#getDatabaseCodecRegistry()
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.context.MongoContext#
+	 * getDatabaseCodecRegistry()
 	 */
 	@Override
 	public CodecRegistry getDatabaseCodecRegistry() {
@@ -157,7 +169,8 @@ public class DefaultMongoDatastore extends
 	}
 
 	/**
-	 * Configure the {@link MongoDatabase}, registering the additional codecs if configured.
+	 * Configure the {@link MongoDatabase}, registering the additional codecs if
+	 * configured.
 	 * @param database The database to configure
 	 * @return The configured database
 	 */
@@ -169,9 +182,10 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see
-	 * com.holonplatform.datastore.mongo.core.MongoDatabaseHandler#withDatabase(com.holonplatform.datastore.mongo.core.
-	 * MongoDatabaseOperation)
+	 * com.holonplatform.datastore.mongo.core.MongoDatabaseHandler#withDatabase(com.
+	 * holonplatform.datastore.mongo.core. MongoDatabaseOperation)
 	 */
 	@Override
 	public <R> R withDatabase(MongoDatabaseOperation<MongoDatabase, R> operation) {
@@ -191,8 +205,11 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.transaction.Transactional#withTransaction(com.holonplatform.core.datastore.
-	 * transaction.TransactionalOperation, com.holonplatform.core.datastore.transaction.TransactionConfiguration)
+	 * 
+	 * @see
+	 * com.holonplatform.core.datastore.transaction.Transactional#withTransaction(
+	 * com.holonplatform.core.datastore. transaction.TransactionalOperation,
+	 * com.holonplatform.core.datastore.transaction.TransactionConfiguration)
 	 */
 	@Override
 	public <R> R withTransaction(TransactionalOperation<R> operation,
@@ -222,15 +239,14 @@ public class DefaultMongoDatastore extends
 	}
 
 	/**
-	 * Starts a {@link SyncMongoTransaction}. If a local transaction is active, it will be forcedly finalized.
-	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
+	 * Starts a {@link SyncMongoTransaction}. If a local transaction is active, it
+	 * will be forcedly finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a
+	 *                      default configuration will be used
 	 * @return A new transaction
 	 */
 	@SuppressWarnings("resource")
 	private SyncMongoTransaction startTransaction(TransactionConfiguration configuration) throws TransactionException {
-
-		// check supported
-		checkTransactionSupported();
 
 		// check if a current transaction is present
 		getCurrentTransaction().ifPresent(tx -> {
@@ -324,9 +340,9 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
-	 * .ClassLoader)
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.internal.datastore.
+	 * AbstractMongoDatastore#onDatastoreInitialized(java.lang .ClassLoader)
 	 */
 	@Override
 	protected void onDatastoreInitialized(ClassLoader classLoader) {
@@ -336,6 +352,7 @@ public class DefaultMongoDatastore extends
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

@@ -71,7 +71,9 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.async.datastore.transaction.AsyncTransactional#withTransaction(com.holonplatform.async.
+	 * 
+	 * @see com.holonplatform.async.datastore.transaction.AsyncTransactional#
+	 * withTransaction(com.holonplatform.async.
 	 * datastore.transaction.AsyncTransactionalOperation,
 	 * com.holonplatform.core.datastore.transaction.TransactionConfiguration)
 	 */
@@ -142,16 +144,15 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 	}
 
 	/**
-	 * Starts a {@link AsyncMongoTransaction}. If a local transaction is active, it will be forcedly finalized.
-	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
-	 * @return A {@link CompletionStage} to handle the operation outcome and obtain the {@link AsyncMongoTransaction}
-	 *         instance
+	 * Starts a {@link AsyncMongoTransaction}. If a local transaction is active, it
+	 * will be forcedly finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a
+	 *                      default configuration will be used
+	 * @return A {@link CompletionStage} to handle the operation outcome and obtain
+	 *         the {@link AsyncMongoTransaction} instance
 	 */
 	private CompletionStage<AsyncMongoTransaction> startTransaction(TransactionConfiguration configuration)
 			throws TransactionException {
-
-		// check supported
-		checkTransactionSupported();
 
 		// check if a current transaction is present
 		getCurrentTransaction().ifPresent(tx -> {
@@ -167,7 +168,7 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 		// configuration
 		final TransactionConfiguration cfg = (configuration != null) ? configuration
 				: TransactionConfiguration.getDefault();
-		
+
 		return CompletableFutureSubscriber.fromPublisher(checkClient().startSession()).thenApply(session -> {
 			// create a new transaction
 			return getTransactionFactory().createTransaction(session, cfg);
@@ -201,8 +202,9 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 	 * Finalize the given transaction, only if the transaction is new.
 	 * @param tx Transaction to finalize
 	 * @throws TransactionException Error finalizing transaction
-	 * @return A {@link CompletionStage} to handle the operation outcome, with result value <code>true</code> if the
-	 *         transaction was actually finalized
+	 * @return A {@link CompletionStage} to handle the operation outcome, with
+	 *         result value <code>true</code> if the transaction was actually
+	 *         finalized
 	 */
 	private CompletionStage<Boolean> endTransaction(AsyncMongoTransaction tx) throws TransactionException {
 		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
@@ -241,7 +243,9 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.mongo.core.async.internal.AbstractAsyncMongoDatastore#getCurrentTransaction()
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.async.internal.
+	 * AbstractAsyncMongoDatastore#getCurrentTransaction()
 	 */
 	@Override
 	protected Optional<AsyncMongoTransaction> getCurrentTransaction() {
@@ -250,9 +254,9 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.internal.datastore.AbstractMongoDatastore#onDatastoreInitialized(java.lang
-	 * .ClassLoader)
+	 * 
+	 * @see com.holonplatform.datastore.mongo.core.internal.datastore.
+	 * AbstractMongoDatastore#onDatastoreInitialized(java.lang .ClassLoader)
 	 */
 	@Override
 	protected void onDatastoreInitialized(ClassLoader classLoader) {
@@ -262,6 +266,7 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -287,6 +292,7 @@ public class DefaultAsyncMongoDatastore extends AbstractAsyncMongoDatastore<Asyn
 
 		/*
 		 * (non-Javadoc)
+		 * 
 		 * @see com.holonplatform.core.datastore.DatastoreOperations.Builder#build()
 		 */
 		@Override

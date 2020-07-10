@@ -41,8 +41,6 @@ import com.holonplatform.datastore.mongo.core.document.QueryOperationType;
 import com.holonplatform.datastore.mongo.core.expression.BsonQuery;
 import com.holonplatform.datastore.mongo.core.expression.BsonQueryDefinition;
 import com.holonplatform.datastore.mongo.core.internal.document.DocumentSerializer;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoDriverInfo;
-import com.holonplatform.datastore.mongo.core.internal.driver.MongoVersion;
 import com.holonplatform.datastore.mongo.core.internal.operation.MongoOperations;
 import com.holonplatform.datastore.mongo.sync.config.SyncMongoDatastoreCommodityContext;
 import com.holonplatform.datastore.mongo.sync.internal.configurator.SyncAggregateOperationConfigurator;
@@ -88,7 +86,10 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query.QueryOperation)
+	 * 
+	 * @see
+	 * com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query
+	 * .QueryOperation)
 	 */
 	@Override
 	public <R> Stream<R> stream(final QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
@@ -130,14 +131,15 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	}
 
 	/**
-	 * Perform a <em>count</em> operation on given collection using given {@link BsonQueryDefinition}.
-	 * @param <R> Operation result type
-	 * @param context Operation context
+	 * Perform a <em>count</em> operation on given collection using given
+	 * {@link BsonQueryDefinition}.
+	 * @param <R>        Operation result type
+	 * @param context    Operation context
 	 * @param collection The collection to use
 	 * @param definition Query definition
 	 * @return The operation result
 	 */
-	@SuppressWarnings({ "unchecked", "deprecation", "resource" })
+	@SuppressWarnings({ "unchecked", "resource" })
 	private static <R> Stream<R> count(MongoContext<ClientSession> context, MongoCollection<Document> collection,
 			BsonQueryDefinition definition) {
 
@@ -145,44 +147,31 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 		context.trace("COUNT query", "Filter: \n" + DocumentSerializer.getDefault()
 				.toJson(definition.getFilter().map(f -> f.getExpression()).orElse(null)));
 
-		// check driver version
-		final MongoVersion version = MongoDriverInfo.getMongoVersion();
-		final boolean backwardMode = version.wasDriverVersionDetected() && version.getDriverMajorVersion() <= 3
-				&& version.getDriverMinorVersion() < 8;
-
 		// session
 		final ClientSession cs = context.getClientSession().orElse(null);
 
 		// count
 		final Long count;
-		if (backwardMode) {
-			if (cs != null) {
-				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(cs, e))
-						.orElse(collection.count(cs));
-			} else {
-				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.count(e))
-						.orElse(collection.count());
-			}
+
+		if (cs != null) {
+			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(cs, e))
+					.orElse(collection.countDocuments(cs));
 		} else {
-			if (cs != null) {
-				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(cs, e))
-						.orElse(collection.countDocuments(cs));
-			} else {
-				count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(e))
-						.orElse(collection.countDocuments());
-			}
+			count = definition.getFilter().map(f -> f.getExpression()).map(e -> collection.countDocuments(e))
+					.orElse(collection.countDocuments());
 		}
 
 		return Stream.of((R) count);
 	}
 
 	/**
-	 * Perform a <em>find</em> operation on given collection using given {@link BsonQuery}.
-	 * @param <R> Operation result type
-	 * @param context Resolution context
+	 * Perform a <em>find</em> operation on given collection using given
+	 * {@link BsonQuery}.
+	 * @param <R>        Operation result type
+	 * @param context    Resolution context
 	 * @param collection The collection to use
 	 * @param resultType Expected query result type
-	 * @param query Query definition
+	 * @param query      Query definition
 	 * @return The operation result
 	 */
 	private static <R> Stream<R> find(MongoResolutionContext<ClientSession> context,
@@ -207,12 +196,13 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	}
 
 	/**
-	 * Perform a <em>distinct</em> operation on given collection using given {@link BsonQuery}.
-	 * @param <R> Operation result type
-	 * @param context Resolution context
+	 * Perform a <em>distinct</em> operation on given collection using given
+	 * {@link BsonQuery}.
+	 * @param <R>        Operation result type
+	 * @param context    Resolution context
 	 * @param collection The collection to use
 	 * @param resultType Expected query result type
-	 * @param query Query definition
+	 * @param query      Query definition
 	 * @return The operation result
 	 */
 	private static <R> Stream<R> distinct(MongoResolutionContext<ClientSession> context,
@@ -247,13 +237,14 @@ public class MongoQuery implements QueryAdapter<QueryConfiguration> {
 	}
 
 	/**
-	 * Perform a <em>aggregate</em> operation on given collection using given {@link BsonQuery}.
-	 * @param <R> Operation result type
+	 * Perform a <em>aggregate</em> operation on given collection using given
+	 * {@link BsonQuery}.
+	 * @param <R>              Operation result type
 	 * @param operationContext Operation context
-	 * @param context Resolution context
-	 * @param collection The collection to use
-	 * @param resultType Expected query result type
-	 * @param query Query definition
+	 * @param context          Resolution context
+	 * @param collection       The collection to use
+	 * @param resultType       Expected query result type
+	 * @param query            Query definition
 	 * @return The operation result
 	 */
 	private static <R> Stream<R> aggregate(MongoResolutionContext<ClientSession> context,

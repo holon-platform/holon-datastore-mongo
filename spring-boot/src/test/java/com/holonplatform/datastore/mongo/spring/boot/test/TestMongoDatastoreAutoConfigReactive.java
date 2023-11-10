@@ -30,6 +30,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import com.holonplatform.datastore.mongo.spring.boot.test.config.ConfigCheckCommodity;
 import com.holonplatform.reactor.datastore.ReactiveDatastore;
@@ -41,6 +42,7 @@ import com.mongodb.reactivestreams.client.MongoClients;
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("p4")
+@TestPropertySource(properties = "spring.mongodb.embedded.version=3.4.11")
 public class TestMongoDatastoreAutoConfigReactive extends AbstractMongoSpringBootTest {
 
 	@Configuration

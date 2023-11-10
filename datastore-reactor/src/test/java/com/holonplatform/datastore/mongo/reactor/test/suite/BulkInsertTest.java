@@ -56,7 +56,7 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 						.map(r -> r.getAffectedCount()))
 				// count
 				.concatWith(getDatastore().query(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).count())
-				.subscribeOn(Schedulers.elastic());
+				.subscribeOn(Schedulers.boundedElastic());
 
 		StepVerifier.create(op).expectNext(3L).expectNext(3L).expectNext(15L).expectNext(3L).expectNext(0L)
 				.expectComplete().verify();

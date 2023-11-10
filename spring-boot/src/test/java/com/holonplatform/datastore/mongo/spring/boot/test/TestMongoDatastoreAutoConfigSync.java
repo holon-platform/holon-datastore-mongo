@@ -31,6 +31,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -48,6 +49,7 @@ import com.mongodb.client.MongoClients;
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("p1")
+@TestPropertySource(properties = "spring.mongodb.embedded.version=3.4.11")
 public class TestMongoDatastoreAutoConfigSync extends AbstractMongoSpringBootTest {
 
 	@Configuration

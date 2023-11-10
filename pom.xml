@@ -1,10 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.1.6</version>
+		<version>1.2.0</version>
 	</parent>
 
 	<groupId>com.holon-platform.mongo</groupId>
@@ -45,9 +47,11 @@
 	</issueManagement>
 
 	<scm>
-		<connection>scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</connection>
+		<connection>
+			scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</connection>
 		<url>https://github.com/holon-platform/holon-datastore-mongo</url>
-		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</developerConnection>
+		<developerConnection>
+			scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -55,21 +59,21 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.5.0</holon.core.version>
+		<holon.core.version>5.7.0</holon.core.version>
 		<!-- Holon JSON -->
-		<holon.json.version>5.5.0</holon.json.version>
+		<holon.json.version>5.7.0</holon.json.version>
 		<!-- Holon Reactor -->
-		<holon.reactor.version>5.5.0</holon.reactor.version>
+		<holon.reactor.version>5.7.1</holon.reactor.version>
 
 		<!-- MongoDB Java driver (core) -->
-		<mongo.driver.core.version>4.0.5</mongo.driver.core.version>
+		<mongo.driver.core.version>4.6.1</mongo.driver.core.version>
 		<!-- MongoDB Java driver (synchronous) -->
-		<mongo.driver.sync.version>4.0.5</mongo.driver.sync.version>
+		<mongo.driver.sync.version>4.6.1</mongo.driver.sync.version>
 		<!-- MongoDB Java driver (reactive) -->
-		<mongo.driver.reactive.version>4.0.5</mongo.driver.reactive.version>
+		<mongo.driver.reactive.version>4.6.1</mongo.driver.reactive.version>
 
 		<!-- Embedded MongoDB for test -->
-		<embed.mongo.version>2.2.0</embed.mongo.version>
+		<embed.mongo.version>3.4.11</embed.mongo.version>
 
 	</properties>
 

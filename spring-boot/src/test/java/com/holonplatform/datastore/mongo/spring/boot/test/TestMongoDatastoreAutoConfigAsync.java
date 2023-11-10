@@ -32,6 +32,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import com.holonplatform.async.datastore.AsyncDatastore;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -48,6 +49,7 @@ import com.mongodb.reactivestreams.client.MongoClients;
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("p2")
+@TestPropertySource(properties = "spring.mongodb.embedded.version=3.4.11")
 public class TestMongoDatastoreAutoConfigAsync extends AbstractMongoSpringBootTest {
 
 	@Configuration

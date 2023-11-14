@@ -1,6 +1,6 @@
 # Holon platform MongoDB Datastore module
 
-> Latest release: [5.5.0](#obtain-the-artifacts)
+> Latest release: [5.7.0](#obtain-the-artifacts)
 
 This is the reference __MongoDB__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the [MongoDB Java driver](https://mongodb.github.io/mongo-java-driver) for data access and manipulation.
 
@@ -26,7 +26,7 @@ See [Holon Platform code structure and conventions](https://github.com/holon-pla
 
 ### System requirements
 
-The Holon Platform is built using __Java 8__, so you need a JRE/JDK version 8 or above to use the platform artifacts.
+The Holon Platform is built using __Java 11__, so you need a JRE/JDK version 11 or above to use the platform artifacts.
 
 ### Releases
 
@@ -44,7 +44,7 @@ _Maven BOM:_
     <dependency>
         <groupId>com.holon-platform.mongo</groupId>
         <artifactId>holon-datastore-mongo-bom</artifactId>
-        <version>5.5.0</version>
+        <version>5.7.0</version>
         <type>pom</type>
         <scope>import</scope>
     </dependency>

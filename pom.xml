@@ -9,7 +9,7 @@
 
 	<groupId>com.holon-platform.mongo</groupId>
 	<artifactId>holon-datastore-mongo-root</artifactId>
-	<version>6.0.0</version>
+	<version>6.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -50,7 +50,7 @@
 		<url>https://github.com/holon-platform/holon-datastore-mongo</url>
 		<developerConnection>
 			scm:git:https://github.com/holon-platform/holon-datastore-mongo.git</developerConnection>
-		<tag>6.0.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>

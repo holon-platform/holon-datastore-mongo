@@ -53,7 +53,7 @@ import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
@@ -82,7 +82,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -93,7 +93,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 								.set(C_LNG, TestValues.C_LNG).set(NBL, true).build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().update(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.U_STR).set(STR2, TestValues.U_STR2)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.U_STR).set(STR2, TestValues.U_STR2)
 								.set(BOOL, TestValues.U_BOOL).set(INT, TestValues.U_INT).set(LNG, TestValues.U_LNG)
 								.set(DBL, TestValues.U_DBL).set(FLT, TestValues.U_FLT).set(SHR, TestValues.U_SHR)
 								.set(BYT, TestValues.U_BYT).set(BGD, TestValues.U_BGD).set(ENM, TestValues.U_ENM)
@@ -110,7 +110,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 				.thenApply(r -> r.orElse(null)).thenAccept(value -> {
 					assertNotNull(value);
 					assertEquals(oid, value.getValue(ID));
-					assertEquals(TestValues.U_STR, value.getValue(STR));
+					assertEquals(TestValues.U_STR, value.getValue(STR1));
 					assertEquals(TestValues.U_BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.U_INT, value.getValue(INT));
 					assertEquals(TestValues.U_LNG, value.getValue(LNG));
@@ -149,7 +149,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -174,7 +174,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 				}).thenCompose(x -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1))
 				.thenApply(r -> r.orElse(null)).thenAccept(value -> {
 					assertEquals(oid, value.getValue(ID));
-					assertNull(value.getValue(STR));
+					assertNull(value.getValue(STR1));
 					assertEquals(TestValues.U_BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.U_INT, value.getValue(INT));
 					assertNull(value.getValue(LNG));
@@ -209,7 +209,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 	@Test(expected = DataAccessException.class)
 	public void testUpdateMissingId() {
 
-		getDatastore().update(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR).build()).toCompletableFuture()
+		getDatastore().update(TARGET, PropertyBox.builder(SET1).set(STR1, TestValues.STR1).build()).toCompletableFuture()
 				.join();
 
 	}
@@ -221,14 +221,14 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+						PropertyBox.builder(SET6).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 								.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, false).set(N2_V1, 52)
 								.set(N2_V2, "n2v2").set(N3_V1, "n3v1").set(N3_V2, 12.97d).build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET6))
 				.thenApply(r -> r.orElse(null)).thenApply(value -> {
 					assertNotNull(value);
-					value.setValue(STR, "upd");
+					value.setValue(STR1, "upd");
 					value.setValue(N1_V1, "n1v1_upd");
 					value.setValue(N1_V2, null);
 					return value;
@@ -239,7 +239,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 					assertNotNull(value);
 
 					assertEquals(oid, value.getValue(ID));
-					assertEquals("upd", value.getValue(STR));
+					assertEquals("upd", value.getValue(STR1));
 					assertEquals(EnumValue.FIRST, value.getValue(ENM));
 					assertEquals("n1v1_upd", value.getValue(N1_V1));
 					assertNull(value.getValue(N1_V2));
@@ -261,7 +261,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET7).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+						PropertyBox.builder(SET7).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 								.set(NESTED,
 										PropertyBox.builder(NESTED_SET).set(NESTED_V1, "nestedv1")
 												.set(NESTED_V2, "nestedv2").build())
@@ -270,7 +270,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 				.thenCompose(x -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET7))
 				.thenApply(r -> r.orElse(null)).thenApply(value -> {
 					assertNotNull(value);
-					value.setValue(STR, "upd");
+					value.setValue(STR1, "upd");
 					value.setValue(NESTED, PropertyBox.builder(NESTED_SET).set(NESTED_V1, "nestedv1_upd")
 							.set(NESTED_V2, "nestedv2").build());
 					return value;
@@ -280,7 +280,7 @@ public class UpdateTest extends AbstractDatastoreOperationTest {
 				.thenApply(r -> r.orElse(null)).thenAccept(value -> {
 					assertNotNull(value);
 					assertEquals(oid, value.getValue(ID));
-					assertEquals("upd", value.getValue(STR));
+					assertEquals("upd", value.getValue(STR1));
 					assertEquals(EnumValue.FIRST, value.getValue(ENM));
 
 					PropertyBox nested = value.getValue(NESTED);

@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,15 +37,15 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testLower() {
 
-		final Property<?> LSTR = STR.lower();
+		final Property<?> LSTR = STR1.lower();
 
 		final ObjectId oid = new ObjectId();
 
 		final Mono<Long> op = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).set(STR2, "TEST").build())
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).set(STR2, "TEST").build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
-				.then(getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()))
+				.then(getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.lower()))
 				.doOnSuccess(str -> {
 					assertNotNull(str);
 					assertEquals("one", str);
@@ -53,7 +53,7 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 					assertNotNull(pb);
 					assertEquals("one", pb.getValue(LSTR));
 					assertEquals(Integer.valueOf(1), pb.getValue(INT));
-				}).then(getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID))
+				}).then(getDatastore().query().target(TARGET).filter(STR1.lower().eq("one")).findOne(ID))
 				.doOnSuccess(id -> {
 					assertNotNull(id);
 					assertEquals(oid, id);
@@ -69,13 +69,13 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid = new ObjectId();
 
 		final Mono<Long> op = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).build())
+				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
-				.then(getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.upper()))
+				.then(getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.upper()))
 				.doOnSuccess(str -> {
 					assertNotNull(str);
 					assertEquals("ONE", str);
-				}).then(getDatastore().query().target(TARGET).filter(STR.upper().eq("ONE")).findOne(ID))
+				}).then(getDatastore().query().target(TARGET).filter(STR1.upper().eq("ONE")).findOne(ID))
 				.doOnSuccess(id -> {
 					assertNotNull(id);
 					assertEquals(oid, id);

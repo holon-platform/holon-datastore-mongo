@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.A_STR;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -38,25 +38,25 @@ public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 	public void testResolvers() {
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 3).build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "cext2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 3).build()).execute()
 				.thenAccept(r -> assertEquals(3, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().query().withExpressionResolver(IntIsFilter.RESOLVER).target(TARGET)
-						.filter(new IntIsFilter(2)).list(STR))
+						.filter(new IntIsFilter(2)).list(STR1))
 				.thenAccept(vals -> {
 					assertNotNull(vals);
 					assertEquals(1, vals.size());
 					assertEquals("cext2", vals.get(0));
 				}).thenCompose(v -> getDatastore().query().withExpressionResolver(StrIntSort.RESOLVER).target(TARGET)
-						.sort(new StrIntSort()).list(STR))
+						.sort(new StrIntSort()).list(STR1))
 				.thenAccept(vals -> {
 					assertNotNull(vals);
 					assertEquals(3, vals.size());
 					assertEquals("cext2", vals.get(0));
 					assertEquals("cext1", vals.get(1));
 					assertEquals("cext1", vals.get(2));
-				}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR.in("cext1", "cext2")).execute())
+				}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR1.in("cext1", "cext2")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(3, count);
@@ -67,34 +67,34 @@ public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 	public void testBsonFilterSort() {
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 1).set(A_STR, new String[] { "a", "b" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 1).set(A_STR, new String[] { "a", "b" })
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext2").set(INT, 2).set(A_STR, new String[] { "e", "f", "g" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext2").set(INT, 2).set(A_STR, new String[] { "e", "f", "g" })
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext3").set(INT, 3).set(A_STR, new String[] { "a", "b", "c" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext3").set(INT, 3).set(A_STR, new String[] { "a", "b", "c" })
 						.build())
 				.execute().thenAccept(r -> assertEquals(3, r.getAffectedCount())).thenCompose(v -> getDatastore()
-						.query().target(TARGET).filter(BsonFilter.create(Filters.eq("int", 2))).list(STR))
+						.query().target(TARGET).filter(BsonFilter.create(Filters.eq("int", 2))).list(STR1))
 				.thenAccept(vals -> {
 					assertNotNull(vals);
 					assertEquals(1, vals.size());
 					assertEquals("cext2", vals.get(0));
 				})
 				.thenCompose(v -> getDatastore().query().target(TARGET)
-						.filter(BsonFilter.create(Filters.size("astr", 3))).sort(INT.asc()).list(STR))
+						.filter(BsonFilter.create(Filters.size("astr", 3))).sort(INT.asc()).list(STR1))
 				.thenAccept(vals -> {
 					assertNotNull(vals);
 					assertEquals(2, vals.size());
 					assertEquals("cext2", vals.get(0));
 					assertEquals("cext3", vals.get(1));
 				}).thenCompose(v -> getDatastore().query().target(TARGET).sort(BsonSort.create(Sorts.descending("int")))
-						.list(STR))
+						.list(STR1))
 				.thenAccept(vals -> {
 					assertNotNull(vals);
 					assertEquals(3, vals.size());
 					assertEquals("cext3", vals.get(0));
 				})
-				.thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR.in("cext1", "cext2", "cext3")).execute())
+				.thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR1.in("cext1", "cext2", "cext3")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(3, count);

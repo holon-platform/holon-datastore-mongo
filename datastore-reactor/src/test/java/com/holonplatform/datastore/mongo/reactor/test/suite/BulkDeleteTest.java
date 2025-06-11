@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -35,12 +35,12 @@ public class BulkDeleteTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid1 = new ObjectId();
 		final ObjectId oid2 = new ObjectId();
 
-		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "v1").build();
-		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "v2").build();
+		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "v1").build();
+		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "v2").build();
 
 		final Flux<Long> op = getDatastore().insert(TARGET, value1).map(r -> r.getAffectedCount())
 				.concatWith(getDatastore().insert(TARGET, value2).map(r -> r.getAffectedCount())
-						.concatWith(getDatastore().bulkDelete(TARGET).filter(STR.eq("v1")).execute()
+						.concatWith(getDatastore().bulkDelete(TARGET).filter(STR1.eq("v1")).execute()
 								.map(r -> r.getAffectedCount())
 								.concatWith(getDatastore().query(TARGET).filter(ID.eq(oid1)).count())
 								.concatWith(getDatastore().bulkDelete(TARGET).filter(ID.eq(oid2)).execute()

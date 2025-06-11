@@ -20,7 +20,7 @@ import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LDAT
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 
@@ -38,11 +38,11 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testTemporalFunctionFilters() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
 						.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
 						.set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS).set(LTM, TestValues.U_LTM).build())
 				.execute().doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
 				.then(getDatastore().query().target(TARGET).filter(LDAT.year().eq(2018)).count())
@@ -70,7 +70,7 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 				.doOnSuccess(c -> assertEquals(Long.valueOf(1), c))
 				.then(getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count())
 				.doOnSuccess(c -> assertEquals(Long.valueOf(2), c)).then(getDatastore().bulkDelete(TARGET)
-						.filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute().map(r -> r.getAffectedCount()));
+						.filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute().map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
 

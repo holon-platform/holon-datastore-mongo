@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.sync.config;
 
 import java.util.ServiceLoader;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;

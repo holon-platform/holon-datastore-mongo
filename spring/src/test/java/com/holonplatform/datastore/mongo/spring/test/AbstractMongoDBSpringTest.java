@@ -5,40 +5,31 @@ import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.Defaults;
-import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.packageresolver.Command;
-import de.flapdoodle.embed.process.config.RuntimeConfig;
-import de.flapdoodle.embed.process.runtime.Network;
+import de.flapdoodle.embed.mongo.transitions.Mongod;
+import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess;
+import de.flapdoodle.reverse.TransitionWalker;
+import de.flapdoodle.reverse.transitions.Start;
 
 public abstract class AbstractMongoDBSpringTest {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractMongoDBSpringTest.class);
 
-	private static final RuntimeConfig runtimeConfig = Defaults.runtimeConfigFor(Command.MongoD, logger).build();
-
-	private static final MongodStarter starter = MongodStarter.getInstance(runtimeConfig);
-
-	private static MongodExecutable _mongodExe;
-	private static MongodProcess _mongod;
+	private static TransitionWalker.ReachedState<RunningMongodProcess> _running;
 
 	@BeforeAll
 	public static void setUp() throws Exception {
 
-		_mongodExe = starter.prepare(MongodConfig.builder().version(Version.Main.V4_4)
-				.net(new Net("localhost", 12345, Network.localhostIsIPv6())).build());
-		_mongod = _mongodExe.start();
+		Mongod mongodConfig = Mongod.builder().net(Start.to(Net.class).initializedWith(Net.defaults().withPort(12345)))
+				.build();
+
+		_running = mongodConfig.start(Version.Main.V8_0);
 	}
 
 	@AfterAll
 	public static void tearDown() throws Exception {
-		_mongod.stop();
-		_mongodExe.stop();
+		_running.close();
 	}
 
 }

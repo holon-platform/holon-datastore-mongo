@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import org.bson.BsonType;
 import org.bson.Document;

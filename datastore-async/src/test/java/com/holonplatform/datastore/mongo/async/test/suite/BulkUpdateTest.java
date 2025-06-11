@@ -40,7 +40,7 @@ import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
@@ -73,7 +73,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid2 = new ObjectId();
 		final ObjectId oid3 = new ObjectId();
 
-		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "bkuv1").set(BOOL, TestValues.BOOL)
+		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "bkuv1").set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -82,7 +82,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 				.set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT).set(C_ENM, TestValues.C_ENM)
 				.set(C_LNG, TestValues.C_LNG).set(NBL, true).build();
 
-		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "bkuv2").set(BOOL, TestValues.BOOL)
+		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "bkuv2").set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -91,7 +91,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 				.set(C_STR, TestValues.C_STR).set(C_INT, TestValues.C_INT).set(C_ENM, TestValues.C_ENM)
 				.set(C_LNG, TestValues.C_LNG).set(NBL, true).build();
 
-		final PropertyBox value3 = PropertyBox.builder(SET1).set(ID, oid3).set(STR, "bkuv3").set(BOOL, TestValues.BOOL)
+		final PropertyBox value3 = PropertyBox.builder(SET1).set(ID, oid3).set(STR1, "bkuv3").set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -105,10 +105,10 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().insert(TARGET, value3))
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
-				.thenCompose(v -> getDatastore().query(TARGET).filter(STR.in("bkuv1", "bkuv2", "bkuv3")).count())
+				.thenCompose(v -> getDatastore().query(TARGET).filter(STR1.in("bkuv1", "bkuv2", "bkuv3")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(3), c))
 				.thenCompose(
-						v -> getDatastore().bulkUpdate(TARGET).filter(STR.eq("bkuv2")).set(STR, "bkuv2_upd").execute())
+						v -> getDatastore().bulkUpdate(TARGET).filter(STR1.eq("bkuv2")).set(STR1, "bkuv2_upd").execute())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid2)).findOne(SET1)).thenApply(v2 -> {
 					assertNotNull(v2);
@@ -116,7 +116,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 					return v2.get();
 				}).thenAccept(v2 -> {
 					assertEquals(oid2, v2.getValue(ID));
-					assertEquals("bkuv2_upd", v2.getValue(STR));
+					assertEquals("bkuv2_upd", v2.getValue(STR1));
 					assertEquals(TestValues.BOOL, v2.getValue(BOOL));
 					assertEquals(TestValues.INT, v2.getValue(INT));
 					assertEquals(TestValues.LNG, v2.getValue(LNG));
@@ -142,7 +142,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 					assertEquals(TestValues.C_LNG, v2.getValue(C_LNG));
 					assertTrue(v2.getValue(NBL));
 				})
-				.thenCompose(v -> getDatastore().bulkUpdate(TARGET).filter(ID.in(oid1, oid3)).set(STR, TestValues.U_STR)
+				.thenCompose(v -> getDatastore().bulkUpdate(TARGET).filter(ID.in(oid1, oid3)).set(STR1, TestValues.U_STR)
 						.set(STR2, TestValues.U_STR2).set(BOOL, TestValues.U_BOOL).set(INT, TestValues.U_INT)
 						.set(LNG, TestValues.U_LNG).set(DBL, TestValues.U_DBL).set(FLT, TestValues.U_FLT)
 						.set(SHR, TestValues.U_SHR).set(BYT, TestValues.U_BYT).set(BGD, TestValues.U_BGD)
@@ -159,7 +159,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 					return v1.get();
 				}).thenAccept(v1 -> {
 					assertEquals(oid1, v1.getValue(ID));
-					assertEquals(TestValues.U_STR, v1.getValue(STR));
+					assertEquals(TestValues.U_STR, v1.getValue(STR1));
 					assertEquals(TestValues.U_BOOL, v1.getValue(BOOL));
 					assertEquals(TestValues.U_INT, v1.getValue(INT));
 					assertEquals(TestValues.U_LNG, v1.getValue(LNG));
@@ -190,7 +190,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 					return v3.get();
 				}).thenAccept(v3 -> {
 					assertEquals(oid3, v3.getValue(ID));
-					assertEquals(TestValues.U_STR, v3.getValue(STR));
+					assertEquals(TestValues.U_STR, v3.getValue(STR1));
 					assertEquals(TestValues.U_BOOL, v3.getValue(BOOL));
 					assertEquals(TestValues.U_INT, v3.getValue(INT));
 					assertEquals(TestValues.U_LNG, v3.getValue(LNG));
@@ -243,7 +243,7 @@ public class BulkUpdateTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		long count = getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR, "bkuv10").build())
+		long count = getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR1, "bkuv10").build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().bulkUpdate(TARGET).filter(ID.eq(oid)).set(DAT, CurrentDate.create())
 						.set(LDAT, CurrentLocalDate.create()).set(TMS, CurrentTimestamp.create())

@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.sync.test.suite;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,23 +37,23 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).set(STR2, "TEST")
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).set(STR2, "TEST")
 				.build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 
-		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()).orElse(null);
+		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
 
-		final Property<?> LSTR = STR.lower();
+		final Property<?> LSTR = STR1.lower();
 
 		PropertyBox pb = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(LSTR, INT).orElse(null);
 		assertNotNull(pb);
 		assertEquals("one", pb.getValue(LSTR));
 		assertEquals(Integer.valueOf(1), pb.getValue(INT));
 
-		ObjectId id = getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID).orElse(null);
+		ObjectId id = getDatastore().query().target(TARGET).filter(STR1.lower().eq("one")).findOne(ID).orElse(null);
 		assertNotNull(id);
 		assertEquals(oid, id);
 
@@ -67,15 +67,15 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).build();
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 
-		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.upper()).orElse(null);
+		String str = getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.upper()).orElse(null);
 		assertNotNull(str);
 		assertEquals("ONE", str);
 
-		ObjectId id = getDatastore().query().target(TARGET).filter(STR.upper().eq("ONE")).findOne(ID).orElse(null);
+		ObjectId id = getDatastore().query().target(TARGET).filter(STR1.upper().eq("ONE")).findOne(ID).orElse(null);
 		assertNotNull(id);
 		assertEquals(oid, id);
 

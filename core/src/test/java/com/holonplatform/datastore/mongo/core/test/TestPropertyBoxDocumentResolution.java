@@ -64,7 +64,7 @@ import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET8;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SET9;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.TMS;
 import static com.holonplatform.datastore.mongo.core.test.data.ModelTest.VRT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -114,7 +114,7 @@ public class TestPropertyBoxDocumentResolution {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -141,7 +141,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.STR1, pb.getValue(STR1));
 		assertEquals(TestValues.BOOL, pb.getValue(BOOL));
 		assertEquals(TestValues.INT, pb.getValue(INT));
 		assertEquals(TestValues.LNG, pb.getValue(LNG));
@@ -162,14 +162,14 @@ public class TestPropertyBoxDocumentResolution {
 		assertTrue(Arrays.equals(TestValues.A_CHR, pb.getValue(A_CHR)));
 		assertTrue(Arrays.equals(TestValues.A_BYT, pb.getValue(A_BYT)));
 		assertTrue(pb.getValue(NBL));
-		assertEquals("STR:" + TestValues.STR, pb.getValue(VRT));
+		assertEquals("STR1:" + TestValues.STR1, pb.getValue(VRT));
 	}
 
 	@Test
 	public void testPropertyBoxResolutionConverters() {
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+		PropertyBox pb = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
@@ -186,7 +186,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.STR1, pb.getValue(STR1));
 		assertNotNull(pb.getValue(NBL));
 		assertFalse(pb.getValue(NBL));
 	}
@@ -223,7 +223,7 @@ public class TestPropertyBoxDocumentResolution {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox pb = PropertyBox.builder(SET3).set(ID3, oid).set(STR, TestValues.STR).build();
+		PropertyBox pb = PropertyBox.builder(SET3).set(ID3, oid).set(STR1, TestValues.STR1).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
@@ -248,7 +248,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID3));
-		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.STR1, pb.getValue(STR1));
 	}
 
 	@Test
@@ -256,7 +256,7 @@ public class TestPropertyBoxDocumentResolution {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox pb = PropertyBox.builder(SET4).set(ID4, oid.toHexString()).set(STR, TestValues.STR).build();
+		PropertyBox pb = PropertyBox.builder(SET4).set(ID4, oid.toHexString()).set(STR1, TestValues.STR1).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
@@ -281,7 +281,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid.toHexString(), pb.getValue(ID4));
-		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.STR1, pb.getValue(STR1));
 	}
 
 	@Test
@@ -290,7 +290,7 @@ public class TestPropertyBoxDocumentResolution {
 		final ObjectId oid = new ObjectId();
 		final BigInteger biv = context.getDocumentIdResolver().decode(oid, BigInteger.class);
 
-		PropertyBox pb = PropertyBox.builder(SET5).set(ID5, biv).set(STR, TestValues.STR).build();
+		PropertyBox pb = PropertyBox.builder(SET5).set(ID5, biv).set(STR1, TestValues.STR1).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
@@ -316,7 +316,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(biv, pb.getValue(ID5));
-		assertEquals(TestValues.STR, pb.getValue(STR));
+		assertEquals(TestValues.STR1, pb.getValue(STR1));
 	}
 
 	@Test
@@ -324,7 +324,7 @@ public class TestPropertyBoxDocumentResolution {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox pb = PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox pb = PropertyBox.builder(SET6).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, false).set(N2_V1, 52).set(N2_V2, "n2v2")
 				.set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
 
@@ -357,7 +357,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals("testn", pb.getValue(STR));
+		assertEquals("testn", pb.getValue(STR1));
 		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
 		assertEquals("n1v1", pb.getValue(N1_V1));
 		assertEquals("n1v2", pb.getValue(N1_V2));
@@ -376,7 +376,7 @@ public class TestPropertyBoxDocumentResolution {
 		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "nestedv1").set(NESTED_V2, "nestedv2")
 				.build();
 
-		PropertyBox pb = PropertyBox.builder(SET7).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox pb = PropertyBox.builder(SET7).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(NESTED, nested).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
@@ -400,7 +400,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals("testn", pb.getValue(STR));
+		assertEquals("testn", pb.getValue(STR1));
 		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
 
 		nested = pb.getValue(NESTED);
@@ -417,7 +417,7 @@ public class TestPropertyBoxDocumentResolution {
 
 		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n1v1").set(NESTED_V2, "n1v2").build();
 
-		PropertyBox pb = PropertyBox.builder(SET8).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox pb = PropertyBox.builder(SET8).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(NESTED, nested).set(N2_V1, 52).set(N2_V2, "n2v2").set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
@@ -449,7 +449,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals("testn", pb.getValue(STR));
+		assertEquals("testn", pb.getValue(STR1));
 		assertEquals(EnumValue.FIRST, pb.getValue(ENM));
 		assertEquals(Integer.valueOf(52), pb.getValue(N2_V1));
 		assertEquals("n2v2", pb.getValue(N2_V2));
@@ -472,7 +472,7 @@ public class TestPropertyBoxDocumentResolution {
 		final Set<Integer> svals = new HashSet<>(Arrays.asList(1, 2, 3));
 		final Set<EnumValue> evals = new HashSet<>(Arrays.asList(EnumValue.FIRST, EnumValue.SECOND));
 
-		PropertyBox pb = PropertyBox.builder(SET9).set(ID, oid).set(STR, "test").set(CP_LIST, lvals).set(CP_SET, svals)
+		PropertyBox pb = PropertyBox.builder(SET9).set(ID, oid).set(STR1, "test").set(CP_LIST, lvals).set(CP_SET, svals)
 				.set(CP_ENM, evals).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
@@ -496,7 +496,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals("test", pb.getValue(STR));
+		assertEquals("test", pb.getValue(STR1));
 
 		List<String> lvs = pb.getValue(CP_LIST);
 		assertNotNull(lvs);
@@ -531,7 +531,7 @@ public class TestPropertyBoxDocumentResolution {
 		nestedList.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n2v1").set(NESTED_V2, "n2v2").build());
 		nestedList.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n3v1").set(NESTED_V2, "n3v2").build());
 
-		PropertyBox pb = PropertyBox.builder(SET10).set(ID, oid).set(STR, "testn").set(C_PBX, nestedList).build();
+		PropertyBox pb = PropertyBox.builder(SET10).set(ID, oid).set(STR1, "testn").set(C_PBX, nestedList).build();
 
 		Optional<DocumentValue> value = context.resolve(PropertyBoxValue.create(pb), DocumentValue.class);
 		assertTrue(value.isPresent());
@@ -563,7 +563,7 @@ public class TestPropertyBoxDocumentResolution {
 		assertNotNull(pb);
 
 		assertEquals(oid, pb.getValue(ID));
-		assertEquals("testn", pb.getValue(STR));
+		assertEquals("testn", pb.getValue(STR1));
 
 		List<PropertyBox> values = pb.getValue(C_PBX);
 		assertNotNull(values);

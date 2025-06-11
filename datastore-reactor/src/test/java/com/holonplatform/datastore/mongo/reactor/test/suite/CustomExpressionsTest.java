@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.A_STR;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -41,25 +41,25 @@ public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 	public void testResolvers() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 3).build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "cext2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 3).build()).execute()
 				.doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
 				.then(getDatastore().query().withExpressionResolver(IntIsFilter.RESOLVER).target(TARGET)
-						.filter(new IntIsFilter(2)).list(STR))
+						.filter(new IntIsFilter(2)).list(STR1))
 				.doOnSuccess(vals -> {
 					assertNotNull(vals);
 					assertEquals(1, vals.size());
 					assertEquals("cext2", vals.get(0));
 				}).then(getDatastore().query().withExpressionResolver(StrIntSort.RESOLVER).target(TARGET)
-						.sort(new StrIntSort()).list(STR))
+						.sort(new StrIntSort()).list(STR1))
 				.doOnSuccess(vals -> {
 					assertNotNull(vals);
 					assertEquals(3, vals.size());
 					assertEquals("cext2", vals.get(0));
 					assertEquals("cext1", vals.get(1));
 					assertEquals("cext1", vals.get(2));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("cext1", "cext2")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("cext1", "cext2")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
@@ -70,31 +70,31 @@ public class CustomExpressionsTest extends AbstractDatastoreOperationTest {
 	public void testBsonFilterSort() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "cext1").set(INT, 1).set(A_STR, new String[] { "a", "b" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext1").set(INT, 1).set(A_STR, new String[] { "a", "b" })
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext2").set(INT, 2).set(A_STR, new String[] { "e", "f", "g" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext2").set(INT, 2).set(A_STR, new String[] { "e", "f", "g" })
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "cext3").set(INT, 3).set(A_STR, new String[] { "a", "b", "c" })
+				.add(PropertyBox.builder(SET1).set(STR1, "cext3").set(INT, 3).set(A_STR, new String[] { "a", "b", "c" })
 						.build())
 				.execute().doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
-				.then(getDatastore().query().target(TARGET).filter(BsonFilter.create(Filters.eq("int", 2))).list(STR))
+				.then(getDatastore().query().target(TARGET).filter(BsonFilter.create(Filters.eq("int", 2))).list(STR1))
 				.doOnSuccess(vals -> {
 					assertNotNull(vals);
 					assertEquals(1, vals.size());
 					assertEquals("cext2", vals.get(0));
 				}).then(getDatastore().query().target(TARGET).filter(BsonFilter.create(Filters.size("astr", 3)))
-						.sort(INT.asc()).list(STR))
+						.sort(INT.asc()).list(STR1))
 				.doOnSuccess(vals -> {
 					assertNotNull(vals);
 					assertEquals(2, vals.size());
 					assertEquals("cext2", vals.get(0));
 					assertEquals("cext3", vals.get(1));
-				}).then(getDatastore().query().target(TARGET).sort(BsonSort.create(Sorts.descending("int"))).list(STR))
+				}).then(getDatastore().query().target(TARGET).sort(BsonSort.create(Sorts.descending("int"))).list(STR1))
 				.doOnSuccess(vals -> {
 					assertNotNull(vals);
 					assertEquals(3, vals.size());
 					assertEquals("cext3", vals.get(0));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("cext1", "cext2", "cext3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("cext1", "cext2", "cext3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();

@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.core.internal.resolver;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import org.bson.Document;
 

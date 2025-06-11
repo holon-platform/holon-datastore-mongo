@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR2;
 
 import org.junit.Test;
@@ -34,9 +34,9 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testAggregationFunctions() {
 
 		final Flux<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(INT, 2).set(STR2, "v2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute()
 				.map(r -> r.getAffectedCount()) // 3
 				.concatWith(getDatastore().query().target(TARGET).findOne(INT.max()).map(i -> Long.valueOf(i))) // 2
 				.concatWith(getDatastore().query().target(TARGET).findOne(INT.min()).map(i -> Long.valueOf(i))) // 1
@@ -47,7 +47,7 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 				.concatWith(getDatastore().query().target(TARGET).findOne(STR2.count()).map(i -> Long.valueOf(i))) // 3
 				.concatWith(getDatastore().query().target(TARGET).distinct().findOne(STR2.count())
 						.map(i -> Long.valueOf(i))) // 2
-				.concatWith(getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute()
+				.concatWith(getDatastore().bulkDelete(TARGET).filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectNext(2L).expectNext(1L).expectNext(3L).expectNext(15L)

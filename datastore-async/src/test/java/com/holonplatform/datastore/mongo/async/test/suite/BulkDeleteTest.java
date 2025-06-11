@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;
@@ -33,14 +33,14 @@ public class BulkDeleteTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid1 = new ObjectId();
 		final ObjectId oid2 = new ObjectId();
 
-		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "v1").build();
-		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "v2").build();
+		final PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "v1").build();
+		final PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "v2").build();
 
 		getDatastore().insert(TARGET, value1).thenAccept(r -> {
 			assertEquals(1, r.getAffectedCount());
 		}).thenCompose(v -> getDatastore().insert(TARGET, value2)).thenAccept(r -> {
 			assertEquals(1, r.getAffectedCount());
-		}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR.eq("v1")).execute()).thenAccept(r -> {
+		}).thenCompose(v -> getDatastore().bulkDelete(TARGET).filter(STR1.eq("v1")).execute()).thenAccept(r -> {
 			assertEquals(1, r.getAffectedCount());
 		}).thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid1)).count()).thenAccept(count -> {
 			assertEquals(Long.valueOf(0), count);

@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.sync.test.suite;
 
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -33,29 +33,29 @@ public class QueryRestrictionTest extends AbstractDatastoreOperationTest {
 	public void testRestrictions() {
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp3").set(INT, 3).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp4").set(INT, 4).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp5").set(INT, 5).build()).execute();
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp3").set(INT, 3).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp4").set(INT, 4).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp5").set(INT, 5).build()).execute();
 		assertEquals(5, result.getAffectedCount());
 
-		List<String> values = getDatastore().query(TARGET).sort(INT.asc()).limit(2).list(STR);
+		List<String> values = getDatastore().query(TARGET).sort(INT.asc()).limit(2).list(STR1);
 		assertEquals(2, values.size());
 		assertEquals("bktfp1", values.get(0));
 		assertEquals("bktfp2", values.get(1));
 
-		values = getDatastore().query(TARGET).sort(INT.asc()).limit(3).offset(2).list(STR);
+		values = getDatastore().query(TARGET).sort(INT.asc()).limit(3).offset(2).list(STR1);
 		assertEquals(3, values.size());
 		assertEquals("bktfp3", values.get(0));
 		assertEquals("bktfp4", values.get(1));
 		assertEquals("bktfp5", values.get(2));
 
-		values = getDatastore().query(TARGET).sort(INT.asc()).limit(2).offset(4).list(STR);
+		values = getDatastore().query(TARGET).sort(INT.asc()).limit(2).offset(4).list(STR1);
 		assertEquals(1, values.size());
 		assertEquals("bktfp5", values.get(0));
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("bktfp1", "bktfp2", "bktfp3", "bktfp4", "bktfp5"))
+		result = getDatastore().bulkDelete(TARGET).filter(STR1.in("bktfp1", "bktfp2", "bktfp3", "bktfp4", "bktfp5"))
 				.execute();
 		assertEquals(5, result.getAffectedCount());
 

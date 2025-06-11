@@ -30,7 +30,7 @@ import java.util.Set;
 
 public final class TestValues {
 
-	public static final String STR = "test";
+	public static final String STR1 = "test";
 	public static final String STR2 = "test2";
 	public static final Boolean BOOL = Boolean.TRUE;
 	public static final Integer INT = Integer.valueOf(1234567);

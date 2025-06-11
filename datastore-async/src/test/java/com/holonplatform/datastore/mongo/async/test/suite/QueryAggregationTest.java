@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,13 +36,13 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 	public void testQueryAggregation() {
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g3").set(INT, 3).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 9).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 18).build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g3").set(INT, 3).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 9).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 18).build()).execute()
 				.thenAccept(r -> assertEquals(5, r.getAffectedCount()))
-				.thenCompose(x -> getDatastore().query(TARGET).aggregate(STR).list(INT.sum())).thenAccept(values -> {
+				.thenCompose(x -> getDatastore().query(TARGET).aggregate(STR1).list(INT.sum())).thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(3, values.size());
 					assertTrue(values.contains(Integer.valueOf(10)));
@@ -50,7 +50,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 					assertTrue(values.contains(Integer.valueOf(3)));
 				})
 				.thenCompose(
-						x -> getDatastore().query(TARGET).filter(STR.in("g1", "g2")).aggregate(STR).list(INT.sum()))
+						x -> getDatastore().query(TARGET).filter(STR1.in("g1", "g2")).aggregate(STR1).list(INT.sum()))
 				.thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(2, values.size());
@@ -59,7 +59,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 				}).thenCompose(x -> {
 					final Sum<Integer> SUM = INT.sum();
 					return getDatastore().query(TARGET)
-							.aggregate(QueryAggregation.builder().path(STR).filter(SUM.gt(10)).build()).list(SUM);
+							.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.gt(10)).build()).list(SUM);
 				}).thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(1, values.size());
@@ -67,7 +67,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 				}).thenCompose(x -> {
 					final Sum<Integer> SUM = INT.sum();
 					return getDatastore().query(TARGET).filter(INT.lt(10))
-							.aggregate(QueryAggregation.builder().path(STR).filter(SUM.goe(10)).build()).list(SUM);
+							.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.goe(10)).build()).list(SUM);
 				}).thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(1, values.size());
@@ -75,12 +75,12 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 				}).thenCompose(x -> {
 					final Sum<Integer> SUM = INT.sum();
 					return getDatastore().query(TARGET)
-							.aggregate(QueryAggregation.builder().path(STR).filter(SUM.eq(3).or(SUM.loe(10))).build())
+							.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.eq(3).or(SUM.loe(10))).build())
 							.list(SUM);
 				}).thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(2, values.size());
-				}).thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute())
+				}).thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(STR1.in("g1", "g2", "g3")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(5, count);
@@ -93,13 +93,13 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		final Property<?> MSTR2 = STR2.max();
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).set(STR2, "mg1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 10).set(STR2, "mg2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 20).set(STR2, "mg3").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).set(STR2, "mg1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 10).set(STR2, "mg2").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).set(STR2, "mg1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 10).set(STR2, "mg2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 20).set(STR2, "mg3").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).set(STR2, "mg1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 10).set(STR2, "mg2").build()).execute()
 				.thenAccept(r -> assertEquals(5, r.getAffectedCount()))
-				.thenCompose(x -> getDatastore().query(TARGET).aggregate(STR, INT).list(STR2.max()))
+				.thenCompose(x -> getDatastore().query(TARGET).aggregate(STR1, INT).list(STR2.max()))
 				.thenAccept(values -> {
 					assertNotNull(values);
 					assertEquals(3, values.size());
@@ -107,7 +107,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 					assertTrue(values.contains("mg2"));
 					assertTrue(values.contains("mg3"));
 				}).thenCompose(x -> {
-					return getDatastore().query(TARGET).aggregate(STR, INT).sort(STR.desc()).sort(INT.asc()).list(STR,
+					return getDatastore().query(TARGET).aggregate(STR1, INT).sort(STR1.desc()).sort(INT.asc()).list(STR1,
 							INT, MSTR2);
 				}).thenAccept(pbs -> {
 					assertNotNull(pbs);
@@ -119,7 +119,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 					assertEquals("mg3", pb.getValue(MSTR2));
 					pb = pbs.get(2);
 					assertEquals("mg1", pb.getValue(MSTR2));
-				}).thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute())
+				}).thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(STR1.in("g1", "g2", "g3")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(5, count);

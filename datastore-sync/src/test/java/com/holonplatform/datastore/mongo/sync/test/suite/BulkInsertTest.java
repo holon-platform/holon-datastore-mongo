@@ -19,7 +19,7 @@ import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID4;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET4;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -40,16 +40,16 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	public void testBulkInsert() {
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv3").build()).execute();
+				.add(PropertyBox.builder(SET1).set(STR1, "bkiv1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bkiv2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bkiv3").build()).execute();
 
 		assertEquals(3, result.getAffectedCount());
 
-		long count = getDatastore().query(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).count();
+		long count = getDatastore().query(TARGET).filter(STR1.in("bkiv1", "bkiv2", "bkiv3")).count();
 		assertEquals(3, count);
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("bkiv1", "bkiv2", "bkiv3")).execute();
+		result = getDatastore().bulkDelete(TARGET).filter(STR1.in("bkiv1", "bkiv2", "bkiv3")).execute();
 		assertEquals(3, result.getAffectedCount());
 
 	}
@@ -57,9 +57,9 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testBulkInsertIds() {
 
-		final PropertyBox v1 = PropertyBox.builder(SET1).set(STR, "bkiv10").build();
-		final PropertyBox v2 = PropertyBox.builder(SET1).set(STR, "bkiv11").build();
-		final PropertyBox v3 = PropertyBox.builder(SET1).set(STR, "bkiv12").build();
+		final PropertyBox v1 = PropertyBox.builder(SET1).set(STR1, "bkiv10").build();
+		final PropertyBox v2 = PropertyBox.builder(SET1).set(STR1, "bkiv11").build();
+		final PropertyBox v3 = PropertyBox.builder(SET1).set(STR1, "bkiv12").build();
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1, DefaultWriteOption.BRING_BACK_GENERATED_IDS)
 				.add(v1).add(v2).add(v3).execute();
@@ -83,11 +83,11 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 
 		OperationResult result = getDatastore()
 				.bulkInsert(TARGET, SET1, DocumentWriteOption.BYPASS_VALIDATION, DocumentWriteOption.UNORDERED)
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv20").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bkiv21").build()).execute();
+				.add(PropertyBox.builder(SET1).set(STR1, "bkiv20").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bkiv21").build()).execute();
 		assertEquals(2, result.getAffectedCount());
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("bkiv20").or(STR.eq("bkiv21"))).execute();
+		result = getDatastore().bulkDelete(TARGET).filter(STR1.eq("bkiv20").or(STR1.eq("bkiv21"))).execute();
 		assertEquals(2, result.getAffectedCount());
 
 	}
@@ -95,17 +95,17 @@ public class BulkInsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testUpdateIdPropertyValue() {
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET4)
-				.add(PropertyBox.builder(SET4).set(STR, "ubkiv200").build())
-				.add(PropertyBox.builder(SET4).set(STR, "ubkiv201").build()).execute();
+				.add(PropertyBox.builder(SET4).set(STR1, "ubkiv200").build())
+				.add(PropertyBox.builder(SET4).set(STR1, "ubkiv201").build()).execute();
 		assertEquals(2, result.getAffectedCount());
 
-		List<String> codes = getDatastore().query(TARGET).filter(STR.in("ubkiv200", "ubkiv201")).list(ID4);
+		List<String> codes = getDatastore().query(TARGET).filter(STR1.in("ubkiv200", "ubkiv201")).list(ID4);
 		assertNotNull(codes);
 		assertEquals(2, codes.size());
 		assertNotNull(codes.get(0));
 		assertNotNull(codes.get(1));
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.eq("ubkiv200").or(STR.eq("ubkiv201"))).execute();
+		result = getDatastore().bulkDelete(TARGET).filter(STR1.eq("ubkiv200").or(STR1.eq("ubkiv201"))).execute();
 		assertEquals(2, result.getAffectedCount());
 	}
 

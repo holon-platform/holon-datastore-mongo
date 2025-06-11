@@ -46,7 +46,7 @@ import com.mongodb.ServerAddress;
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("p3")
-@TestPropertySource(properties = "spring.mongodb.embedded.version=3.4.11")
+@TestPropertySource(properties = "spring.mongodb.embedded.version=4.20.0")
 public class TestMongoDatastoreAutoConfig extends AbstractMongoSpringBootTest {
 
 	@Configuration

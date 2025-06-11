@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.mongo.core.internal.document.converter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -67,9 +68,8 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.mongo.core.document.DocumentConverter#convert(com.holonplatform.datastore.mongo.core.
-	 * context.MongoResolutionContext, org.bson.Document)
+	 * @see com.holonplatform.datastore.mongo.core.document.DocumentConverter#convert(com.holonplatform.
+	 * datastore.mongo.core. context.MongoResolutionContext, org.bson.Document)
 	 */
 	@Override
 	public T convert(MongoResolutionContext<?> context, Document document) {
@@ -83,8 +83,9 @@ public class BeanDocumentConverter<T> implements DocumentConverter<T> {
 		// new instance
 		T instance;
 		try {
-			instance = beanPropertySet.getBeanClass().newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			instance = beanPropertySet.getBeanClass().getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
 			throw new DataAccessException("Failed to istantiate bean class [" + beanPropertySet.getBeanClass() + "]",
 					e);
 		}

@@ -40,7 +40,7 @@ import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -64,7 +64,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testRefresh() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+		PropertyBox value = PropertyBox.builder(SET1).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -83,12 +83,12 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 		ObjectId oid = result.getFirstInsertedKey(ObjectId.class).orElse(null);
 		assertNotNull(oid);
 
-		value.setValue(STR, "modified");
+		value.setValue(STR1, "modified");
 		value.setValue(ENM, EnumValue.THIRD);
 		value.setValue(NBL, false);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals("modified", value.getValue(STR));
+		assertEquals("modified", value.getValue(STR1));
 		assertEquals(EnumValue.THIRD, value.getValue(ENM));
 		assertFalse(value.getValue(NBL));
 
@@ -97,7 +97,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
+		assertEquals(TestValues.STR1, value.getValue(STR1));
 		assertEquals(TestValues.BOOL, value.getValue(BOOL));
 		assertEquals(TestValues.INT, value.getValue(INT));
 		assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -126,7 +126,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 	@Test(expected = DataAccessException.class)
 	public void testRefreshMissingId() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
+		PropertyBox value = PropertyBox.builder(SET1).set(STR1, TestValues.STR1).build();
 
 		getDatastore().refresh(TARGET, value);
 

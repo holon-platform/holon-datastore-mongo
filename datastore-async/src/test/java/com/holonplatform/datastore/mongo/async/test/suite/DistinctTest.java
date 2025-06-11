@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,9 +33,9 @@ public class DistinctTest extends AbstractDatastoreOperationTest {
 	public void testDistinct() {
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(STR2, "v2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(STR2, "v2").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(INT, 1).set(STR2, "v2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(INT, 2).set(STR2, "v1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(STR2, "v2").build()).execute()
 				.thenAccept(r -> assertEquals(3, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().query().target(TARGET).distinct().list(INT)).thenAccept(vals -> {
 					assertNotNull(vals);
@@ -49,7 +49,7 @@ public class DistinctTest extends AbstractDatastoreOperationTest {
 					assertTrue(svals.contains("v2"));
 				})
 				.thenCompose(
-						v -> getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute())
+						v -> getDatastore().bulkDelete(TARGET).filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(3, count);

@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.core.internal.resolver.projection;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import org.bson.conversions.Bson;
 

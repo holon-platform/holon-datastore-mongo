@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.core.internal.resolver;
 
 import java.util.Optional;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.datastore.mongo.core.BsonFilter;

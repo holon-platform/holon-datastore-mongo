@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;
@@ -32,7 +32,7 @@ public class DeleteTest extends AbstractDatastoreOperationTest {
 	public void testDelete() {
 
 		final ObjectId oid = new ObjectId();
-		final PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+		final PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).build();
 
 		long count = getDatastore().insert(TARGET, value).thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(v -> getDatastore().query(TARGET).filter(ID.eq(oid)).count())

@@ -20,7 +20,7 @@ import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 
@@ -36,11 +36,11 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testTemporalFunctionFilters() {
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
 						.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
 						.set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS).set(LTM, TestValues.U_LTM).build())
 				.execute();
 		assertEquals(3, result.getAffectedCount());
@@ -80,7 +80,7 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 		count = getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count();
 		assertEquals(2, count);
 
-		result = getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute();
+		result = getDatastore().bulkDelete(TARGET).filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute();
 		assertEquals(3, result.getAffectedCount());
 
 	}

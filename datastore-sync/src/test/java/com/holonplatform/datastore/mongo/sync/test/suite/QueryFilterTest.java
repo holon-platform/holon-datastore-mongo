@@ -23,7 +23,7 @@ import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR2;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
@@ -53,11 +53,11 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid2 = new ObjectId();
 		final ObjectId oid3 = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").set(INT, 1).build();
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "One").set(INT, 1).build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 
-		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").set(INT, 2).build();
+		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "Two").set(INT, 2).build();
 		result = getDatastore().insert(TARGET, value2);
 		assertEquals(1, result.getAffectedCount());
 
@@ -65,46 +65,46 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 		result = getDatastore().insert(TARGET, value3);
 		assertEquals(1, result.getAffectedCount());
 
-		long count = getDatastore().query().target(TARGET).filter(STR.eq("One")).count();
+		long count = getDatastore().query().target(TARGET).filter(STR1.eq("One")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.eq("One").not()).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.eq("One").not()).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.neq("Two")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.neq("Two")).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.isNotNull()).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.isNotNull()).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.isNull()).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.isNull()).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.isNotNull().and(STR.neq("Two"))).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.isNotNull().and(STR1.neq("Two"))).count();
 		assertEquals(1, count);
 
 		count = getDatastore().query().target(TARGET).filter(DBL.isNull()).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.endsWith("x")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.endsWith("x")).count();
 		assertEquals(0, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.contains("w")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.contains("w")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.containsIgnoreCase("O")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.containsIgnoreCase("O")).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.startsWith("O")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.startsWith("O")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.startsWithIgnoreCase("t")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.startsWithIgnoreCase("t")).count();
 		assertEquals(1, count);
 
 		count = getDatastore().query().target(TARGET).filter(STR2.startsWithIgnoreCase("+")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(TARGET).filter(STR.startsWithIgnoreCase("o")).count();
+		count = getDatastore().query().target(TARGET).filter(STR1.startsWithIgnoreCase("o")).count();
 		assertEquals(1, count);
 
 		count = getDatastore().query().target(TARGET).filter(DBL.gt(7d)).count();
@@ -128,7 +128,7 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 		count = getDatastore().query().target(TARGET).filter(INT.eq(1).or(INT.eq(2))).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(TARGET).filter(INT.eq(1).and(STR.eq("One"))).count();
+		count = getDatastore().query().target(TARGET).filter(INT.eq(1).and(STR1.eq("One"))).count();
 		assertEquals(1, count);
 
 		result = getDatastore().delete(TARGET, value1);
@@ -145,13 +145,13 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid1 = new ObjectId();
 		final ObjectId oid2 = new ObjectId();
 
-		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").set(DAT, TestValues.DAT)
+		PropertyBox value1 = PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "One").set(DAT, TestValues.DAT)
 				.set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM)
 				.build();
 		OperationResult result = getDatastore().insert(TARGET, value1);
 		assertEquals(1, result.getAffectedCount());
 
-		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").set(DAT, TestValues.U_DAT)
+		PropertyBox value2 = PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "Two").set(DAT, TestValues.U_DAT)
 				.set(TMS, TestValues.U_TMS).set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS)
 				.set(LTM, TestValues.U_LTM).build();
 		result = getDatastore().insert(TARGET, value2);

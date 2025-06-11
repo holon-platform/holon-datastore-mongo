@@ -20,7 +20,7 @@ import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 
@@ -35,11 +35,11 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testTemporalFunctionFilters() {
 
 		long count = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
 						.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM).build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
 						.build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(DAT, TestValues.U_DAT).set(TMS, TestValues.U_TMS)
 						.set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS).set(LTM, TestValues.U_LTM).build())
 				.execute().thenAccept(r -> assertEquals(3, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(LDAT.year().eq(2018)).count())
@@ -69,7 +69,7 @@ public class TemporalFunctionsTest extends AbstractDatastoreOperationTest {
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(TMS.year().in(2018, 2019)).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
 				.thenCompose(
-						x -> getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute())
+						x -> getDatastore().bulkDelete(TARGET).filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
 
 		assertEquals(3, count);

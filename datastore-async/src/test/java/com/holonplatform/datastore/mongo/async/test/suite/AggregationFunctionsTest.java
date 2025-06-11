@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.DBL;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,9 +34,9 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 	public void testAggregationFunctions() {
 
 		OperationResult result = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft2").set(INT, 2).set(STR2, "v2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft1").set(INT, 1).set(DBL, 1d).set(STR2, "v1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft2").set(INT, 2).set(STR2, "v2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "tmpft3").set(DBL, 2d).set(STR2, "v1").build()).execute()
 				.thenAccept(r -> assertEquals(3, r.getAffectedCount())).thenAccept(v -> {
 					Integer mv = getDatastore().query().target(TARGET).findOne(INT.max()).toCompletableFuture().join()
 							.orElse(null);
@@ -73,7 +73,7 @@ public class AggregationFunctionsTest extends AbstractDatastoreOperationTest {
 					assertNotNull(ct);
 					assertEquals(Long.valueOf(2), ct);
 				}).thenCompose(v -> {
-					return getDatastore().bulkDelete(TARGET).filter(STR.in("tmpft1", "tmpft2", "tmpft3")).execute();
+					return getDatastore().bulkDelete(TARGET).filter(STR1.in("tmpft1", "tmpft2", "tmpft3")).execute();
 				}).toCompletableFuture().join();
 
 		assertEquals(3, result.getAffectedCount());

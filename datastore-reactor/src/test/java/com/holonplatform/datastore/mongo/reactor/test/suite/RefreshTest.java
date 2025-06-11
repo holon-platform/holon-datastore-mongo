@@ -40,7 +40,7 @@ import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTMS
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -66,7 +66,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testRefresh() {
 
-		final Mono<Long> op = getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR)
+		final Mono<Long> op = getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(STR1, TestValues.STR1)
 				.set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 				.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD)
 				.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT)
@@ -85,7 +85,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 					return oid;
 				}).map(oid -> {
 
-					PropertyBox v2 = PropertyBox.builder(SET1).set(ID, oid).set(STR, "modified")
+					PropertyBox v2 = PropertyBox.builder(SET1).set(ID, oid).set(STR1, "modified")
 							.set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG)
 							.set(DBL, TestValues.DBL).set(FLT, TestValues.FLT).set(SHR, TestValues.SHR)
 							.set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, EnumValue.THIRD)
@@ -96,7 +96,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 							.set(C_ENM, TestValues.C_ENM).set(C_LNG, TestValues.C_LNG).set(NBL, false).build();
 
 					assertEquals(oid, v2.getValue(ID));
-					assertEquals("modified", v2.getValue(STR));
+					assertEquals("modified", v2.getValue(STR1));
 					assertEquals(EnumValue.THIRD, v2.getValue(ENM));
 					assertFalse(v2.getValue(NBL));
 
@@ -105,7 +105,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 
 					assertNotNull(value);
 
-					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.STR1, value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -135,7 +135,7 @@ public class RefreshTest extends AbstractDatastoreOperationTest {
 
 	@Test(expected = DataAccessException.class)
 	public void testRefreshMissingId() {
-		getDatastore().refresh(TARGET, PropertyBox.builder(SET1).set(STR, TestValues.STR).build()).block();
+		getDatastore().refresh(TARGET, PropertyBox.builder(SET1).set(STR1, TestValues.STR1).build()).block();
 	}
 
 }

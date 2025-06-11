@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import org.bson.Document;
 

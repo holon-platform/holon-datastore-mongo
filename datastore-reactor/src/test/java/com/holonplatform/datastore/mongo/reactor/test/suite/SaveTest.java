@@ -36,7 +36,7 @@ import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.LTMS
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.NBL;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -60,7 +60,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 	public void testSaveNoId() {
 
 		final Mono<Long> op = getDatastore().save(TARGET,
-				PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL).set(INT, TestValues.INT)
+				PropertyBox.builder(SET1).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL).set(INT, TestValues.INT)
 						.set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 						.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD)
 						.set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
@@ -79,7 +79,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 
 					return oid;
 				}).flatMap(oid -> getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1)).map(value -> {
-					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.STR1, value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -113,7 +113,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 		ObjectId oid = new ObjectId();
 
 		final Mono<Long> op = getDatastore().save(TARGET, PropertyBox.builder(SET1).set(ID, oid)
-				.set(STR, TestValues.STR).set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG)
+				.set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL).set(INT, TestValues.INT).set(LNG, TestValues.LNG)
 				.set(DBL, TestValues.DBL).set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 				.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT).set(TMS, TestValues.TMS)
 				.set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS).set(LTM, TestValues.LTM)
@@ -132,7 +132,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 					return oidx;
 				}).flatMap(oidx -> getDatastore().query(TARGET).filter(ID.eq(oidx)).findOne(SET1)).map(value -> {
 					assertEquals(oid, value.getValue(ID));
-					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.STR1, value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -167,7 +167,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 
 		final Mono<Long> op = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -177,7 +177,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 								.set(NBL, true).build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().save(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, "upd").set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, "upd").set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -190,7 +190,7 @@ public class SaveTest extends AbstractDatastoreOperationTest {
 					assertEquals(0, result.getInsertedKeys().size());
 				}).then(getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1)).map(value -> {
 					assertEquals(oid, value.getValue(ID));
-					assertEquals("upd", value.getValue(STR));
+					assertEquals("upd", value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));

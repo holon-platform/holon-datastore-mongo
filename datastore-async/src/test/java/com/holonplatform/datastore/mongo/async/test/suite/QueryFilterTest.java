@@ -23,7 +23,7 @@ import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LDAT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTM;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.LTMS;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.TMS;
 import static org.junit.Assert.assertEquals;
@@ -52,42 +52,42 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid3 = new ObjectId();
 
 		long count = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").set(INT, 1).build())
+				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "One").set(INT, 1).build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").set(INT, 2).build()))
+						PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "Two").set(INT, 2).build()))
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().insert(TARGET,
 						PropertyBox.builder(SET1).set(ID, oid3).set(DBL, 7.5d).set(STR2, "+20").build()))
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.eq("One")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.eq("One")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.eq("One").not()).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.eq("One").not()).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.neq("Two")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.neq("Two")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.isNotNull()).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.isNotNull()).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.isNull()).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.isNull()).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
 				.thenCompose(
-						x -> getDatastore().query().target(TARGET).filter(STR.isNotNull().and(STR.neq("Two"))).count())
+						x -> getDatastore().query().target(TARGET).filter(STR1.isNotNull().and(STR1.neq("Two"))).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(DBL.isNull()).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.endsWith("x")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.endsWith("x")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(0), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.contains("w")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.contains("w")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.containsIgnoreCase("O")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.containsIgnoreCase("O")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.startsWith("O")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.startsWith("O")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.startsWithIgnoreCase("t")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.startsWithIgnoreCase("t")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR2.startsWithIgnoreCase("+")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.startsWithIgnoreCase("o")).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.startsWithIgnoreCase("o")).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(DBL.gt(7d)).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
@@ -104,7 +104,7 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 				.thenAccept(c -> assertEquals(Long.valueOf(0), c))
 				.thenCompose(x -> getDatastore().query().target(TARGET).filter(INT.eq(1).or(INT.eq(2))).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(2), c))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(INT.eq(1).and(STR.eq("One"))).count())
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(INT.eq(1).and(STR1.eq("One"))).count())
 				.thenAccept(c -> assertEquals(Long.valueOf(1), c))
 				.thenCompose(x -> getDatastore().bulkDelete(TARGET).filter(ID.in(oid1, oid2, oid3)).execute())
 				.thenApply(r -> r.getAffectedCount()).toCompletableFuture().join();
@@ -120,12 +120,12 @@ public class QueryFilterTest extends AbstractDatastoreOperationTest {
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").set(DAT, TestValues.DAT)
+						PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "One").set(DAT, TestValues.DAT)
 								.set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
 								.set(LTM, TestValues.LTM).build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
 				.thenCompose(x -> getDatastore().insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").set(DAT, TestValues.U_DAT)
+						PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "Two").set(DAT, TestValues.U_DAT)
 								.set(TMS, TestValues.U_TMS).set(LDAT, TestValues.U_LDAT).set(LTMS, TestValues.U_LTMS)
 								.set(LTM, TestValues.U_LTM).build()))
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount())).thenCompose(x -> {

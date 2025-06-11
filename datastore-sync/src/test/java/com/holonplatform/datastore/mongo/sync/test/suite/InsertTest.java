@@ -58,7 +58,7 @@ import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET7;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET8;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.TMS;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.VRT;
 import static org.junit.Assert.assertEquals;
@@ -87,7 +87,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -108,7 +108,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
+		assertEquals(TestValues.STR1, value.getValue(STR1));
 		assertEquals(TestValues.BOOL, value.getValue(BOOL));
 		assertEquals(TestValues.INT, value.getValue(INT));
 		assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -133,7 +133,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertEquals(TestValues.C_ENM, value.getValue(C_ENM));
 		assertEquals(TestValues.C_LNG, value.getValue(C_LNG));
 		assertTrue(value.getValue(NBL));
-		assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+		assertEquals("STR1:" + TestValues.STR1, value.getValue(VRT));
 
 		getDatastore().delete(TARGET, value);
 		count = getDatastore().query(TARGET).filter(ID.eq(oid)).count();
@@ -145,7 +145,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 	public void testInsertNulls() {
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+		PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).build();
 
 		OperationResult result = getDatastore().insert(TARGET, value);
 
@@ -155,7 +155,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
+		assertEquals(TestValues.STR1, value.getValue(STR1));
 		assertFalse(value.getValueIfPresent(BOOL).isPresent());
 		assertFalse(value.getValueIfPresent(INT).isPresent());
 		assertFalse(value.getValueIfPresent(LNG).isPresent());
@@ -184,7 +184,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testInsertOid() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+		PropertyBox value = PropertyBox.builder(SET1).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 				.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL).set(FLT, TestValues.FLT)
 				.set(SHR, TestValues.SHR).set(BYT, TestValues.BYT).set(BGD, TestValues.BGD).set(ENM, TestValues.ENM)
 				.set(DAT, TestValues.DAT).set(TMS, TestValues.TMS).set(LDAT, TestValues.LDAT).set(LTMS, TestValues.LTMS)
@@ -208,7 +208,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals(TestValues.STR, value.getValue(STR));
+		assertEquals(TestValues.STR1, value.getValue(STR1));
 		assertEquals(TestValues.BOOL, value.getValue(BOOL));
 		assertEquals(TestValues.INT, value.getValue(INT));
 		assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -229,7 +229,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertTrue(Arrays.equals(TestValues.A_CHR, value.getValue(A_CHR)));
 		assertTrue(Arrays.equals(TestValues.A_BYT, value.getValue(A_BYT)));
 		assertTrue(value.getValue(NBL));
-		assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+		assertEquals("STR1:" + TestValues.STR1, value.getValue(VRT));
 
 		result = getDatastore().delete(TARGET, value);
 		assertEquals(1, result.getAffectedCount());
@@ -241,7 +241,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET4).set(ID4, oid.toString()).set(STR, TestValues.STR).build();
+		PropertyBox value = PropertyBox.builder(SET4).set(ID4, oid.toString()).set(STR1, TestValues.STR1).build();
 		OperationResult result = getDatastore().insert(TARGET, value);
 		assertEquals(1, result.getAffectedCount());
 
@@ -252,7 +252,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testInsertBringBackIdType() {
 
-		PropertyBox value = PropertyBox.builder(SET4).set(STR, TestValues.STR).build();
+		PropertyBox value = PropertyBox.builder(SET4).set(STR1, TestValues.STR1).build();
 		OperationResult result = getDatastore().insert(TARGET, value);
 
 		assertEquals(1, result.getAffectedCount());
@@ -264,7 +264,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		result = getDatastore().bulkDelete(TARGET).filter(ID4.eq(oid)).execute();
 		assertEquals(1, result.getAffectedCount());
 
-		value = PropertyBox.builder(SET4).set(STR, TestValues.STR).build();
+		value = PropertyBox.builder(SET4).set(STR1, TestValues.STR1).build();
 		result = getDatastore().insert(TARGET, value, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
 
 		assertEquals(1, result.getAffectedCount());
@@ -284,7 +284,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testBringBackIds() {
 
-		PropertyBox value = PropertyBox.builder(SET1).set(STR, TestValues.STR).build();
+		PropertyBox value = PropertyBox.builder(SET1).set(STR1, TestValues.STR1).build();
 
 		OperationResult result = getDatastore().insert(TARGET, value, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
 
@@ -307,7 +307,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 		final ObjectId oid = new ObjectId();
 
-		PropertyBox value = PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox value = PropertyBox.builder(SET6).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, false).set(N2_V1, 52).set(N2_V2, "n2v2")
 				.set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
 
@@ -318,7 +318,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals("testn", value.getValue(STR));
+		assertEquals("testn", value.getValue(STR1));
 		assertEquals(EnumValue.FIRST, value.getValue(ENM));
 		assertEquals("n1v1", value.getValue(N1_V1));
 		assertEquals("n1v2", value.getValue(N1_V2));
@@ -339,7 +339,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 
 		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "nestedv1").set(NESTED_V2, "nestedv2")
 				.build();
-		PropertyBox value = PropertyBox.builder(SET7).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox value = PropertyBox.builder(SET7).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(NESTED, nested).build();
 
 		OperationResult result = getDatastore().insert(TARGET, value);
@@ -349,7 +349,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals("testn", value.getValue(STR));
+		assertEquals("testn", value.getValue(STR1));
 		assertEquals(EnumValue.FIRST, value.getValue(ENM));
 
 		nested = value.getValue(NESTED);
@@ -369,7 +369,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid = new ObjectId();
 
 		PropertyBox nested = PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n1v1").set(NESTED_V2, "n1v2").build();
-		PropertyBox value = PropertyBox.builder(SET8).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+		PropertyBox value = PropertyBox.builder(SET8).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 				.set(NESTED, nested).set(N2_V1, 52).set(N2_V2, "n2v2").set(N3_V1, "n3v1").set(N3_V2, 12.97d).build();
 
 		OperationResult result = getDatastore().insert(TARGET, value);
@@ -379,7 +379,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals("testn", value.getValue(STR));
+		assertEquals("testn", value.getValue(STR1));
 		assertEquals(EnumValue.FIRST, value.getValue(ENM));
 		assertEquals(Integer.valueOf(52), value.getValue(N2_V1));
 		assertEquals("n2v2", value.getValue(N2_V2));
@@ -406,7 +406,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		nesteds.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n2v1").set(NESTED_V2, "n2v2").build());
 		nesteds.add(PropertyBox.builder(NESTED_SET).set(NESTED_V1, "n3v1").set(NESTED_V2, "n3v2").build());
 
-		PropertyBox value = PropertyBox.builder(SET10).set(ID, oid).set(STR, "testnpb").set(C_PBX, nesteds).build();
+		PropertyBox value = PropertyBox.builder(SET10).set(ID, oid).set(STR1, "testnpb").set(C_PBX, nesteds).build();
 
 		OperationResult result = getDatastore().insert(TARGET, value);
 		assertEquals(1, result.getAffectedCount());
@@ -415,7 +415,7 @@ public class InsertTest extends AbstractDatastoreOperationTest {
 		assertNotNull(value);
 
 		assertEquals(oid, value.getValue(ID));
-		assertEquals("testnpb", value.getValue(STR));
+		assertEquals("testnpb", value.getValue(STR1));
 
 		List<PropertyBox> nvs = value.getValue(C_PBX);
 		assertNotNull(nvs);

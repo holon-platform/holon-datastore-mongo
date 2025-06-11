@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import org.bson.BsonTimestamp;
 import org.bson.types.Binary;

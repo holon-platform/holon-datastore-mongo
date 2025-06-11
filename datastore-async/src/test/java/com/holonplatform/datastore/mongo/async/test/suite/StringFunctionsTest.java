@@ -18,7 +18,7 @@ package com.holonplatform.datastore.mongo.async.test.suite;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,15 +34,15 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testLower() {
 
-		final Property<?> LSTR = STR.lower();
+		final Property<?> LSTR = STR1.lower();
 
 		final ObjectId oid = new ObjectId();
 
 		long count = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).set(STR2, "TEST").build())
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).set(STR2, "TEST").build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.lower()))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.lower()))
 				.thenApply(r -> r.orElse(null)).thenAccept(str -> {
 					assertNotNull(str);
 					assertEquals("one", str);
@@ -51,7 +51,7 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 					assertNotNull(pb);
 					assertEquals("one", pb.getValue(LSTR));
 					assertEquals(Integer.valueOf(1), pb.getValue(INT));
-				}).thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.lower().eq("one")).findOne(ID))
+				}).thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.lower().eq("one")).findOne(ID))
 				.thenApply(r -> r.orElse(null)).thenAccept(id -> {
 					assertNotNull(id);
 					assertEquals(oid, id);
@@ -68,13 +68,13 @@ public class StringFunctionsTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid = new ObjectId();
 
 		long count = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR, "One").set(INT, 1).build())
+				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid).set(STR1, "One").set(INT, 1).build())
 				.thenAccept(r -> assertEquals(1, r.getAffectedCount()))
-				.thenCompose(x -> getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR.upper()))
+				.thenCompose(x -> getDatastore().query().target(TARGET).filter(ID.eq(oid)).findOne(STR1.upper()))
 				.thenApply(r -> r.orElse(null)).thenAccept(str -> {
 					assertNotNull(str);
 					assertEquals("ONE", str);
-				}).thenCompose(x -> getDatastore().query().target(TARGET).filter(STR.upper().eq("ONE")).findOne(ID))
+				}).thenCompose(x -> getDatastore().query().target(TARGET).filter(STR1.upper().eq("ONE")).findOne(ID))
 				.thenApply(r -> r.orElse(null)).thenAccept(id -> {
 					assertNotNull(id);
 					assertEquals(oid, id);

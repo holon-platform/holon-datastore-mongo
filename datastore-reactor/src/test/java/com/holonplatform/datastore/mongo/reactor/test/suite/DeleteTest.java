@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class DeleteTest extends AbstractDatastoreOperationTest {
 	public void testDelete() {
 
 		final ObjectId oid = new ObjectId();
-		final PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).build();
+		final PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).build();
 
 		final Flux<Long> op = getDatastore().insert(TARGET, value).map(r -> r.getAffectedCount())
 				.concatWith(getDatastore().query(TARGET).filter(ID.eq(oid)).count())

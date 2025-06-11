@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.reactor.test.suite;
 
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.INT;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -41,19 +41,19 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		final Sum<Integer> SUM = INT.sum();
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g3").set(INT, 3).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 9).build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 18).build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g3").set(INT, 3).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 9).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 18).build()).execute()
 				.doOnSuccess(r -> assertEquals(5, r.getAffectedCount()))
-				.then(getDatastore().query(TARGET).aggregate(STR).list(INT.sum())).doOnSuccess(values -> {
+				.then(getDatastore().query(TARGET).aggregate(STR1).list(INT.sum())).doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(3, values.size());
 					assertTrue(values.contains(Integer.valueOf(10)));
 					assertTrue(values.contains(Integer.valueOf(20)));
 					assertTrue(values.contains(Integer.valueOf(3)));
-				}).then(getDatastore().query(TARGET).filter(STR.in("g1", "g2")).aggregate(STR).list(INT.sum()))
+				}).then(getDatastore().query(TARGET).filter(STR1.in("g1", "g2")).aggregate(STR1).list(INT.sum()))
 				.doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(2, values.size());
@@ -61,26 +61,26 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 					assertTrue(values.contains(Integer.valueOf(20)));
 				})
 				.then(getDatastore().query(TARGET)
-						.aggregate(QueryAggregation.builder().path(STR).filter(SUM.gt(10)).build()).list(SUM))
+						.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.gt(10)).build()).list(SUM))
 				.doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(1, values.size());
 					assertTrue(values.contains(Integer.valueOf(20)));
 				})
 				.then(getDatastore().query(TARGET).filter(INT.lt(10))
-						.aggregate(QueryAggregation.builder().path(STR).filter(SUM.goe(10)).build()).list(SUM))
+						.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.goe(10)).build()).list(SUM))
 				.doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(1, values.size());
 					assertTrue(values.contains(Integer.valueOf(10)));
 				})
 				.then(getDatastore().query(TARGET)
-						.aggregate(QueryAggregation.builder().path(STR).filter(SUM.eq(3).or(SUM.loe(10))).build())
+						.aggregate(QueryAggregation.builder().path(STR1).filter(SUM.eq(3).or(SUM.loe(10))).build())
 						.list(SUM))
 				.doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(2, values.size());
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("g1", "g2", "g3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(5L).expectComplete().verify();
@@ -93,19 +93,19 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 		final Property<?> MSTR2 = STR2.max();
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).set(STR2, "mg1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 10).set(STR2, "mg2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 20).set(STR2, "mg3").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g1").set(INT, 1).set(STR2, "mg1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "g2").set(INT, 10).set(STR2, "mg2").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).set(STR2, "mg1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 10).set(STR2, "mg2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 20).set(STR2, "mg3").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g1").set(INT, 1).set(STR2, "mg1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "g2").set(INT, 10).set(STR2, "mg2").build()).execute()
 				.doOnSuccess(r -> assertEquals(5, r.getAffectedCount()))
-				.then(getDatastore().query(TARGET).aggregate(STR, INT).list(STR2.max())).doOnSuccess(values -> {
+				.then(getDatastore().query(TARGET).aggregate(STR1, INT).list(STR2.max())).doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(3, values.size());
 					assertTrue(values.contains("mg1"));
 					assertTrue(values.contains("mg2"));
 					assertTrue(values.contains("mg3"));
-				}).then(getDatastore().query(TARGET).aggregate(STR, INT).sort(STR.desc()).sort(INT.asc()).list(STR, INT,
+				}).then(getDatastore().query(TARGET).aggregate(STR1, INT).sort(STR1.desc()).sort(INT.asc()).list(STR1, INT,
 						MSTR2))
 				.doOnSuccess(pbs -> {
 					assertNotNull(pbs);
@@ -117,7 +117,7 @@ public class QueryAggregationTest extends AbstractDatastoreOperationTest {
 					assertEquals("mg3", pb.getValue(MSTR2));
 					pb = pbs.get(2);
 					assertEquals("mg1", pb.getValue(MSTR2));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("g1", "g2", "g3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("g1", "g2", "g3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(5L).expectComplete().verify();

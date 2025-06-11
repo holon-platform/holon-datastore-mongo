@@ -44,7 +44,7 @@ public interface ModelTest {
 
 	public static final PathProperty<ObjectId> ID = PathProperty.create("_id", ObjectId.class);
 
-	public static final StringProperty STR = StringProperty.create("str");
+	public static final StringProperty STR1 = StringProperty.create("str");
 	public static final StringProperty STR2 = StringProperty.create("str2");
 	public static final BooleanProperty BOOL = BooleanProperty.create("bool");
 	public static final NumericProperty<Integer> INT = NumericProperty.integerType("int");
@@ -80,9 +80,9 @@ public interface ModelTest {
 			.converter(PropertyValueConverter.numericBoolean(Integer.class));
 
 	public static final VirtualProperty<String> VRT = VirtualProperty.create(String.class,
-			pb -> "STR:" + pb.getValue(STR));
+			pb -> "STR1:" + pb.getValue(STR1));
 
-	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR, BYT,
+	public static final PropertySet<?> SET1 = PropertySet.of(ID, STR1, STR2, BOOL, INT, LNG, DBL, FLT, BGD, SHR, BYT,
 			ENM, DAT, TMS, LDAT, LTMS, LTM, A_STR, A_INT, A_ENM, A_CHR, A_BYT, C_STR, C_INT, C_ENM, C_LNG, NBL, VRT);
 
 	public static final PathProperty<EnumValue> ENM2 = PathProperty.create("enm2", EnumValue.class)
@@ -92,15 +92,15 @@ public interface ModelTest {
 
 	public static final PathProperty<ObjectId> ID3 = PathProperty.create("code", ObjectId.class);
 
-	public static final PropertySet<?> SET3 = PropertySet.builderOf(ID3, STR).withIdentifier(ID3).build();
+	public static final PropertySet<?> SET3 = PropertySet.builderOf(ID3, STR1).withIdentifier(ID3).build();
 
 	public static final StringProperty ID4 = StringProperty.create("code");
 
-	public static final PropertySet<?> SET4 = PropertySet.builderOf(ID4, STR).withIdentifier(ID4).build();
+	public static final PropertySet<?> SET4 = PropertySet.builderOf(ID4, STR1).withIdentifier(ID4).build();
 
 	public static final NumericProperty<BigInteger> ID5 = NumericProperty.bigIntegerType("code");
 
-	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR).withIdentifier(ID5).build();
+	public static final PropertySet<?> SET5 = PropertySet.builderOf(ID5, STR1).withIdentifier(ID5).build();
 
 	// nested
 
@@ -112,7 +112,7 @@ public interface ModelTest {
 	public static final StringProperty N3_V1 = StringProperty.create("n2.n3.v1");
 	public static final NumericProperty<Double> N3_V2 = NumericProperty.doubleType("n2.n3.v2");
 
-	public static final PropertySet<?> SET6 = PropertySet.of(ID, STR, ENM, N1_V1, N1_V2, N1_V3, N2_V1, N2_V2, N3_V1,
+	public static final PropertySet<?> SET6 = PropertySet.of(ID, STR1, ENM, N1_V1, N1_V2, N1_V3, N2_V1, N2_V2, N3_V1,
 			N3_V2);
 
 	public static final StringProperty NESTED_V1 = StringProperty.create("v1");
@@ -122,9 +122,9 @@ public interface ModelTest {
 
 	public static final PropertyBoxProperty NESTED = PropertyBoxProperty.create("n1", NESTED_SET);
 
-	public static final PropertySet<?> SET7 = PropertySet.of(ID, STR, ENM, NESTED);
+	public static final PropertySet<?> SET7 = PropertySet.of(ID, STR1, ENM, NESTED);
 
-	public static final PropertySet<?> SET8 = PropertySet.of(ID, STR, ENM, NESTED, N2_V1, N2_V2, N3_V1, N3_V2);
+	public static final PropertySet<?> SET8 = PropertySet.of(ID, STR1, ENM, NESTED, N2_V1, N2_V2, N3_V1, N3_V2);
 
 	// collections
 
@@ -132,12 +132,12 @@ public interface ModelTest {
 	public static final SetPathProperty<Integer> CP_SET = SetPathProperty.create("cpset", Integer.class);
 	public static final SetPathProperty<EnumValue> CP_ENM = SetPathProperty.create("cpenm", EnumValue.class);
 
-	public static final PropertySet<?> SET9 = PropertySet.of(ID, STR, CP_LIST, CP_SET, CP_ENM);
+	public static final PropertySet<?> SET9 = PropertySet.of(ID, STR1, CP_LIST, CP_SET, CP_ENM);
 
 	// collection of PropertyBox
 
 	public static final ListPathProperty<PropertyBox> C_PBX = ListPathProperty.propertyBox("cpbx", NESTED_SET);
 
-	public static final PropertySet<?> SET10 = PropertySet.of(ID, STR, C_PBX);
+	public static final PropertySet<?> SET10 = PropertySet.of(ID, STR1, C_PBX);
 
 }

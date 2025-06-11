@@ -17,7 +17,7 @@ package com.holonplatform.datastore.mongo.sync.test.suite;
 
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.ID;
 import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.SET1;
-import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.sync.test.data.ModelTest.STR1;
 import static org.junit.Assert.assertEquals;
 
 import org.bson.types.ObjectId;
@@ -35,7 +35,7 @@ public class TransactionalTest extends AbstractDatastoreOperationTest {
 
 			final ObjectId oid = new ObjectId();
 
-			PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR, "Test transactional insert").build();
+			PropertyBox value = PropertyBox.builder(SET1).set(ID, oid).set(STR1, "Test transactional insert").build();
 			OperationResult result = getDatastore().insert(TARGET, value);
 
 			assertEquals(1, result.getAffectedCount());

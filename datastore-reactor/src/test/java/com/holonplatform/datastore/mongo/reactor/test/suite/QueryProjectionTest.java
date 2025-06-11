@@ -54,7 +54,7 @@ import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET4
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET5;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SET6;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.SHR;
-import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.STR1;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.TMS;
 import static com.holonplatform.datastore.mongo.reactor.test.data.ModelTest.VRT;
 import static org.junit.Assert.assertEquals;
@@ -93,7 +93,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 
 		final Mono<Long> op = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -105,7 +105,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET1)).doOnSuccess(value -> {
 					assertEquals(oid, value.getValue(ID));
-					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.STR1, value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -130,10 +130,10 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertEquals(TestValues.C_ENM, value.getValue(C_ENM));
 					assertEquals(TestValues.C_LNG, value.getValue(C_LNG));
 					assertTrue(value.getValue(NBL));
-					assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+					assertEquals("STR1:" + TestValues.STR1, value.getValue(VRT));
 				})
 				.then(getDatastore().insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid2).set(STR, "str2").set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "str2").set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -150,7 +150,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					PropertyBox value = values.get(0);
 
 					assertEquals(oid, value.getValue(ID));
-					assertEquals(TestValues.STR, value.getValue(STR));
+					assertEquals(TestValues.STR1, value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -175,12 +175,12 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertEquals(TestValues.C_ENM, value.getValue(C_ENM));
 					assertEquals(TestValues.C_LNG, value.getValue(C_LNG));
 					assertTrue(value.getValue(NBL));
-					assertEquals("STR:" + TestValues.STR, value.getValue(VRT));
+					assertEquals("STR1:" + TestValues.STR1, value.getValue(VRT));
 
 					value = values.get(1);
 
 					assertEquals(oid2, value.getValue(ID));
-					assertEquals("str2", value.getValue(STR));
+					assertEquals("str2", value.getValue(STR1));
 					assertEquals(TestValues.BOOL, value.getValue(BOOL));
 					assertEquals(TestValues.INT, value.getValue(INT));
 					assertEquals(TestValues.LNG, value.getValue(LNG));
@@ -205,7 +205,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertEquals(TestValues.C_ENM, value.getValue(C_ENM));
 					assertEquals(TestValues.C_LNG, value.getValue(C_LNG));
 					assertTrue(value.getValue(NBL));
-					assertEquals("STR:str2", value.getValue(VRT));
+					assertEquals("STR1:str2", value.getValue(VRT));
 				}).then(getDatastore().bulkDelete(TARGET).filter(ID.eq(oid).or(ID.eq(oid2))).execute()
 						.map(r -> r.getAffectedCount()));
 
@@ -217,20 +217,20 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 	public void testPropertyProjection() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp1").set(INT, 1).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp2").set(INT, 2).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp3").set(INT, 3).build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp1").set(INT, 1).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp2").set(INT, 2).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp3").set(INT, 3).build()).execute()
 				.doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
-				.flatMapMany(x -> getDatastore().query(TARGET).sort(INT.asc()).stream(STR, INT)).collectList()
+				.flatMapMany(x -> getDatastore().query(TARGET).sort(INT.asc()).stream(STR1, INT)).collectList()
 				.doOnSuccess(values -> {
 					assertEquals(3, values.size());
-					assertEquals("bktfp1", values.get(0).getValue(STR));
+					assertEquals("bktfp1", values.get(0).getValue(STR1));
 					assertEquals(Integer.valueOf(1), values.get(0).getValue(INT));
-					assertEquals("bktfp2", values.get(1).getValue(STR));
+					assertEquals("bktfp2", values.get(1).getValue(STR1));
 					assertEquals(Integer.valueOf(2), values.get(1).getValue(INT));
-					assertEquals("bktfp3", values.get(2).getValue(STR));
+					assertEquals("bktfp3", values.get(2).getValue(STR1));
 					assertEquals(Integer.valueOf(3), values.get(2).getValue(INT));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("bktfp1", "bktfp2", "bktfp3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("bktfp1", "bktfp2", "bktfp3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
@@ -241,9 +241,9 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 	public void testLiteralProjection() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp1").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp2").build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp3").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp1").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp2").build())
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp3").build()).execute()
 				.doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).list(ConstantExpression.create(1))).doOnSuccess(literals -> {
 					assertEquals(3, literals.size());
@@ -255,7 +255,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					sliterals.forEach(l -> {
 						assertEquals("S", l);
 					});
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("bktfp1", "bktfp2", "bktfp3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("bktfp1", "bktfp2", "bktfp3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
@@ -265,11 +265,11 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 	public void testTemporalFunctionProjection() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp1").set(LDAT, LocalDate.of(2016, Month.JANUARY, 3))
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp1").set(LDAT, LocalDate.of(2016, Month.JANUARY, 3))
 						.set(LTMS, LocalDateTime.of(2016, Month.JANUARY, 3, 10, 30)).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp2").set(LDAT, LocalDate.of(2017, Month.FEBRUARY, 4))
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp2").set(LDAT, LocalDate.of(2017, Month.FEBRUARY, 4))
 						.set(LTMS, LocalDateTime.of(2016, Month.JANUARY, 3, 12, 30)).build())
-				.add(PropertyBox.builder(SET1).set(STR, "bktfp3").set(LDAT, LocalDate.of(2018, Month.MARCH, 5))
+				.add(PropertyBox.builder(SET1).set(STR1, "bktfp3").set(LDAT, LocalDate.of(2018, Month.MARCH, 5))
 						.set(LTMS, LocalDateTime.of(2016, Month.JANUARY, 3, 18, 30)).build())
 				.execute().doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).list(LDAT.year())).doOnSuccess(years -> {
@@ -292,7 +292,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertTrue(hours.contains(10));
 					assertTrue(hours.contains(12));
 					assertTrue(hours.contains(18));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("bktfp1", "bktfp2", "bktfp3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("bktfp1", "bktfp2", "bktfp3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
@@ -305,12 +305,12 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid = new ObjectId();
 
 		final Mono<Long> op = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET3).set(ID3, oid).set(STR, "test1").build())
+				.insert(TARGET, PropertyBox.builder(SET3).set(ID3, oid).set(STR1, "test1").build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).filter(ID3.eq(oid)).findOne(SET3)).doOnSuccess(value -> {
 					assertNotNull(value);
 					assertEquals(oid, value.getValue(ID3));
-					assertEquals("test1", value.getValue(STR));
+					assertEquals("test1", value.getValue(STR1));
 				}).then(getDatastore().bulkDelete(TARGET).filter(ID3.eq(oid)).execute().map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(1L).expectComplete().verify();
@@ -324,12 +324,12 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		final String code = oid.toHexString();
 
 		final Mono<Long> op = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET4).set(ID4, code).set(STR, "test1").build())
+				.insert(TARGET, PropertyBox.builder(SET4).set(ID4, code).set(STR1, "test1").build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).filter(ID4.eq(code)).findOne(SET4)).doOnSuccess(value -> {
 					assertNotNull(value);
 					assertEquals(code, value.getValue(ID4));
-					assertEquals("test1", value.getValue(STR));
+					assertEquals("test1", value.getValue(STR1));
 				})
 				.then(getDatastore().bulkDelete(TARGET).filter(ID4.eq(code)).execute().map(r -> r.getAffectedCount()));
 
@@ -344,12 +344,12 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		final BigInteger code = new BigInteger(oid.toHexString(), 16);
 
 		final Mono<Long> op = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET5).set(ID5, code).set(STR, "test1").build())
+				.insert(TARGET, PropertyBox.builder(SET5).set(ID5, code).set(STR1, "test1").build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).filter(ID5.eq(code)).findOne(SET5)).doOnSuccess(value -> {
 					assertNotNull(value);
 					assertEquals(code, value.getValue(ID5));
-					assertEquals("test1", value.getValue(STR));
+					assertEquals("test1", value.getValue(STR1));
 				})
 				.then(getDatastore().bulkDelete(TARGET).filter(ID5.eq(code)).execute().map(r -> r.getAffectedCount()));
 
@@ -361,17 +361,17 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 	public void testPropertyConversion() {
 
 		final Mono<Long> op = getDatastore().bulkInsert(TARGET, SET1)
-				.add(PropertyBox.builder(SET1).set(STR, "nbktfp1").set(NBL, true).build())
-				.add(PropertyBox.builder(SET1).set(STR, "nbktfp2").set(NBL, false).build())
-				.add(PropertyBox.builder(SET1).set(STR, "nbktfp3").build()).execute()
+				.add(PropertyBox.builder(SET1).set(STR1, "nbktfp1").set(NBL, true).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "nbktfp2").set(NBL, false).build())
+				.add(PropertyBox.builder(SET1).set(STR1, "nbktfp3").build()).execute()
 				.doOnSuccess(r -> assertEquals(3, r.getAffectedCount()))
-				.then(getDatastore().query().target(TARGET).sort(STR.asc()).list(NBL)).doOnSuccess(values -> {
+				.then(getDatastore().query().target(TARGET).sort(STR1.asc()).list(NBL)).doOnSuccess(values -> {
 					assertNotNull(values);
 					assertEquals(3, values.size());
 					assertEquals(Boolean.TRUE, values.get(0));
 					assertEquals(Boolean.FALSE, values.get(1));
 					assertEquals(Boolean.FALSE, values.get(2));
-				}).then(getDatastore().bulkDelete(TARGET).filter(STR.in("nbktfp1", "nbktfp2", "nbktfp3")).execute()
+				}).then(getDatastore().bulkDelete(TARGET).filter(STR1.in("nbktfp1", "nbktfp2", "nbktfp3")).execute()
 						.map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(3L).expectComplete().verify();
@@ -385,11 +385,11 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 		final ObjectId oid2 = new ObjectId();
 
 		final Mono<Long> op = getDatastore()
-				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid1).set(STR, "One").build())
+				.insert(TARGET, PropertyBox.builder(SET1).set(ID, oid1).set(STR1, "One").build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
-				.then(getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(ID, oid2).set(STR, "Two").build()))
+				.then(getDatastore().insert(TARGET, PropertyBox.builder(SET1).set(ID, oid2).set(STR1, "Two").build()))
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount())).then(getDatastore().query().target(TARGET)
-						.sort(STR.asc()).list(BeanProjection.of(TestProjectionBean.class)))
+						.sort(STR1.asc()).list(BeanProjection.of(TestProjectionBean.class)))
 				.doOnSuccess(results -> {
 					assertNotNull(results);
 					assertEquals(2, results.size());
@@ -397,7 +397,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertEquals("One", results.get(0).getText());
 					assertEquals(oid2.toHexString(), results.get(1).getId());
 					assertEquals("Two", results.get(1).getText());
-				}).then(getDatastore().query().target(TARGET).sort(STR.asc())
+				}).then(getDatastore().query().target(TARGET).sort(STR1.asc())
 						.list(BeanProjection.of(TestProjectionBean2.class)))
 				.doOnSuccess(results2 -> {
 					assertNotNull(results2);
@@ -419,14 +419,14 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 
 		final Mono<Long> op = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET6).set(ID, oid).set(STR, "testn").set(ENM, EnumValue.FIRST)
+						PropertyBox.builder(SET6).set(ID, oid).set(STR1, "testn").set(ENM, EnumValue.FIRST)
 								.set(N1_V1, "n1v1").set(N1_V2, "n1v2").set(N1_V3, true).set(N2_V1, 52)
 								.set(N2_V2, "n2v2").set(N3_V1, "n3v1").set(N3_V2, 12.97d).build())
 				.doOnSuccess(r -> assertEquals(1, r.getAffectedCount()))
 				.then(getDatastore().query(TARGET).filter(ID.eq(oid)).findOne(SET6)).doOnSuccess(value -> {
 					assertNotNull(value);
 					assertEquals(oid, value.getValue(ID));
-					assertEquals("testn", value.getValue(STR));
+					assertEquals("testn", value.getValue(STR1));
 					assertEquals(EnumValue.FIRST, value.getValue(ENM));
 					assertEquals("n1v1", value.getValue(N1_V1));
 					assertEquals("n1v2", value.getValue(N1_V2));
@@ -464,7 +464,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 
 		final Mono<Long> op = getDatastore()
 				.insert(TARGET,
-						PropertyBox.builder(SET1).set(ID, oid).set(STR, TestValues.STR).set(BOOL, TestValues.BOOL)
+						PropertyBox.builder(SET1).set(ID, oid).set(STR1, TestValues.STR1).set(BOOL, TestValues.BOOL)
 								.set(INT, TestValues.INT).set(LNG, TestValues.LNG).set(DBL, TestValues.DBL)
 								.set(FLT, TestValues.FLT).set(SHR, TestValues.SHR).set(BYT, TestValues.BYT)
 								.set(BGD, TestValues.BGD).set(ENM, TestValues.ENM).set(DAT, TestValues.DAT)
@@ -480,7 +480,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 					assertTrue(values.containsKey("_id"));
 					assertEquals(oid, values.get("_id"));
 					assertTrue(values.containsKey("str"));
-					assertEquals(TestValues.STR, values.get("str"));
+					assertEquals(TestValues.STR1, values.get("str"));
 				}).then(getDatastore().bulkDelete(TARGET).filter(ID.eq(oid)).execute().map(r -> r.getAffectedCount()));
 
 		StepVerifier.create(op).expectNext(1L).expectComplete().verify();
@@ -490,7 +490,7 @@ public class QueryProjectionTest extends AbstractDatastoreOperationTest {
 	@Test
 	public void testCountNone() {
 
-		final Mono<Long> op = getDatastore().query(TARGET).filter(STR.eq("--xxx---xxxx---xxx")).count()
+		final Mono<Long> op = getDatastore().query(TARGET).filter(STR1.eq("--xxx---xxxx---xxx")).count()
 				.doOnSuccess(r -> {
 					assertNotNull(r);
 				});

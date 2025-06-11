@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.mongo.async.test.expression;
 
 import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.INT;
-import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR;
+import static com.holonplatform.datastore.mongo.async.test.data.ModelTest.STR1;
 
 import java.util.Optional;
 
@@ -31,6 +31,6 @@ public class StrIntSort implements QuerySort {
 	}
 
 	public static final ExpressionResolver<QuerySort, QuerySort> RESOLVER = ExpressionResolver.create(StrIntSort.class,
-			QuerySort.class, (sort, ctx) -> Optional.of(STR.desc().and(INT.asc())));
+			QuerySort.class, (sort, ctx) -> Optional.of(STR1.desc().and(INT.asc())));
 
 }
